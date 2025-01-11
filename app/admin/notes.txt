@@ -1,0 +1,92 @@
+shadcn new download
+
+npx shadcn@latest add switch
+npx shadcn@latest add radio-group
+
+
+
+
+
+// para ma add tanan
+npx shadcn@latest add 
+Which components would you like to add? › Space to select. A to toggle all.
+Enter to submit.
+
+◯  accordion
+◯  alert
+◯  alert-dialog
+◯  aspect-ratio
+◯  avatar
+◯  badge
+◯  button
+◯  calendar
+◯  card
+◯  checkbox
+
+
+show alert how to use---------------------------------------------------------------------------
+  // const [alertMessage, setAlertMessage] = useState("");
+  // const [showAlert, setShowAlert] = useState(false);
+  // const [selectedId, setSelectedId] = useState(null);
+  // const handleShowAlert = (message) => {
+  // setAlertMessage(message);
+  //   setShowAlert(true);
+  // };
+  // const handleCloseAlert = (status) => {
+  //   if (status === 1) {
+  //     const filteredPosition = position.filter((_, index) => index !== indexToRemove);
+  //     setPosition(filteredPosition);
+  //     localStorage.setItem("employmentHistory", JSON.stringify(filteredPosition));
+  //   }
+  //   setShowAlert(false);
+  // };
+  // const handleRemoveList = (dutyId) => {
+  //   setSelectedId(dutyId);
+  //   handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+  // };
+  // <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+show alert how to use---------------------------------------------------------------------------
+
+
+
+
+data table how to use---------------------------------------------------------------------------
+import React from 'react';
+import DataTable from '@/app/my_components/DataTable';
+
+const ExamplePage = () => {
+  // Sample data
+  const data = [
+    { id: 1, name: 'John Doe', age: 30, email: 'john@example.com' },
+    { id: 2, name: 'Jane Smith', age: 25, email: 'jane@example.com' },
+    { id: 3, name: 'Bob Johnson', age: 35, email: 'bob@example.com' },
+    // ... add more data objects as needed
+  ];
+
+  // Define columns
+  const columns = [
+    { header: 'ID', accessor: 'id', sortable: true },
+    { header: 'Name', accessor: 'name', className: (row) => row.fullName === "Kobid" ? "bg-red-500" : "" },
+    { header: 'Age', accessor: 'age' },
+    { header: 'Email', accessor: 'email', hiddenOnMobile: true},
+    { 
+      header: 'Actions', 
+      cell: (row) => (
+        <button onClick={() => alert(`Edit user ${row.name}`)}>
+          Edit
+        </button>
+      )
+    },
+  ];
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">User Data</h1>
+      <DataTable columns={columns} data={data} itemsPerPage={5} />
+    </div>
+  );
+};
+
+export default ExamplePage;
+data table how to use---------------------------------------------------------------------------
+
