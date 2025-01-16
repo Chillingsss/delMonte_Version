@@ -812,7 +812,6 @@ export default function DashboardCandidates() {
     }, 2000);
   };
 
-
   useEffect(() => {
     const handleUserActivity = () => {
       setIsInactive(false);
@@ -1399,7 +1398,7 @@ export default function DashboardCandidates() {
                   >
                     {profile.candidateInformation?.cand_profPic ? (
                       <img
-                        src={`http://localhost/php-delmonte/api/uploads/${profile.candidateInformation.cand_profPic}`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -1653,7 +1652,7 @@ export default function DashboardCandidates() {
                     >
                       {profile.candidateInformation?.cand_profPic ? (
                         <img
-                          src={`http://localhost/php-delmonte/api/uploads/${profile.candidateInformation.cand_profPic}`}
+                          src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
@@ -1963,7 +1962,8 @@ export default function DashboardCandidates() {
           fetchNotification={fetchNotification}
           appliedJobs={appliedJobs}
           onClosedd={() => {
-            setIsModalOpen(false);b
+            setIsModalOpen(false);
+            b;
             removeData("jobId");
           }}
         />
