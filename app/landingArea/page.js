@@ -110,7 +110,11 @@ export default function LandingArea() {
   }
 
   useEffect(() => {
-    fetchJobs();
+    const timeout = setTimeout(() => {
+      fetchJobs();
+    }, 3000);
+
+    return () => clearTimeout(timeout);
   }, [job]);
 
   return (
@@ -153,8 +157,6 @@ export default function LandingArea() {
               </p>
             </div>
           </div>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
         ) : job.length === 0 ? (
           <p className="text-center text-gray-500">No jobs available</p>
         ) : (

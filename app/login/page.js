@@ -122,12 +122,11 @@ export default function Login(user) {
     }
 
     if (captchaInput !== captchaText) {
-      setFailedAttempts((prev) => prev + 1); // Increment failed attempts
+      setFailedAttempts((prev) => prev + 1);
       toast.error("Invalid credentials. Please try again.");
 
-      if (failedAttempts + 1 >= 3) {
-        // Check if attempts exceed 3
-        setIsLocked(true); // Lock the login
+      if (failedAttempts + 1 >= 4) {
+        setIsLocked(true);
         storeDataInLocalStorage("isLocked", "true");
         storeDataInLocalStorage("lockoutTime", new Date().getTime().toString());
         console.log("User locked out at:", new Date().toLocaleString()); // Log the lockout time
@@ -138,11 +137,11 @@ export default function Login(user) {
         setShowForgotPasswordModal(true);
 
         setTimeout(() => {
-          setIsLocked(false); // Unlock after 5 minutes
-          setFailedAttempts(0); // Reset attempts
+          setIsLocked(false);
+          setFailedAttempts(0);
           storeDataInLocalStorage("isLocked", "false");
           storeDataInLocalStorage("lockoutTime", null);
-        }, 300000); // 5 minutes in milliseconds
+        }, 300000);
       }
 
       generateCaptcha();
@@ -210,7 +209,6 @@ export default function Login(user) {
           );
         }
 
-        // Redirect based on user type
         setTimeout(() => {
           if (user.adm_userLevel === "100.0") {
             router.push("/admin/dashboard");

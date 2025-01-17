@@ -159,7 +159,7 @@ const UpdateEmail = ({
       formData.append(
         "json",
         JSON.stringify({
-          newEmail: newEmail, // Updated key to 'newEmail'
+          newEmail: newEmail, // Updated key to 'newEmail'j
         })
       );
 

@@ -227,6 +227,9 @@ export function removeData(key) {
     if (broadcastChannel) {
       broadcastChannel.postMessage({ key, value: null });
     }
+
+    // Always call handleSessionTampering after removing data from sessionStorage
+    handleSessionTampering();
   } catch (error) {
     console.error(`Error removing data for key ${key}:`, error);
     handleSessionTampering();
@@ -485,26 +488,29 @@ export function removeDataFromCookie(key) {
 }
 
 function handleSessionTampering() {
-  console.warn("Invalid session data detected");
+  console.warn(
+    "Possible session tampering detected. Clearing all session and cookie data."
+  );
 
-  // Clear all session storage
+  // Clear sessionStorage
   window.sessionStorage.clear();
 
-  // Clear all cookies
+  // Clear localStorage
+  window.localStorage.clear();
+
+  // Clear cookies
   document.cookie.split(";").forEach((cookie) => {
     const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-    document.cookie = `${name}=;max-age=0;path=/;secure;samesite=Strict`;
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = `${name}=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT;secure;samesite=Strict`;
   });
 
-  // Broadcast the clear event to other tabs
   if (broadcastChannel) {
-    broadcastChannel.postMessage({ action: "clearAll" });
+    broadcastChannel.postMessage({ tamperingDetected: true });
   }
 
-  if (typeof window !== "undefined") {
-    window.location.href = "/";
-  }
+  // Optional: Redirect to a logout page or home page for re-authentication
+  window.location.href = "/login";
 }
 
 export function setupInactivityMonitoring() {

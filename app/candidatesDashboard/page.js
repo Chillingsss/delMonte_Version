@@ -882,8 +882,8 @@ export default function DashboardCandidates() {
                 id="search"
                 className={`block w-full px-4 py-2 rounded-2xl focus:outline-none focus:border-green-500 pl-10 ${
                   isDarkMode
-                    ? "bg-transparent text-gray-800"
-                    : "bg-transparent text-gray-800"
+                    ? "bg-transparent text-gray-200"
+                    : "bg-transparent text-gray-200"
                 }`}
                 placeholder="Search active jobs"
                 value={searchQuery}
@@ -1797,7 +1797,7 @@ export default function DashboardCandidates() {
               Please wait while we load your jobs
             </p>
           </div>
-        ) : filteredJobs.length === 0 ? (
+        ) : filteredJobs.length === 0 && searchQuery ? (
           <p
             className={`text-center ${
               isDarkMode ? "text-gray-400" : "text-gray-500"
@@ -1963,7 +1963,6 @@ export default function DashboardCandidates() {
           appliedJobs={appliedJobs}
           onClosedd={() => {
             setIsModalOpen(false);
-            b;
             removeData("jobId");
           }}
         />

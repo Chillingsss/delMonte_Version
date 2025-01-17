@@ -3433,7 +3433,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 {isSidebarOpen && (
                   <button
                     className={`text-4xl ${
-                      isDarkMode ? "text-white" : "text-gray-800"
+                      isDarkMode ? "text-white" : "text-gray-200"
                     }`}
                     onClick={() => setIsSidebarOpen(false)} // Close sidebar
                   >
