@@ -17,6 +17,7 @@ import {
 } from "../utils/storageUtils";
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { Input } from "@/components/ui/input";
+import { FcGoogle } from "react-icons/fc";
 import { lineSpinner } from "ldrs";
 
 lineSpinner.register();
@@ -404,9 +405,10 @@ export default function Login(user) {
             </button>
             <a
               href="http://localhost:3001/api/auth/google"
-              className="text-green-300 hover:underline slide-up mt-2 cursor-pointer"
+              className="flex items-center justify-center text-gray-800 hover:underline slide-up mt-4 cursor-pointer bg-white  font-semibold py-2 px-4 rounded-lg shadow-md"
             >
-              Login with Google
+              <FcGoogle className="mr-2" size={24} />
+              Continue with Google
             </a>
           </div>
         </div>
