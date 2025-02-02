@@ -10,6 +10,7 @@ import {
   removeDataFromCookie,
   removeDataFromSession,
   retrieveData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 import { FaArrowRight, FaBars } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
@@ -377,7 +378,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const jsonData = { cand_id: cand_id };
 
@@ -507,7 +508,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSavePersonalInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "updateCandidatePersonalInfo");
@@ -583,7 +584,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const updatedData = { ...editData, cand_id };
 
@@ -614,7 +615,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candidateId = retrieveData("user_id");
+      const candidateId = getDataFromSession("user_id");
 
       const updatedData = {
         candidateId: candidateId,
@@ -667,7 +668,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const candidateId = retrieveData("user_id");
+    const candidateId = getDataFromSession("user_id");
 
     const updatedData = {
       cand_id: candidateId,
@@ -713,7 +714,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const candidateId = retrieveData("user_id");
+    const candidateId = getDataFromSession("user_id");
 
     const updatedData = {
       candidateId: candidateId,
@@ -755,7 +756,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = retrieveData("user_id");
+    const cand_id = getDataFromSession("user_id");
 
     const updatedData = {
       cand_id: cand_id,
@@ -799,7 +800,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = retrieveData("user_id");
+    const cand_id = getDataFromSession("user_id");
 
     const updatedData = {
       cand_id: cand_id,
@@ -843,7 +844,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = retrieveData("user_id");
+    const cand_id = getDataFromSession("user_id");
 
     const updatedData = {
       cand_id: cand_id,
@@ -887,7 +888,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = retrieveData("user_id");
+    const cand_id = getDataFromSession("user_id");
 
     const updatedData = {
       cand_id: cand_id,
@@ -1377,12 +1378,27 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                             document.body.appendChild(cameraContainer);
 
                             // Get camera stream
-                            navigator.mediaDevices
-                              .getUserMedia({ video: true })
-                              .then((stream) => {
-                                video.srcObject = stream;
+                            const startCamera = () => {
+                              const handleSuccess = (stream) => {
+                                let objectUrl; // To store legacy object URL if needed
 
-                                // Handle capture
+                                // Handle both modern and legacy video sources
+                                if ("srcObject" in video) {
+                                  video.srcObject = stream;
+                                } else {
+                                  // Fallback for older browsers
+                                  objectUrl =
+                                    window.URL.createObjectURL(stream);
+                                  video.src = objectUrl;
+                                }
+
+                                // Ensure video plays and handle errors
+                                video.play().catch((err) => {
+                                  console.error("Error playing video:", err);
+                                  handleError(err);
+                                });
+
+                                // Handle capture button
                                 captureBtn.onclick = () => {
                                   canvas.width = video.videoWidth;
                                   canvas.height = video.videoHeight;
@@ -1390,43 +1406,44 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                                     .getContext("2d")
                                     .drawImage(video, 0, 0);
 
-                                  // Show preview
                                   previewImg.src =
                                     canvas.toDataURL("image/jpeg");
                                   video.classList.add("hidden");
                                   previewImg.classList.remove("hidden");
 
-                                  // Switch buttons
                                   captureBtn.classList.add("hidden");
                                   retakeBtn.classList.remove("hidden");
                                   usePhotoBtn.classList.remove("hidden");
                                 };
 
-                                // Handle retake
+                                // Cleanup function for both modern and legacy streams
+                                const cleanup = () => {
+                                  stream
+                                    .getTracks()
+                                    .forEach((track) => track.stop());
+                                  if (objectUrl) {
+                                    window.URL.revokeObjectURL(objectUrl);
+                                  }
+                                };
+
+                                // Handle retake button
                                 retakeBtn.onclick = () => {
                                   video.classList.remove("hidden");
                                   previewImg.classList.add("hidden");
-
-                                  // Switch buttons back
                                   captureBtn.classList.remove("hidden");
                                   retakeBtn.classList.add("hidden");
                                   usePhotoBtn.classList.add("hidden");
                                 };
 
-                                // Handle use photo
+                                // Handle use photo button
                                 usePhotoBtn.onclick = () => {
                                   canvas.toBlob((blob) => {
-                                    const timestamp = new Date().getTime();
-                                    const randomString = Math.random()
+                                    const filename = `camera-capture-${Date.now()}-${Math.random()
                                       .toString(36)
-                                      .substring(2, 8);
-                                    const filename = `camera-capture-${timestamp}-${randomString}.jpg`;
-
+                                      .substring(2, 8)}.jpg`;
                                     const file = new File([blob], filename, {
                                       type: "image/jpeg",
                                     });
-
-                                    console.log("Camera capture:", file); // Debug log
 
                                     setEditData((prev) => ({
                                       ...prev,
@@ -1436,10 +1453,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                                       },
                                     }));
 
-                                    // Cleanup
-                                    stream
-                                      .getTracks()
-                                      .forEach((track) => track.stop());
+                                    cleanup();
                                     cameraContainer.remove();
                                     document
                                       .getElementById("upload-options")
@@ -1447,24 +1461,62 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                                   }, "image/jpeg");
                                 };
 
-                                // Handle close
+                                // Handle close button
                                 closeBtn.onclick = () => {
-                                  stream
-                                    .getTracks()
-                                    .forEach((track) => track.stop());
+                                  cleanup();
                                   cameraContainer.remove();
                                   document
                                     .getElementById("upload-options")
                                     .classList.add("hidden");
                                 };
-                              })
-                              .catch((err) => {
-                                console.error("Error accessing camera:", err);
+                              };
+
+                              const handleError = (err) => {
+                                console.error("Camera Error:", err);
                                 alert(
-                                  "Could not access camera. Please make sure you have granted camera permissions."
+                                  "Camera access failed. Please ensure permissions are granted and try again."
                                 );
                                 cameraContainer.remove();
-                              });
+                              };
+
+                              // Feature detection with proper error handling
+                              try {
+                                if (navigator.mediaDevices?.getUserMedia) {
+                                  navigator.mediaDevices
+                                    .getUserMedia({ video: true })
+                                    .then(handleSuccess)
+                                    .catch(handleError);
+                                } else {
+                                  const legacyGetUserMedia =
+                                    navigator.getUserMedia ||
+                                    navigator.webkitGetUserMedia ||
+                                    navigator.mozGetUserMedia ||
+                                    navigator.msGetUserMedia;
+
+                                  if (legacyGetUserMedia) {
+                                    legacyGetUserMedia.call(
+                                      navigator,
+                                      { video: true },
+                                      handleSuccess,
+                                      handleError
+                                    );
+                                  } else {
+                                    throw new Error("Camera API not supported");
+                                  }
+                                }
+                              } catch (error) {
+                                alert(
+                                  "This browser doesn't support camera access. Please try modern browsers like Chrome, Firefox, or Edge."
+                                );
+                                console.error("Camera API Unavailable:", error);
+                                cameraContainer.remove();
+                              }
+                            };
+
+                            // Start camera with proper video element attributes
+                            // Make sure your HTML video element includes these attributes:
+                            // <video autoplay playsinline></video>
+                            startCamera();
                           }}
                           className={`w-full text-left px-4 py-2 text-sm cursor-pointer ${
                             isDarkMode
@@ -1516,7 +1568,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                           <input
                             id="file-upload"
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg, image/png, image/heic, image/heif"
                             className="hidden"
                             onChange={(e) => {
                               const file = e.target.files[0];
@@ -1566,8 +1618,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                                 editData.candidateInformation.cand_profPic
                               )
                             : editData.candidateInformation?.cand_profPic
-                            ? `http://localhost/php-delmonte/api/uploads/${editData.candidateInformation.cand_profPic}`
-                            : `http://localhost/php-delmonte/api/uploads/${profile.candidateInformation.cand_profPic}`
+                            ? `${process.env.NEXT_PUBLIC_API_URL}uploads/${editData.candidateInformation.cand_profPic}`
+                            : `${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`
                         }
                         alt="Profile Preview"
                         className="w-full h-full object-cover rounded-full border-4 border-green-500"
@@ -2857,7 +2909,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                             Training Image:
                           </label>
                           <img
-                            src={`http://localhost/php-delmonte/api/uploads/${train.training_image}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${train.training_image}`}
                             alt={train.perT_name}
                             className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => {
@@ -3295,7 +3347,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                             Resume Image:
                           </label>
                           <img
-                            src={`http://localhost/php-delmonte/api/uploads/${res.canres_image}`}
+                            src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_image}`}
                             alt={res.canres_name}
                             className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => {
@@ -3433,7 +3485,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 {isSidebarOpen && (
                   <button
                     className={`text-4xl ${
-                      isDarkMode ? "text-white" : "text-gray-200"
+                      isDarkMode ? "text-white" : "text-gray-800"
                     }`}
                     onClick={() => setIsSidebarOpen(false)} // Close sidebar
                   >
@@ -3527,7 +3579,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
         >
           <div className="relative max-w-6xl max-h-[90vh] p-2">
             <img
-              src={`http://localhost/php-delmonte/api/uploads/${selectedTrainingImage}`}
+              src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${selectedTrainingImage}`}
               alt="Training"
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
               style={{ transform: `scale(${trainingZoomLevel})` }}
@@ -3617,7 +3669,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
         >
           <div className="relative max-w-6xl max-h-[90vh] p-2">
             <img
-              src={`http://localhost/php-delmonte/api/uploads/${selectedResumeImage}`}
+              src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${selectedResumeImage}`}
               alt="Resume"
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
               style={{ transform: `scale(${resumeZoomLevel})` }}

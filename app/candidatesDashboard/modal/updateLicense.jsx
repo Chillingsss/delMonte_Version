@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -191,7 +191,7 @@ const UpdateLicense = ({
       }
 
       const updatedLicense = {
-        cand_id: retrieveData("user_id"),
+        cand_id: getDataFromSession("user_id"),
         license: [
           {
             license_id: data.license_id,

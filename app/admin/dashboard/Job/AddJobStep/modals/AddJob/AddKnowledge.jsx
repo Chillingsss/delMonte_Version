@@ -1,20 +1,48 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect, useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import ComboBox from '@/app/my_components/combo-box';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
-import AddKnowledgeMaster from '@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddKnowledgeMaster';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import ComboBox from "@/app/my_components/combo-box";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import AddKnowledgeMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddKnowledgeMaster";
 
-function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoints, isUpdate = false }) {
+function AddKnowledge({
+  open,
+  onHide,
+  handleAddList,
+  handleAddData,
+  addTotalPoints,
+  isUpdate = false,
+}) {
   const [openState, setOpenState] = useState(false);
-  const [knowledgeData, setKnowledgeData] = useState(JSON.parse(retrieveData("knowledgeList")));
+  const [knowledgeData, setKnowledgeData] = useState(
+    JSON.parse(getDataFromSession("knowledgeList"))
+  );
   const formSchema = z.object({
     knowledgeId: z.number().min(1, {
       message: "This field is required",
@@ -22,11 +50,14 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
     // jobKnowledge: z.string().min(1, {
     //   message: "This field is required",
     // }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -40,26 +71,35 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
 
   const handleOthers = () => {
     setOpenState(true);
-  }
+  };
 
   const handleCloseState = () => {
     setOpenState(false);
-  }
+  };
 
   const addColumn = (values, id) => {
     console.log("values ni addColumn: ", values);
-    storeData("knowledgeList", JSON.stringify([...knowledgeData, { value: id, label: values.knowledgeName }]));
-    setKnowledgeData([...knowledgeData, { value: id, label: values.knowledgeName }]);
+    storeDataInSession(
+      "knowledgeList",
+      JSON.stringify([
+        ...knowledgeData,
+        { value: id, label: values.knowledgeName },
+      ])
+    );
+    setKnowledgeData([
+      ...knowledgeData,
+      { value: id, label: values.knowledgeName },
+    ]);
     if (!isUpdate) {
       handleAddData(values, id);
     }
-  }
+  };
 
   const onSubmit = (values) => {
-
     console.log("continue..");
     try {
-      const selectedKnowledge = JSON.parse(retrieveData("jobKnowledge")) || [];
+      const selectedKnowledge =
+        JSON.parse(getDataFromSession("jobKnowledge")) || [];
       console.log("selectedKnowledge:", selectedKnowledge);
       let isValid = true;
       selectedKnowledge.forEach((element) => {
@@ -74,13 +114,13 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
         if (!isUpdate) {
           if (addTotalPoints(values.points) === false) return;
         }
-        const jobTotalPoints = Number(retrieveData("jobTotalPoints"));
+        const jobTotalPoints = Number(getDataFromSession("jobTotalPoints"));
         const jobPointSum = jobTotalPoints + Number(values.points);
         if (jobPointSum > 100) {
           toast.error("Total points must not exceed 100");
           return;
         }
-        storeData("jobTotalPoints", jobPointSum);
+        storeDataInSession("jobTotalPoints", jobPointSum);
         // onHide(values);
         handleAddList(values);
         form.reset();
@@ -93,7 +133,7 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -101,7 +141,11 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Knowledge and Compliance</DialogTitle>
-            {isUpdate && <DialogDescription>Total points: {retrieveData("jobTotalPoints")}</DialogDescription>}
+            {isUpdate && (
+              <DialogDescription>
+                Total points: {getDataFromSession("jobTotalPoints")}
+              </DialogDescription>
+            )}
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -172,7 +216,7 @@ function AddKnowledge({ open, onHide, handleAddList, handleAddData, addTotalPoin
         closeState={handleCloseState}
       />
     </>
-  )
+  );
 }
 
-export default AddKnowledge
+export default AddKnowledge;

@@ -1,18 +1,42 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
   const formSchema = z.object({
@@ -22,11 +46,14 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
     jobEducation: z.string().min(1, {
       message: "This field is required",
     }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -38,14 +65,14 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
     },
   });
 
-
   const onSubmit = (values) => {
     try {
-      const selectedEducation = JSON.parse(retrieveData("jobEducation")) || [];
+      const selectedEducation =
+        JSON.parse(getDataFromSession("jobEducation")) || [];
       let isValid = true;
       const filteredSelectedData = selectedEducation.filter((element) => {
         return element.courseCategory !== updateData.categoryId;
-      })
+      });
       filteredSelectedData.forEach((element) => {
         if (element.courseCategory === values.courseCategory) {
           toast.error("You already have this education");
@@ -65,14 +92,16 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleOnHide}>
         <DialogContent>
           <DialogHeader>
-            <SheetTitle className="text-center text-2xl font-bold">Update Education</SheetTitle>
+            <SheetTitle className="text-center text-2xl font-bold">
+              Update Education
+            </SheetTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -104,7 +133,11 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
                       <FormItem>
                         <FormLabel>Job Education Description</FormLabel>
                         <FormControl>
-                          <Textarea style={{ height: "200px" }} placeholder="Enter description" {...field} />
+                          <Textarea
+                            style={{ height: "200px" }}
+                            placeholder="Enter description"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -126,7 +159,9 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
                 </div>
               </div>
               <div className="flex flex-cols gap-2 justify-end mt-5">
-                <Button type="button" variant="outline" onClick={handleOnHide}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={handleOnHide}>
+                  Cancel
+                </Button>
                 <Button type="submit">Update</Button>
               </div>
             </form>
@@ -134,7 +169,7 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default UpdateEducationModal
+export default UpdateEducationModal;

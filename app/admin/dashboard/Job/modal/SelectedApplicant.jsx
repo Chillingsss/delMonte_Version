@@ -1,6 +1,6 @@
 "use client";
 import { formatDate } from "@/app/signup/page";
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import {
   Accordion,
   AccordionContent,
@@ -60,7 +60,7 @@ function SelectedApplicant({
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
         cand_id: candId,
-        job_id: retrieveData("jobId"),
+        job_id: getDataFromSession("jobId"),
       };
       console.log("url ni getCandidateProfile: ", url);
       console.log("jsonData ni getCandidateProfile: ", jsonData);
@@ -117,7 +117,7 @@ function SelectedApplicant({
         ) {
           const toastId = toast.loading("Sending email");
           const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-          const master = { jobTitle: retrieveData("jobTitle") };
+          const master = { jobTitle: getDataFromSession("jobTitle") };
           const candidate = {
             fullName: `${data.candidateInformation.cand_firstname} ${data.candidateInformation.cand_lastname}`,
             candEmail: data.candidateInformation.cand_email,

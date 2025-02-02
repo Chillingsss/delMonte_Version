@@ -1,23 +1,49 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import React, { useState, useRef, useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import { PlusSquare } from 'lucide-react';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import { PlusSquare } from "lucide-react";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
 
 const formSchema = z.object({
-  knowledgeName: z.string().min(1, 'Knowledge name is required'),
+  knowledgeName: z.string().min(1, "Knowledge name is required"),
 });
 
-const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeState }) => {
+const AddKnowledgeMaster = ({
+  title,
+  getData,
+  data,
+  addColumn,
+  openState,
+  closeState,
+}) => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +52,7 @@ const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeS
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      knowledgeName: '',
+      knowledgeName: "",
     },
   });
 
@@ -43,17 +69,25 @@ const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeS
       console.log("data ni knowledge: ", data);
       console.log("values ni knowledgename: ", values.knowledgeName);
       console.log("data === null: ", data === undefined);
-      const knowledgeList = JSON.parse(retrieveData("knowledgeList")) || [];
+      const knowledgeList =
+        JSON.parse(getDataFromSession("knowledgeList")) || [];
       let knowledgeExists = false;
       if (data === undefined || data === null) {
         console.log("knowledgeList: ", knowledgeList);
-        knowledgeExists = knowledgeList.some(knowledge =>
-          knowledge.label.trim().toLowerCase() === values.knowledgeName.trim().toLowerCase()
+        knowledgeExists = knowledgeList.some(
+          (knowledge) =>
+            knowledge.label.trim().toLowerCase() ===
+            values.knowledgeName.trim().toLowerCase()
         );
       } else {
-        knowledgeExists = Array.isArray(data) && data.some(knowledge =>
-          knowledge.knowledge_name && knowledge.knowledge_name.trim().toLowerCase() === values.knowledgeName.trim().toLowerCase()
-        );
+        knowledgeExists =
+          Array.isArray(data) &&
+          data.some(
+            (knowledge) =>
+              knowledge.knowledge_name &&
+              knowledge.knowledge_name.trim().toLowerCase() ===
+                values.knowledgeName.trim().toLowerCase()
+          );
       }
 
       if (knowledgeExists) {
@@ -61,29 +95,35 @@ const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeS
         return;
       }
 
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const formData = new FormData();
-      formData.append('operation', 'addKnowledge');
-      formData.append('json', JSON.stringify(values));
+      formData.append("operation", "addKnowledge");
+      formData.append("json", JSON.stringify(values));
 
       const res = await axios.post(url, formData);
       console.log("res.data ni knowledge: ", res.data);
       if (res.data !== 1) {
         if (data === undefined || data === null) {
-          storeData("knowledgeList", JSON.stringify([...knowledgeList, { value: res.data, label: values.knowledgeName }]));
+          storeDataInSession(
+            "knowledgeList",
+            JSON.stringify([
+              ...knowledgeList,
+              { value: res.data, label: values.knowledgeName },
+            ])
+          );
         }
-        toast.success('Knowledge added successfully');
+        toast.success("Knowledge added successfully");
         addColumn(values, res.data);
         form.reset();
         if (inputRef.current) {
           inputRef.current.focus();
         }
       } else {
-        toast.error('Failed to add knowledge');
+        toast.error("Failed to add knowledge");
       }
     } catch (error) {
-      toast.error('Network error');
-      console.error('AddKnowledge.jsx ~ onSubmit ~ error:', error);
+      toast.error("Network error");
+      console.error("AddKnowledge.jsx ~ onSubmit ~ error:", error);
     } finally {
       setIsSubmit(false);
     }
@@ -92,16 +132,21 @@ const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeS
   const handleClose = () => {
     setIsOpen(false);
     form.reset();
-  }
+  };
 
   return (
     <div>
-      <Dialog open={openState ? openState : isOpen} onOpenChange={(open) => {
-        closeState ? closeState() : (setIsOpen(open), !open && handleClose());
-      }}>
+      <Dialog
+        open={openState ? openState : isOpen}
+        onOpenChange={(open) => {
+          closeState ? closeState() : (setIsOpen(open), !open && handleClose());
+        }}
+      >
         {openState === undefined && (
           <DialogTrigger asChild>
-            <button><PlusSquare className="h-5 w-5 text-primary" /></button>
+            <button>
+              <PlusSquare className="h-5 w-5 text-primary" />
+            </button>
           </DialogTrigger>
         )}
 
@@ -138,9 +183,14 @@ const AddKnowledgeMaster = ({ title, getData, data, addColumn, openState, closeS
                   </div>
                   <div className="flex flex-cols gap-2 justify-end mt-5">
                     <DialogClose asChild>
-                      <Button variant="outline" onClick={handleClose}>Close</Button>
+                      <Button variant="outline" onClick={handleClose}>
+                        Close
+                      </Button>
                     </DialogClose>
-                    <Button type="submit">{isSubmit && <Spinner />} {isSubmit ? 'Submitting...' : 'Submit'}</Button>
+                    <Button type="submit">
+                      {isSubmit && <Spinner />}{" "}
+                      {isSubmit ? "Submitting..." : "Submit"}
+                    </Button>
                   </div>
                 </form>
               </Form>

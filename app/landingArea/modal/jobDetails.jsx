@@ -14,6 +14,8 @@ const JobDetailsModal = ({ job, onCloses }) => {
   useEffect(() => {
     async function fetchJobs() {
       try {
+        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+
         const formData = new FormData();
         formData.append("operation", "getActiveJob");
         const response = await axios.post(url, formData);

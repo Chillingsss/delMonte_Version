@@ -2,16 +2,33 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -43,7 +60,7 @@ const JobOffer = ({ candId, changeStatus }) => {
     const formattedDate = format(data.joboffer_expiryDate, "yyyy-MM-dd");
     const jsonData = {
       candId: candId,
-      jobId: retrieveData("jobId"),
+      jobId: getDataFromSession("jobId"),
       statusId: status,
       salary: data.joboffer_salary,
       document: data.joboffer_document,
@@ -112,7 +129,12 @@ const JobOffer = ({ candId, changeStatus }) => {
                 <FormItem>
                   <FormLabel>Document</FormLabel>
                   <FormControl>
-                    <Textarea row={5} type="text" {...field} placeholder="Enter document" />
+                    <Textarea
+                      row={5}
+                      type="text"
+                      {...field}
+                      placeholder="Enter document"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

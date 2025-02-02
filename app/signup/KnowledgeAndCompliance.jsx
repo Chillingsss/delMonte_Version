@@ -1,12 +1,17 @@
-import { Alert, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { CardContent, CardDescription } from '@/components/ui/card'
-import ShowAlert from '@/components/ui/show-alert'
-import { PlusIcon, X } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import AddTrainingModal from './modals/AddTrainingModal'
-import { retrieveData, storeData } from '../utils/storageUtils'
-import AddKnowledge from './modals/AddKnowledge'
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardDescription } from "@/components/ui/card";
+import ShowAlert from "@/components/ui/show-alert";
+import { PlusIcon, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import AddTrainingModal from "./modals/AddTrainingModal";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "../utils/storageUtils";
+import AddKnowledge from "./modals/AddKnowledge";
 
 function KnowledgeForm({ knowledgeList }) {
   const [data, setData] = useState([]);
@@ -24,7 +29,7 @@ function KnowledgeForm({ knowledgeList }) {
     if (status === 1) {
       const filteredData = data.filter((_, index) => index !== indexToRemove);
       setData(filteredData);
-      storeData("knowledge", JSON.stringify(filteredData));
+      storeDataInSession("knowledge", JSON.stringify(filteredData));
     }
     setShowAlert(false);
   };
@@ -33,24 +38,26 @@ function KnowledgeForm({ knowledgeList }) {
 
   const handleOpenModal = () => {
     setShowModal(true);
-  }
+  };
 
   const handleCloseModal = (status) => {
     if (status !== 0) {
       const newData = [...data, status];
       setData(newData);
-      storeData("knowledge", JSON.stringify(newData));
+      storeDataInSession("knowledge", JSON.stringify(newData));
     }
     setShowModal(false);
   };
 
   const handleRemoveList = (indexToRemove) => {
     setIndexToRemove(indexToRemove);
-    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently delete the item and remove it from your list"
+    );
   };
 
   useEffect(() => {
-    const savedData = retrieveData("knowledge");
+    const savedData = getDataFromSession("knowledge");
     if (savedData && savedData !== "[]") {
       setData(JSON.parse(savedData));
     }
@@ -58,7 +65,10 @@ function KnowledgeForm({ knowledgeList }) {
 
   return (
     <div>
-      <Button onClick={handleOpenModal} className="bg-[#f5f5f5] mt-3 text-[#0e4028]">
+      <Button
+        onClick={handleOpenModal}
+        className="bg-[#f5f5f5] mt-3 text-[#0e4028]"
+      >
         <PlusIcon className="h-4 w-4 mr-1" />
         Add Knowledge and Compliance
       </Button>
@@ -74,7 +84,13 @@ function KnowledgeForm({ knowledgeList }) {
                   <X className="h-4 w-4" />
                 </button>
                 <AlertTitle className="text-md ">
-                  <div className='mb-3'>{knowledgeList.find((item) => item.value === datas.knowledge)?.label}</div>
+                  <div className="mb-3">
+                    {
+                      knowledgeList.find(
+                        (item) => item.value === datas.knowledge
+                      )?.label
+                    }
+                  </div>
                 </AlertTitle>
               </Alert>
             ))}
@@ -85,10 +101,18 @@ function KnowledgeForm({ knowledgeList }) {
           </CardDescription>
         )}
       </Alert>
-      <AddKnowledge open={showModal} onHide={handleCloseModal} knowledgeList={knowledgeList} />
-      <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+      <AddKnowledge
+        open={showModal}
+        onHide={handleCloseModal}
+        knowledgeList={knowledgeList}
+      />
+      <ShowAlert
+        open={showAlert}
+        onHide={handleCloseAlert}
+        message={alertMessage}
+      />
     </div>
-  )
+  );
 }
 
 export default KnowledgeForm;

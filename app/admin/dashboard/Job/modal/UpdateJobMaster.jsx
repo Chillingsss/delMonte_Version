@@ -1,22 +1,37 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import React, { useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import { Edit } from 'lucide-react';
-import Spinner from '@/components/ui/spinner';
-import { retrieveData } from '@/app/utils/storageUtils';
-import axios from 'axios';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React, { useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Edit } from "lucide-react";
+import Spinner from "@/components/ui/spinner";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import axios from "axios";
 
 const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const formSchema = z.object({
     jobTitle: z.string().min(1, {
@@ -24,7 +39,7 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
     }),
     description: z.string().min(1, {
       message: "This field is required",
-    })
+    }),
   });
 
   const form = useForm({
@@ -36,7 +51,7 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
   });
 
   const onSubmit = async (values) => {
-    if(values.jobTitle === title && values.description === description) {
+    if (values.jobTitle === title && values.description === description) {
       setIsOpen(false);
       return;
     }
@@ -44,10 +59,10 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         jobTitle: values.jobTitle,
-        jobDescription: values.description
-      }
+        jobDescription: values.description,
+      };
       const formData = new FormData();
       formData.append("operation", "updateJobMaster");
       formData.append("json", JSON.stringify(jsonData));
@@ -73,7 +88,10 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
     <div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger>
-          <Edit className="h-4 w-4 cursor-pointer ml-1" onClick={() => setIsOpen(true)} />
+          <Edit
+            className="h-4 w-4 cursor-pointer ml-1"
+            onClick={() => setIsOpen(true)}
+          />
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>Update Job Master</DialogHeader>
@@ -117,7 +135,9 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
                 <DialogClose asChild>
                   <Button variant="outline">Close</Button>
                 </DialogClose>
-                <Button type="submit" disabled={isLoading}> {isLoading && <Spinner className="mr-2" />}
+                <Button type="submit" disabled={isLoading}>
+                  {" "}
+                  {isLoading && <Spinner className="mr-2" />}
                   Update
                 </Button>
               </div>
@@ -126,7 +146,7 @@ const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
+  );
+};
 
-export default UpdateJobMaster
+export default UpdateJobMaster;

@@ -11,6 +11,9 @@ import {
   retrieveData,
   retrieveDataFromCookie,
   retrieveDataFromSession,
+  getDataFromCookie,
+  getDataFromSession,
+  removeCookie,
 } from "../utils/storageUtils";
 import { Briefcase } from "lucide-react";
 import { lineSpinner } from "ldrs";
@@ -32,32 +35,26 @@ export default function LandingArea() {
   };
 
   useEffect(() => {
-    const token = retrieveDataFromCookie("auth_token");
+    // Retrieve the user level from session storage
+    const userLevelData = getDataFromSession("user_level");
 
-    const encodedToken = retrieveDataFromCookie("auth_token");
-    const tokenData = encodedToken ? JSON.parse(atob(encodedToken)) : null;
-    const userLevel = tokenData?.userLevel;
-    // const userName = retrieveDataFromCookie("first_name");
-    // const userId = retrieveData("user_id");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const token = retrieveDataFromCookie("auth_token");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const userLevel = retrieveDataFromCookie("auth_token");
-
-    if (!token) {
-      sessionStorage.clear();
-
-      // Clear all cookies
-      document.cookie.split(";").forEach((cookie) => {
-        const cookieName = cookie.split("=")[0].trim();
-        document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
-      });
-
-      router.push("/");
-      return;
+    // Ensure userLevel is a string for comparison
+    let userLevel;
+    if (typeof userLevelData === "object" && userLevelData !== null) {
+      // If the decrypted data is an object, extract the user level
+      userLevel = String(
+        userLevelData.level || userLevelData.user_level || ""
+      ).trim();
+    } else {
+      // If it's not an object, treat it as a string
+      userLevel = String(userLevelData || "").trim();
     }
 
+    console.log("userLevel:", userLevel); // Debugging output
+
+    // Redirect based on the user level
     switch (userLevel) {
+      case "100":
       case "100.0":
         router.replace("/admin/dashboard");
         break;
@@ -67,14 +64,15 @@ export default function LandingArea() {
       case "supervisor":
         router.replace("/supervisorDashboard");
         break;
+      case "1": // Handle both "1" and "1.0" cases
       case "1.0":
         router.replace("/candidatesDashboard");
         break;
       default:
-        // console.log("Unexpected user level, redirecting to landing area.");
-        router.replace("/");
+        console.warn("Unknown user level:", userLevel); // Log a warning for debugging
+        router.replace("/"); // Redirect to the home page or login page
     }
-  }, []);
+  }, [router]);
 
   async function fetchJobs() {
     try {
@@ -110,11 +108,7 @@ export default function LandingArea() {
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      fetchJobs();
-    }, 3000);
-
-    return () => clearTimeout(timeout);
+    fetchJobs();
   }, [job]);
 
   return (
@@ -157,6 +151,8 @@ export default function LandingArea() {
               </p>
             </div>
           </div>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
         ) : job.length === 0 ? (
           <p className="text-center text-gray-500">No jobs available</p>
         ) : (
@@ -213,7 +209,7 @@ export default function LandingArea() {
 
                   <button
                     onClick={() => handleDetailsClick(job)}
-                    className="w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 bg-[#188C54] hover:bg-green-600 text-white"
+                    className="w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 bg-[#188C54] hover:bg-green-600 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                   >
                     View Details
                   </button>

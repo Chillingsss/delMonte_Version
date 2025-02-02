@@ -1,18 +1,37 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
 
-function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
+function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
   const formSchema = z.object({
     courseCategory: z.number().min(1, {
       message: "This field is required",
@@ -20,11 +39,14 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
     // jobEducation: z.string().min(1, {
     //   message: "This field is required",
     // }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -36,10 +58,10 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
     },
   });
 
-
   const onSubmit = (values) => {
     try {
-      const selectedEducation = JSON.parse(retrieveData("jobEducation")) || [];
+      const selectedEducation =
+        JSON.parse(getDataFromSession("jobEducation")) || [];
       let isValid = true;
       const filteredSelectedData = selectedEducation.filter((element) => {
         return element.courseCategory !== updateData.categoryId;
@@ -52,13 +74,14 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
         }
       });
       if (isValid) {
-        const totalPoints = Number(retrieveData("jobTotalPoints") || 0);
-        const newTotalPoints = (totalPoints - Number(updateData.points)) + Number(values.points);
+        const totalPoints = Number(getDataFromSession("jobTotalPoints") || 0);
+        const newTotalPoints =
+          totalPoints - Number(updateData.points) + Number(values.points);
         if (newTotalPoints > 100) {
           toast.error("Total points cannot exceed 100");
           return;
         }
-        storeData("jobTotalPoints", newTotalPoints);
+        storeDataInSession("jobTotalPoints", newTotalPoints);
         onHide(values);
         form.reset();
       }
@@ -70,7 +93,7 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -78,7 +101,10 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update Education</DialogTitle>
-            <DialogDescription>Job&apos;s total points: {retrieveData("jobTotalPoints") || 0} </DialogDescription>
+            <DialogDescription>
+              Job&apos;s total points:{" "}
+              {getDataFromSession("jobTotalPoints") || 0}{" "}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -132,7 +158,9 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
                 </div>
               </div>
               <div className="flex flex-cols gap-2 justify-end mt-5">
-                <Button type="button" variant="outline" onClick={handleOnHide}>Close</Button>
+                <Button type="button" variant="outline" onClick={handleOnHide}>
+                  Close
+                </Button>
                 <Button type="submit">Update</Button>
               </div>
             </form>
@@ -140,7 +168,7 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData}) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default UpdateEducationModal
+export default UpdateEducationModal;

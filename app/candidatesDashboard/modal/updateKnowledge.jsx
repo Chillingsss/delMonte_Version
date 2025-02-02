@@ -10,6 +10,7 @@ import {
   removeDataFromCookie,
   removeDataFromSession,
   retrieveData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
@@ -142,7 +143,7 @@ const UpdateKnowledge = ({
       }
 
       const updatedKnowledge = {
-        cand_id: retrieveData("user_id"),
+        cand_id: getDataFromSession("user_id"),
         knowledge: [
           {
             canknow_id: data.canknow_id || null,

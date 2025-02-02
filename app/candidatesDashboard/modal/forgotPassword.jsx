@@ -21,14 +21,11 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
 
   const modalRef = useRef(null);
 
-
   const passwordRegex = /^(?=.*\d).{8,}$/;
-
 
   const validatePassword = (password) => {
     return passwordRegex.test(password);
   };
-
 
   const handlePasswordChange = (e) => {
     const value = e.target.value;
@@ -36,7 +33,6 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     setPasswordValid(validatePassword(value));
   };
 
-  
   const handleConfirmPasswordChange = (e) => {
     const value = e.target.value;
     setConfirmPassword(value);

@@ -9,6 +9,8 @@ import {
   removeDataFromSession,
   retrieveData,
   removeData,
+  getDataFromSession,
+  removeSessionData,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -209,7 +211,7 @@ const ExamModal = ({
 
   const handleSubmit = async () => {
     try {
-      const candidateId = retrieveData("user_id");
+      const candidateId = getDataFromSession("user_id");
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
       let totalScore = 0;
@@ -265,7 +267,7 @@ const ExamModal = ({
         examR_score: totalScore,
         examR_status: totalScore > passingScore ? 1 : 0,
         examR_totalscore: totalPoints,
-        app_id: retrieveData("app_id"),
+        app_id: getDataFromSession("app_id"),
       };
 
       const resultFormData = new FormData();
@@ -300,7 +302,7 @@ const ExamModal = ({
 
       if (answerResponse.data.success) {
         toast.success("Exam submitted successfully!");
-        removeData("app_id");
+        removeSessionData("app_id");
 
         if (fetchAppliedJobs) {
           fetchAppliedJobs();

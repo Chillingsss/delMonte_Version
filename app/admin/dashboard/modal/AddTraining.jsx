@@ -1,16 +1,29 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 
 function AddTraining({ open, onHide, training }) {
   const formSchema = z.object({
@@ -20,11 +33,14 @@ function AddTraining({ open, onHide, training }) {
     jobTraining: z.string().min(1, {
       message: "This field is required",
     }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -38,7 +54,8 @@ function AddTraining({ open, onHide, training }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedTraining = JSON.parse(retrieveData("jobTraining")) || [];
+      const selectedTraining =
+        JSON.parse(getDataFromSession("jobTraining")) || [];
       let isValid = true;
       selectedTraining.forEach((element) => {
         if (element.training === values.training) {
@@ -58,14 +75,16 @@ function AddTraining({ open, onHide, training }) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleOnHide}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl font-bold">Add Training</DialogTitle>
+            <DialogTitle className="text-center text-2xl font-bold">
+              Add Training
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -97,7 +116,11 @@ function AddTraining({ open, onHide, training }) {
                       <FormItem>
                         <FormLabel>Job Training Description</FormLabel>
                         <FormControl>
-                          <Textarea style={{ height: "200px" }} placeholder="Enter description" {...field} />
+                          <Textarea
+                            style={{ height: "200px" }}
+                            placeholder="Enter description"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -129,7 +152,7 @@ function AddTraining({ open, onHide, training }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default AddTraining
+export default AddTraining;

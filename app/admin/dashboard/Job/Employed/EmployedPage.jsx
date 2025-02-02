@@ -1,22 +1,22 @@
-import DataTable from '@/app/my_components/DataTable'
-import { retrieveData } from '@/app/utils/storageUtils'
-import Spinner from '@/components/ui/spinner'
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import SelectedApplicant from '../modal/SelectedApplicant'
-import { toast } from 'sonner'
+import DataTable from "@/app/my_components/DataTable";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import SelectedApplicant from "../modal/SelectedApplicant";
+import { toast } from "sonner";
 
 const EmployedPage = ({ handleChangeStatus }) => {
-  const [candidates, setCandidates] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [candidates, setCandidates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCandId, setSelectedCandId] = useState(null);
 
   const getEmployedCandidates = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
-      const jsonData = { jobId: retrieveData('jobId') };
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+      const jsonData = { jobId: getDataFromSession("jobId") };
       const formData = new FormData();
       formData.append("operation", "getEmployedCandidates");
       formData.append("json", JSON.stringify(jsonData));
@@ -29,16 +29,16 @@ const EmployedPage = ({ handleChangeStatus }) => {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
-  }
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     getEmployedCandidates();
-  }
+  };
 
   const handleOnClickRow = (id) => {
     setSelectedCandId(id);
@@ -68,7 +68,7 @@ const EmployedPage = ({ handleChangeStatus }) => {
           idAccessor="cand_id"
         />
       )}
-      {isModalOpen &&
+      {isModalOpen && (
         <SelectedApplicant
           open={isModalOpen}
           onHide={handleCloseModal}
@@ -76,9 +76,9 @@ const EmployedPage = ({ handleChangeStatus }) => {
           candId={selectedCandId}
           handleChangeStatus={handleChangeStatus}
         />
-      }
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default EmployedPage
+export default EmployedPage;

@@ -1,31 +1,47 @@
 "use client";
-import React, { useEffect } from 'react';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 function AddJobMaster({ nextStep }) {
-
   const formSchema = z.object({
     title: z.string().min(1, { message: "This field is required" }),
     description: z.string().min(1, { message: "This field is required" }),
-    passingPercentage: z.string().min(1, {
-      message: "This field is required",
-    }).refine((val) => {
-      if (parseInt(val) < 0 || parseInt(val) > 100) {
-        return false;
-      }
-      return true;
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "This field must be a number",
-    }),
+    passingPercentage: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((val) => {
+        if (parseInt(val) < 0 || parseInt(val) > 100) {
+          return false;
+        }
+        return true;
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "This field must be a number",
+      }),
     isJobActive: z.number().optional().default(0),
   });
 
@@ -42,7 +58,7 @@ function AddJobMaster({ nextStep }) {
   const onSubmit = (values) => {
     try {
       console.log("AddJobMaster.jsx => onSubmit(): ", values);
-      storeData("jobMaster", values);
+      storeDataInSession("jobMaster", values);
       nextStep(15);
       form.reset();
     } catch (error) {
@@ -52,13 +68,13 @@ function AddJobMaster({ nextStep }) {
   };
 
   useEffect(() => {
-    if (retrieveData("jobMaster") !== null) {
-      form.reset(retrieveData("jobMaster"));
+    if (getDataFromSession("jobMaster") !== null) {
+      form.reset(getDataFromSession("jobMaster"));
     }
-  }, [form])
+  }, [form]);
 
   return (
-    <div className='flex flex-col'>
+    <div className="flex flex-col">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-cols gap-2 justify-end mt-3">
@@ -86,7 +102,11 @@ function AddJobMaster({ nextStep }) {
                   <FormItem>
                     <FormLabel>Job Description</FormLabel>
                     <FormControl>
-                      <Textarea style={{ height: "200px" }} placeholder="Enter job description" {...field} />
+                      <Textarea
+                        style={{ height: "200px" }}
+                        placeholder="Enter job description"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +119,10 @@ function AddJobMaster({ nextStep }) {
                   <FormItem>
                     <FormLabel>Passing percentage</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter passing percentage" {...field} />
+                      <Input
+                        placeholder="Enter passing percentage"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,9 +138,13 @@ function AddJobMaster({ nextStep }) {
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={field.value === 1}
-                          onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? 1 : 0)
+                          }
                         />
-                        <Label>{field.value === 1 ? "Job Active" : "Job Inactive"}</Label>
+                        <Label>
+                          {field.value === 1 ? "Job Active" : "Job Inactive"}
+                        </Label>
                       </div>
                     </FormControl>
                   </FormItem>

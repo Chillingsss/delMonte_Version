@@ -1,20 +1,27 @@
-import DataTable from '@/app/my_components/DataTable'
-import { retrieveData } from '@/app/utils/storageUtils'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import Spinner from '@/components/ui/spinner'
-import axios from 'axios'
-import { set } from 'date-fns'
-import React, { useCallback, useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import SetToInterviewModal from './SetToInterviewModal'
-import SelectedApplicant from '../../modal/SelectedApplicant'
-import ShowAlert from '@/components/ui/show-alert'
+import DataTable from "@/app/my_components/DataTable";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import { set } from "date-fns";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import SetToInterviewModal from "./SetToInterviewModal";
+import SelectedApplicant from "../../modal/SelectedApplicant";
+import ShowAlert from "@/components/ui/show-alert";
 
 const PotentialCandidatesModal = ({ passingPercentage }) => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [potentialCandidates, setPotentialCandidates] = useState([])
+  const [potentialCandidates, setPotentialCandidates] = useState([]);
   const [selectedCandId, setSelectedCandId] = useState(null);
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -27,31 +34,38 @@ const PotentialCandidatesModal = ({ passingPercentage }) => {
   };
   const handleCloseAlert = async (status) => {
     if (status === 1) {
-      const toastId = toast.loading("Sending emails to all potential candidates");
+      const toastId = toast.loading(
+        "Sending emails to all potential candidates"
+      );
       await sendEmailToAll();
       toast.dismiss(toastId);
     }
     setShowAlert(false);
   };
   const handleOpenAlert = () => {
-    handleShowAlert(`Are you sure you want to send emails to all ${potentialCandidates.length} potential candidates?`);
+    handleShowAlert(
+      `Are you sure you want to send emails to all ${potentialCandidates.length} potential candidates?`
+    );
   };
 
   const getPotentialCandidates = useCallback(async () => {
     setIsLoading(true);
     try {
-      const jobId = retrieveData("jobId");
+      const jobId = getDataFromSession("jobId");
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      const jsonData = { jobId: jobId, passingPercentage: passingPercentage }
+      const jsonData = { jobId: jobId, passingPercentage: passingPercentage };
       const formData = new FormData();
       formData.append("json", JSON.stringify(jsonData));
       formData.append("operation", "getPotentialCandidates");
       const res = await axios.post(url, formData);
       console.log("res poteningal", res);
-      console.log("JobTitle", retrieveData("jobTitle"));
+      console.log("JobTitle", getDataFromSession("jobTitle"));
       setPotentialCandidates(res.data === 0 ? [] : res.data);
     } catch (error) {
-      console.error("PotentialCanidatasModal.jsx ~ getPotentialCandidates() : ", error);
+      console.error(
+        "PotentialCanidatasModal.jsx ~ getPotentialCandidates() : ",
+        error
+      );
       toast.error("Network Error");
     } finally {
       setIsLoading(false);
@@ -63,7 +77,7 @@ const PotentialCandidatesModal = ({ passingPercentage }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       console.log("potentialCandidates", potentialCandidates);
-      const master = { jobTitle: retrieveData("jobTitle") };
+      const master = { jobTitle: getDataFromSession("jobTitle") };
       const candidates = potentialCandidates.map((candidate) => ({
         fullName: candidate.fullName,
         candEmail: candidate.email,
@@ -83,27 +97,37 @@ const PotentialCandidatesModal = ({ passingPercentage }) => {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (isOpen) {
-      getPotentialCandidates()
+      getPotentialCandidates();
     }
-  }, [getPotentialCandidates, isOpen])
+  }, [getPotentialCandidates, isOpen]);
 
   const columns = [
     { header: "Full Name", accessor: "fullName" },
     {
-      header: 'Total Points',
+      header: "Total Points",
       accessor: (row) => `${row.totalPoints || 0}/${row.maxPoints || 0}`,
-      className: (row) => `${row.percentage >= passingPercentage ? 'text-green-500' : 'text-red-500'}`,
+      className: (row) =>
+        `${
+          row.percentage >= passingPercentage
+            ? "text-green-500"
+            : "text-red-500"
+        }`,
       hiddenOnMobile: true,
     },
     {
-      header: 'Percentage',
+      header: "Percentage",
       accessor: "percentage",
-      className: (row) => `${row.percentage >= passingPercentage ? 'text-green-500' : 'text-red-500'}`,
-      sortable: true
+      className: (row) =>
+        `${
+          row.percentage >= passingPercentage
+            ? "text-green-500"
+            : "text-red-500"
+        }`,
+      sortable: true,
     },
   ];
 
@@ -130,10 +154,11 @@ const PotentialCandidatesModal = ({ passingPercentage }) => {
         <DialogContent>
           <DialogTitle>Potential candidates for this job</DialogTitle>
           <DialogDescription />
-          {isLoading ? <Spinner /> :
+          {isLoading ? (
+            <Spinner />
+          ) : (
             <>
-
-              {potentialCandidates.length > 0 ?
+              {potentialCandidates.length > 0 ? (
                 <DataTable
                   columns={columns}
                   data={potentialCandidates}
@@ -141,32 +166,37 @@ const PotentialCandidatesModal = ({ passingPercentage }) => {
                   itemsPerPage={5}
                   headerAction={
                     <>
-                      <Button onClick={handleOpenAlert}>Send email to all</Button>
+                      <Button onClick={handleOpenAlert}>
+                        Send email to all
+                      </Button>
                     </>
                   }
                 />
-                :
+              ) : (
                 <div className="flex justify-center items-center h-40">
                   <p>No potential candidates found</p>
                 </div>
-              }
-
+              )}
             </>
-          }
+          )}
         </DialogContent>
       </Dialog>
-      {isInterviewModalOpen &&
+      {isInterviewModalOpen && (
         <SelectedApplicant
           open={isInterviewModalOpen}
           onHide={handleCloseInterviewModal}
           statusName={"Potential"}
           candId={selectedCandId}
-        // handleChangeStatus={handleChangeStatus}
+          // handleChangeStatus={handleChangeStatus}
         />
-      }
-      <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+      )}
+      <ShowAlert
+        open={showAlert}
+        onHide={handleCloseAlert}
+        message={alertMessage}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default PotentialCandidatesModal
+export default PotentialCandidatesModal;

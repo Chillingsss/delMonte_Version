@@ -7,8 +7,9 @@ import { retrieveDataFromCookie,
   storeDataInCookie,
   storeDataInSession,
   removeDataFromCookie,
-  removeDataFromSession, 
-  retrieveData} from "@/app/utils/storageUtils";
+  removeDataFromSession,
+  retrieveData,
+  getDataFromSession} from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast"; // Updated import
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react"; // Added import for X icon
@@ -174,7 +175,7 @@ const UpdatePassword = ({
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "updateEmailPassword");

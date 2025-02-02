@@ -1,23 +1,49 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import React, { useState, useRef, useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import { PlusSquare } from 'lucide-react';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import { PlusSquare } from "lucide-react";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
 
 const formSchema = z.object({
-  courseCategoryName: z.string().min(1, 'Course category name is required'),
+  courseCategoryName: z.string().min(1, "Course category name is required"),
 });
 
-const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, closeState }) => {
+const AddCourseCategoryMaster = ({
+  title,
+  getData,
+  data,
+  addColumn,
+  openState,
+  closeState,
+}) => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +52,7 @@ const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, c
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      courseCategoryName: '',
+      courseCategoryName: "",
     },
   });
 
@@ -43,17 +69,25 @@ const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, c
       console.log("data ni course category: ", data);
       console.log("values ni courseCategoryName: ", values.courseCategoryName);
       console.log("data === null: ", data === undefined);
-      const courseCategoryList = JSON.parse(retrieveData("courseCategoryList")) || [];
+      const courseCategoryList =
+        JSON.parse(getDataFromSession("courseCategoryList")) || [];
       let categoryExists = false;
       if (data === undefined || data === null) {
         console.log("courseCategoryList: ", courseCategoryList);
-        categoryExists = courseCategoryList.some(category =>
-          category.label.trim().toLowerCase() === values.courseCategoryName.trim().toLowerCase()
+        categoryExists = courseCategoryList.some(
+          (category) =>
+            category.label.trim().toLowerCase() ===
+            values.courseCategoryName.trim().toLowerCase()
         );
       } else {
-        categoryExists = Array.isArray(data) && data.some(category =>
-          category.course_categoryName && category.course_categoryName.trim().toLowerCase() === values.courseCategoryName.trim().toLowerCase()
-        );
+        categoryExists =
+          Array.isArray(data) &&
+          data.some(
+            (category) =>
+              category.course_categoryName &&
+              category.course_categoryName.trim().toLowerCase() ===
+                values.courseCategoryName.trim().toLowerCase()
+          );
       }
 
       if (categoryExists) {
@@ -61,29 +95,35 @@ const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, c
         return;
       }
 
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const formData = new FormData();
-      formData.append('operation', 'addCourseCategory');
-      formData.append('json', JSON.stringify(values));
+      formData.append("operation", "addCourseCategory");
+      formData.append("json", JSON.stringify(values));
 
       const res = await axios.post(url, formData);
       console.log("res.data ni course category: ", res.data);
       if (res.data !== 0) {
         if (data === undefined || data === null) {
-          storeData("courseCategoryList", JSON.stringify([...courseCategoryList, { value: res.data, label: values.courseCategoryName }]));
+          storeDataInSession(
+            "courseCategoryList",
+            JSON.stringify([
+              ...courseCategoryList,
+              { value: res.data, label: values.courseCategoryName },
+            ])
+          );
         }
-        toast.success('Course category added successfully');
+        toast.success("Course category added successfully");
         addColumn(values, res.data);
         form.reset();
         if (inputRef.current) {
           inputRef.current.focus();
         }
       } else {
-        toast.error('Failed to add course category');
+        toast.error("Failed to add course category");
       }
     } catch (error) {
-      toast.error('Network error');
-      console.error('AddCourseCategoryMaster.jsx ~ onSubmit ~ error:', error);
+      toast.error("Network error");
+      console.error("AddCourseCategoryMaster.jsx ~ onSubmit ~ error:", error);
     } finally {
       setIsSubmit(false);
     }
@@ -92,16 +132,21 @@ const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, c
   const handleClose = () => {
     setIsOpen(false);
     form.reset();
-  }
+  };
 
   return (
     <div>
-      <Dialog open={openState ? openState : isOpen} onOpenChange={(open) => {
-        closeState ? closeState() : (setIsOpen(open), !open && handleClose());
-      }}>
+      <Dialog
+        open={openState ? openState : isOpen}
+        onOpenChange={(open) => {
+          closeState ? closeState() : (setIsOpen(open), !open && handleClose());
+        }}
+      >
         {openState === undefined && (
           <DialogTrigger asChild>
-            <button><PlusSquare className="h-5 w-5 text-primary" /></button>
+            <button>
+              <PlusSquare className="h-5 w-5 text-primary" />
+            </button>
           </DialogTrigger>
         )}
 
@@ -138,9 +183,14 @@ const AddCourseCategoryMaster = ({ title, getData, data, addColumn, openState, c
                   </div>
                   <div className="flex flex-cols gap-2 justify-end mt-5">
                     <DialogClose asChild>
-                      <Button variant="outline" onClick={handleClose}>Close</Button>
+                      <Button variant="outline" onClick={handleClose}>
+                        Close
+                      </Button>
                     </DialogClose>
-                    <Button type="submit">{isSubmit && <Spinner />} {isSubmit ? 'Submitting...' : 'Submit'}</Button>
+                    <Button type="submit">
+                      {isSubmit && <Spinner />}{" "}
+                      {isSubmit ? "Submitting..." : "Submit"}
+                    </Button>
                   </div>
                 </form>
               </Form>

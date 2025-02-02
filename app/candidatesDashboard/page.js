@@ -7,16 +7,16 @@ import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
   storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
   storeData,
   removeData,
   setupInactivityMonitoring,
+  removeCookie,
+  removeSessionData,
+  clearAllCookies,
+  clearAllSessionData,
+  getDataFromCookie,
+  getDataFromSession,
 } from "../utils/storageUtils";
 
 import {
@@ -132,7 +132,7 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const jsonData = { cand_id: cand_id };
 
@@ -169,75 +169,20 @@ export default function DashboardCandidates() {
   });
 
   useEffect(() => {
-    // Debug: Log all cookies
-    // console.log('All Cookies:', document.cookie);
+    // Retrieve the auth token from cookies
+    const myToken = getDataFromCookie("auth_token");
 
-    const token = retrieveDataFromCookie("auth_token");
-    // console.log('Retrieved token:', token);
-
-    if (!token) {
-      // console.log('No token found, logging out');
-      handleLogout();
-      return;
+    // If the token is missing, redirect to the login page
+    if (!myToken) {
+      removeCookie("auth_token");
     }
 
-    try {
-      // Decode and verify token
-      const decodedToken = JSON.parse(atob(token));
-      // console.log('Decoded token:', decodedToken);
+    // Retrieve and sanitize the user level from session storage
+    const userLevel = String(getDataFromSession("user_level") || "").trim(); // Ensure it's a string and handle null/undefined
 
-      const tokenTimestamp = decodedToken.timestamp;
-      const currentTime = new Date().getTime();
-      const tokenAge = currentTime - tokenTimestamp;
-      // console.log('Token age (ms):', tokenAge);
+    console.log("userLevel:", userLevel); // Debugging output
 
-      // Check if token is expired (24 hours = 86400000 milliseconds)
-      if (tokenAge > 86400000) {
-        // console.log('Token expired');
-        handleLogout();
-        return;
-      }
-
-      // Verify user level matches
-      // const storedUserLevel = retrieveData("user_level");
-      // // console.log('Stored user level:', storedUserLevel);
-      // // console.log('Token user level:', decodedToken.userLevel);
-
-      // if (decodedToken.userLevel !== storedUserLevel) {
-      //   // console.log('User level mismatch');
-      //   handleLogout();
-      //   return;
-      // }
-    } catch (error) {
-      console.error("Token validation failed:", error);
-      handleLogout();
-      return;
-    }
-
-    // Token is valid, continue with normal flow
-    const encodedToken = retrieveDataFromCookie("auth_token");
-    const tokenData = encodedToken ? JSON.parse(atob(encodedToken)) : null;
-    const userLevel = tokenData?.userLevel;
-    const userName = retrieveDataFromCookie("first_name");
-    // const userId = retrieveData("user_id");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const token = retrieveDataFromCookie("auth_token");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const userLevel = retrieveDataFromCookie("auth_token");
-
-    if (!token) {
-      sessionStorage.clear();
-
-      // Clear all cookies
-      document.cookie.split(";").forEach((cookie) => {
-        const cookieName = cookie.split("=")[0].trim();
-        document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
-      });
-
-      router.push("/");
-      return;
-    }
-
+    // Redirect based on the user level
     switch (userLevel) {
       case "100.0":
         router.replace("/admin/dashboard");
@@ -248,17 +193,14 @@ export default function DashboardCandidates() {
       case "supervisor":
         router.replace("/supervisorDashboard");
         break;
+      case "1": // Handle both "1" and "1.0" cases
       case "1.0":
         router.replace("/candidatesDashboard");
         break;
       default:
-        // console.log("Unexpected user level, redirecting to landing area.");
-        router.replace("/");
+        console.warn("Unknown user level:", userLevel); // Log a warning for debugging
+        router.replace("/"); // Redirect to the home page or login page
     }
-
-    const name = retrieveDataFromCookie("name");
-    // const lastName = retrieveData("last_name");
-    setUserName(`${name}`);
   }, [router]);
 
   // useEffect(() => {
@@ -289,7 +231,7 @@ export default function DashboardCandidates() {
     // setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "getActiveJob");
@@ -323,7 +265,7 @@ export default function DashboardCandidates() {
   const fetchNotification = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "getNotification");
@@ -356,7 +298,7 @@ export default function DashboardCandidates() {
   const markNotificationsAsRead = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "markNotificationsAsRead");
@@ -419,7 +361,7 @@ export default function DashboardCandidates() {
   const [selectedJob, setSelectedJob] = useState(null);
 
   const handleDetailsClick = (job) => {
-    storeData("jobId", job.jobM_id);
+    storeDataInSession("jobId", job.jobM_id);
     // console.log("Selected job:", job);
 
     setSelectedJob(job);
@@ -429,7 +371,7 @@ export default function DashboardCandidates() {
   // const first_name = secureLocalStorage.getItem("first_name");
   // const updatedFirstName = first_name.toUpperCase();
   // secureLocalStorage.setItem("first_name", updatedFirstName);
-  const userId = retrieveData("user_id");
+  const userId = getDataFromSession("user_id");
 
   // useEffect(() => {
   //   try {
@@ -495,11 +437,15 @@ export default function DashboardCandidates() {
 
   const handleLogout = () => {
     // console.log('Executing logout');
-    sessionStorage.clear();
-    document.cookie.split(";").forEach((cookie) => {
-      const cookieName = cookie.split("=")[0].trim();
-      document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
-    });
+    removeCookie("auth_token");
+    removeCookie("name");
+    removeCookie("email");
+    removeSessionData("user_id");
+    removeSessionData("user_level");
+
+    // If you want to clear everything
+    clearAllCookies();
+    clearAllSessionData();
     router.push("/");
   };
 
@@ -525,7 +471,7 @@ export default function DashboardCandidates() {
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
       // const appId = localStorage.getItem("app_id");
 
       const data = {
@@ -602,7 +548,7 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const personalInfoId = retrieveData("user_id");
+      const personalInfoId = getDataFromSession("user_id");
       // console.log("cand ID:", personalInfoId);
 
       if (!personalInfoId) {
@@ -634,7 +580,7 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const personalInfoId = retrieveData("user_id");
+      const personalInfoId = getDataFromSession("user_id");
       // console.log("cand ID:", personalInfoId);
 
       if (!personalInfoId) {
@@ -665,7 +611,7 @@ export default function DashboardCandidates() {
   const fetchExamResult = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
 
       const formData = new FormData();
       formData.append("operation", "fetchExamResult");
@@ -793,12 +739,12 @@ export default function DashboardCandidates() {
   // console.log("name", userName);
 
   // Setup inactivity monitoring
-  useEffect(() => {
-    const cleanup = setupInactivityMonitoring();
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, []);
+  // useEffect(() => {
+  //   const cleanup = setupInactivityMonitoring();
+  //   return () => {
+  //     if (cleanup) cleanup();
+  //   };
+  // }, []);
 
   const refreshTransactions = async () => {
     setIsLoading(true);
@@ -809,7 +755,7 @@ export default function DashboardCandidates() {
       await fetchNotification();
       await fetchJobs();
       setIsLoading(false);
-    }, 2000);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -882,8 +828,8 @@ export default function DashboardCandidates() {
                 id="search"
                 className={`block w-full px-4 py-2 rounded-2xl focus:outline-none focus:border-green-500 pl-10 ${
                   isDarkMode
-                    ? "bg-transparent text-gray-200"
-                    : "bg-transparent text-gray-200"
+                    ? "bg-transparent text-gray-800"
+                    : "bg-transparent text-gray-800"
                 }`}
                 placeholder="Search active jobs"
                 value={searchQuery}
@@ -945,15 +891,16 @@ export default function DashboardCandidates() {
                           isDarkMode ? "text-gray-300" : "text-gray-700"
                         }`}
                       >
-                        {userName
-                          .split(" ")
-                          .map((name, index) =>
-                            index === 0 ||
-                            index === userName.split(" ").length - 1
-                              ? name.slice(0, 1).toUpperCase()
-                              : ""
-                          )
-                          .join("")}
+                        {profile.candidateInformation &&
+                          profile.candidateInformation.cand_firstname &&
+                          profile.candidateInformation.cand_firstname
+                            .split(" ")
+                            .map((name, index, arr) =>
+                              index === 0 || index === arr.length - 1
+                                ? name.slice(0, 1).toUpperCase()
+                                : ""
+                            )
+                            .join("")}
                       </span>
                     </div>
                   )}
@@ -1197,15 +1144,16 @@ export default function DashboardCandidates() {
                             isDarkMode ? "text-gray-300" : "text-gray-700"
                           }`}
                         >
-                          {userName
-                            .split(" ")
-                            .map((name, index) =>
-                              index === 0 ||
-                              index === userName.split(" ").length - 1
-                                ? name.slice(0, 1).toUpperCase()
-                                : ""
-                            )
-                            .join("")}
+                          {profile.candidateInformation &&
+                            profile.candidateInformation.cand_firstname &&
+                            profile.candidateInformation.cand_firstname
+                              .split(" ")
+                              .map((name, index, arr) =>
+                                index === 0 || index === arr.length - 1
+                                  ? name.slice(0, 1).toUpperCase()
+                                  : ""
+                              )
+                              .join("")}
                         </span>
                       </div>
                     )}
@@ -1216,7 +1164,7 @@ export default function DashboardCandidates() {
                         isDarkMode ? "text-gray-200" : "text-gray-900"
                       }`}
                     >
-                      {userName}
+                      {profile.candidateInformation?.cand_firstname}{" "}
                     </p>
                     <p
                       className={`text-xs ${
@@ -1292,7 +1240,6 @@ export default function DashboardCandidates() {
         ref={sidebarRef}
         handleViewProfileClick={handleViewProfileClick}
         openExamModal={openExamModal}
-        refreshTransactions={refreshTransactions}
       />
       {/* Main Content */}
       <div
@@ -1315,7 +1262,7 @@ export default function DashboardCandidates() {
             </h1>
 
             <button
-              className={isDarkMode ? "text-[#188C54]" : "text-black"}
+              className={` ${isDarkMode ? "text-[#188C54]" : "text-black"}`}
               onClick={refreshTransactions}
             >
               <div className="flex item-center">
@@ -1413,15 +1360,16 @@ export default function DashboardCandidates() {
                             isDarkMode ? "text-gray-300" : "text-gray-700"
                           }`}
                         >
-                          {userName
-                            .split(" ")
-                            .map((name, index) =>
-                              index === 0 ||
-                              index === userName.split(" ").length - 1
-                                ? name.slice(0, 1).toUpperCase()
-                                : ""
-                            )
-                            .join("")}
+                          {profile.candidateInformation &&
+                            profile.candidateInformation.cand_firstname &&
+                            profile.candidateInformation.cand_firstname
+                              .split(" ")
+                              .map((name, index, arr) =>
+                                index === 0 || index === arr.length - 1
+                                  ? name.slice(0, 1).toUpperCase()
+                                  : ""
+                              )
+                              .join("")}
                         </span>
                       </div>
                     )}
@@ -1667,15 +1615,16 @@ export default function DashboardCandidates() {
                               isDarkMode ? "text-gray-300" : "text-gray-700"
                             }`}
                           >
-                            {userName
-                              .split(" ")
-                              .map((name, index) =>
-                                index === 0 ||
-                                index === userName.split(" ").length - 1
-                                  ? name.slice(0, 1).toUpperCase()
-                                  : ""
-                              )
-                              .join("")}
+                            {profile.candidateInformation &&
+                              profile.candidateInformation.cand_firstname &&
+                              profile.candidateInformation.cand_firstname
+                                .split(" ")
+                                .map((name, index, arr) =>
+                                  index === 0 || index === arr.length - 1
+                                    ? name.slice(0, 1).toUpperCase()
+                                    : ""
+                                )
+                                .join("")}
                           </span>
                         </div>
                       )}
@@ -1686,7 +1635,7 @@ export default function DashboardCandidates() {
                           isDarkMode ? "text-gray-200" : "text-gray-900"
                         }`}
                       >
-                        {userName}
+                        {profile.candidateInformation?.cand_firstname}{" "}
                       </p>
                       <p
                         className={`text-xs ${
@@ -1772,7 +1721,7 @@ export default function DashboardCandidates() {
           )}
 
           <button
-            className={isDarkMode ? "text-[#188C54]" : "text-black"}
+            className={`text-[#188C54] ${isDarkMode ? "text-white" : ""}`}
             onClick={refreshTransactions}
           >
             <div className="flex item-center">
@@ -1797,7 +1746,7 @@ export default function DashboardCandidates() {
               Please wait while we load your jobs
             </p>
           </div>
-        ) : filteredJobs.length === 0 && searchQuery ? (
+        ) : filteredJobs.length === 0 ? (
           <p
             className={`text-center ${
               isDarkMode ? "text-gray-400" : "text-gray-500"
@@ -1963,7 +1912,7 @@ export default function DashboardCandidates() {
           appliedJobs={appliedJobs}
           onClosedd={() => {
             setIsModalOpen(false);
-            removeData("jobId");
+            getDataFromSession("jobId");
           }}
         />
       )}
@@ -1993,7 +1942,7 @@ export default function DashboardCandidates() {
           startTimer={isExamModalOpen}
           onClose={() => {
             closeExamModal();
-            removeData("app_id");
+            getDataFromSession("app_id");
           }}
         />
       )}

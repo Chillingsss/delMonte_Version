@@ -1,26 +1,30 @@
-import DataTable from '@/app/my_components/DataTable';
-import { retrieveData } from '@/app/utils/storageUtils';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import { toast } from 'sonner';
-import SelectedApplicant from '../modal/SelectedApplicant';
-import UpdateJobOffer from './modals/UpdateJobOffer';
-import { Trash2 } from 'lucide-react';
-import { formatDate } from '@/app/signup/page';
-import ShowAlert, { showAlert } from '@/components/ui/show-alert';
+import DataTable from "@/app/my_components/DataTable";
+import {
+  getDataFromCookie,
+  getDataFromSession,
+  retrieveData,
+} from "@/app/utils/storageUtils";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import SelectedApplicant from "../modal/SelectedApplicant";
+import UpdateJobOffer from "./modals/UpdateJobOffer";
+import { Trash2 } from "lucide-react";
+import { formatDate } from "@/app/signup/page";
+import ShowAlert, { showAlert } from "@/components/ui/show-alert";
 
 const JobOfferPage = ({ handleChangeStatus }) => {
-  const [candidates, setCandidates] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [candidates, setCandidates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCandId, setSelectedCandId] = useState(null);
 
   const getJobOfferCandidates = async () => {
     setIsLoading(true);
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
-      const jsonData = { jobId: retrieveData('jobId') };
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+      const jsonData = { jobId: getDataFromSession("jobId") };
       const formData = new FormData();
       formData.append("operation", "getJobOfferCandidates");
       formData.append("json", JSON.stringify(jsonData));
@@ -33,16 +37,16 @@ const JobOfferPage = ({ handleChangeStatus }) => {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
-  }
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     getJobOfferCandidates();
-  }
+  };
 
   const handleOnClickRow = (id, isActionClick) => {
     if (!isActionClick) {
@@ -60,8 +64,11 @@ const JobOfferPage = ({ handleChangeStatus }) => {
   };
   const handleCloseAlert = async (status) => {
     if (status === 1) {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
-      const jsonData = { candId: selectedId, jobId: retrieveData('jobId') };
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+      const jsonData = {
+        candId: selectedId,
+        jobId: getDataFromCookie("jobId"),
+      };
       const formData = new FormData();
       formData.append("operation", "deleteJobOffer");
       formData.append("json", JSON.stringify(jsonData));
@@ -79,7 +86,9 @@ const JobOfferPage = ({ handleChangeStatus }) => {
   };
   const handleRemoveList = (dutyId) => {
     setSelectedId(dutyId);
-    handleShowAlert("This action cannot be undone. It will permanently remove the job offer");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently remove the job offer"
+    );
   };
 
   const columns = [
@@ -87,12 +96,22 @@ const JobOfferPage = ({ handleChangeStatus }) => {
     { header: "Document", accessor: "joboffer_document" },
     { header: "Salary", accessor: "joboffer_salary" },
     { header: "Date offered", accessor: "joboffer_date" },
-    { header: "Date Expired", accessor: (row) => formatDate(row.joboffer_expiryDate) },
-    { header: "Job Offer Status", accessor: "jobOfferStatus", className: "text-center" },
     {
-      header: 'Actions',
+      header: "Date Expired",
+      accessor: (row) => formatDate(row.joboffer_expiryDate),
+    },
+    {
+      header: "Job Offer Status",
+      accessor: "jobOfferStatus",
+      className: "text-center",
+    },
+    {
+      header: "Actions",
       cell: (row) => (
-        <div onClick={(e) => e.stopPropagation()} className='flex items-center gap-3'>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-3"
+        >
           <div>
             <UpdateJobOffer
               candidate={row}
@@ -101,35 +120,39 @@ const JobOfferPage = ({ handleChangeStatus }) => {
               disabled={row.jobOfferStatus !== "Pending"}
             />
           </div>
-          <Trash2 
-            onClick={() => row.jobOfferStatus === "Pending" && handleRemoveList(row.cand_id)} 
-            className={`w-5 h-5 ${row.jobOfferStatus === "Pending" ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`} 
+          <Trash2
+            onClick={() =>
+              row.jobOfferStatus === "Pending" && handleRemoveList(row.cand_id)
+            }
+            className={`w-5 h-5 ${
+              row.jobOfferStatus === "Pending"
+                ? "cursor-pointer"
+                : "cursor-not-allowed opacity-50"
+            }`}
           />
         </div>
-      )
+      ),
     },
   ];
 
   useEffect(() => {
     getJobOfferCandidates();
-  }, [])
+  }, []);
 
   return (
     <div>
       {isLoading ? (
         <Spinner />
-      ) :
-        (
-          <DataTable
-            itemsPerPage={5}
-            columns={columns}
-            data={candidates}
-            onRowClick={(id) => handleOnClickRow(id, false)}
-            idAccessor="cand_id"
-          />
-        )
-      }
-      {isModalOpen &&
+      ) : (
+        <DataTable
+          itemsPerPage={5}
+          columns={columns}
+          data={candidates}
+          onRowClick={(id) => handleOnClickRow(id, false)}
+          idAccessor="cand_id"
+        />
+      )}
+      {isModalOpen && (
         <SelectedApplicant
           open={isModalOpen}
           onHide={handleCloseModal}
@@ -137,9 +160,13 @@ const JobOfferPage = ({ handleChangeStatus }) => {
           candId={selectedCandId}
           handleChangeStatus={handleChangeStatus}
         />
-      }
-      <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+      )}
+      <ShowAlert
+        open={showAlert}
+        onHide={handleCloseAlert}
+        message={alertMessage}
+      />
     </div>
-  )
-}
-export default JobOfferPage
+  );
+};
+export default JobOfferPage;

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast"; // Updated import
 import Tesseract from "tesseract.js";
@@ -176,7 +176,7 @@ const UpdateTraining = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       if (
         data.customTraining &&
@@ -479,7 +479,7 @@ const UpdateTraining = ({
           <button
             type="button"
             className={`px-4 py-2 mr-2 ${
-              isDarkMode ? "text-gray-300" : "text-gray-800"
+              isDarkMode ? "text-gray-800" : "text-gray-800"
             } bg-gray-300 rounded hover:bg-gray-400 transition`}
             onClick={() => setShowModal(false)}
           >

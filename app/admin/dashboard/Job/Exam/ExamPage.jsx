@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ViewExam from './modal/ViewExam'
 import axios from 'axios';
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 import { toast } from 'sonner';
 import Spinner from '@/components/ui/spinner';
 import DataTable from '@/app/my_components/DataTable';
@@ -27,7 +27,7 @@ const ExamPage = ({ handleChangeStatus }) => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
-      const jsonData = { jobId: retrieveData('jobId') };
+      const jsonData = { jobId: getDataFromSession('jobId') };
       const formData = new FormData();
       formData.append("operation", "getExamCandidates");
       formData.append("json", JSON.stringify(jsonData));

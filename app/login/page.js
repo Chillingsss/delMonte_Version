@@ -10,12 +10,10 @@ import "react-toastify/dist/ReactToastify.css";
 import {
   storeDataInSession,
   storeDataInCookie,
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  retrieveData,
-  storeData,
-  storeDataInLocalStorage,
-  retrieveDataInLocalStorage,
+  getDataFromCookie,
+  getDataFromSession,
+  getDataFromLocal,
+  storeDataInLocal,
 } from "../utils/storageUtils";
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { Input } from "@/components/ui/input";
@@ -125,11 +123,10 @@ export default function Login(user) {
       setFailedAttempts((prev) => prev + 1);
       toast.error("Invalid credentials. Please try again.");
 
-      if (failedAttempts + 1 >= 4) {
+      if (failedAttempts + 1 >= 3) {
         setIsLocked(true);
-        storeDataInLocalStorage("isLocked", "true");
-        storeDataInLocalStorage("lockoutTime", new Date().getTime().toString());
-        console.log("User locked out at:", new Date().toLocaleString()); // Log the lockout time
+        storeDataInLocal("isLocked", true);
+        storeDataInLocal("lockoutTime", new Date().getTime().toString());
         toast.error(
           "Too many failed attempts. You are locked out for 5 minutes."
         );
@@ -139,9 +136,9 @@ export default function Login(user) {
         setTimeout(() => {
           setIsLocked(false);
           setFailedAttempts(0);
-          storeDataInLocalStorage("isLocked", "false");
-          storeDataInLocalStorage("lockoutTime", null);
-        }, 300000);
+          storeDataInLocal("isLocked", false);
+          storeDataInLocal("lockoutTime", null);
+        }, 300000); // 5 minutes
       }
 
       generateCaptcha();
@@ -168,8 +165,6 @@ export default function Login(user) {
         setLoading(true);
         setIsRedirecting(true);
 
-        // toast.success("Login successful! Redirecting...");
-
         const tokenData = {
           userId: user.adm_id || user.sup_id || user.cand_id,
           timestamp: new Date().getTime(),
@@ -184,24 +179,21 @@ export default function Login(user) {
 
         console.log("Creating token with data:", tokenData);
 
-        const token = btoa(JSON.stringify(tokenData));
-
-        const tokenStored = storeDataInCookie("auth_token", token, 3600);
-        console.log("Token stored successfully:", tokenStored);
+        storeDataInCookie("auth_token", tokenData, 3600);
 
         if (user.adm_id) {
-          storeData("user_id", user.adm_id);
-          storeData("user_level", user.adm_userLevel);
+          storeDataInSession("user_id", user.adm_id);
+          storeDataInSession("user_level", user.adm_userLevel);
           storeDataInCookie("name", user.adm_name || "", 3600);
           storeDataInCookie("email", user.adm_email || "", 3600);
         } else if (user.sup_id) {
-          storeData("user_id", user.sup_id);
-          storeData("user_level", user.sup_userLevel);
+          storeDataInSession("user_id", user.sup_id);
+          storeDataInSession("user_level", user.sup_userLevel);
           storeDataInCookie("name", user.sup_name || "", 3600);
           storeDataInCookie("email", user.sup_email || "", 3600);
         } else {
-          storeData("user_id", user.cand_id);
-          storeData("user_level", user.cand_userLevel);
+          storeDataInSession("user_id", user.cand_id);
+          storeDataInSession("user_level", user.cand_userLevel);
           storeDataInCookie(
             "name",
             `${user.cand_firstname || ""} ${user.cand_lastname || ""}`,
@@ -209,6 +201,7 @@ export default function Login(user) {
           );
         }
 
+        // Redirect based on user type
         setTimeout(() => {
           if (user.adm_userLevel === "100.0") {
             router.push("/admin/dashboard");
@@ -237,11 +230,15 @@ export default function Login(user) {
   };
 
   useEffect(() => {
-    const token = retrieveDataFromCookie("auth_token");
+    const token = getDataFromCookie("auth_token");
+
     if (token) {
-      const userLevel = retrieveData("user_level");
-      // Redirect to appropriate dashboard if already logged in
+      const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
+
+      console.log("userLevel:", userLevel); // Debugging output
+
       switch (userLevel) {
+        case "100":
         case "100.0":
           router.replace("/admin/dashboard");
           break;
@@ -251,12 +248,12 @@ export default function Login(user) {
         case "supervisor":
           router.replace("/supervisorDashboard");
           break;
-        case "1.0":
+        case "1": // If stored as an integer, it will be "1" as a string
+        case "1.0": // This covers cases where it might be stored as "1.0"
           router.replace("/candidatesDashboard");
           break;
         default:
-          router.replace("/"); // Fallback to landing page
-          break;
+          router.replace("/");
       }
     }
   }, []);
@@ -272,8 +269,8 @@ export default function Login(user) {
   }, [showCaptcha]);
 
   useEffect(() => {
-    const lockoutStatus = retrieveDataInLocalStorage("isLocked");
-    const lockoutTime = retrieveDataInLocalStorage("lockoutTime");
+    const lockoutStatus = getDataFromLocal("isLocked");
+    const lockoutTime = getDataFromLocal("lockoutTime");
 
     if (lockoutStatus === "true" && lockoutTime) {
       const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
@@ -283,12 +280,12 @@ export default function Login(user) {
         const remainingTime = 300000 - timeElapsed;
         setTimeout(() => {
           setIsLocked(false);
-          storeDataInLocalStorage("isLocked", "false");
-          storeDataInLocalStorage("lockoutTime", null);
+          storeDataInLocal("isLocked", "false");
+          storeDataInLocal("lockoutTime", null);
         }, remainingTime);
       } else {
-        storeDataInLocalStorage("isLocked", "false");
-        storeDataInLocalStorage("lockoutTime", null);
+        storeDataInLocal("isLocked", "false");
+        storeDataInLocal("lockoutTime", null);
       }
     }
   }, []);
@@ -405,6 +402,12 @@ export default function Login(user) {
             >
               Forgot Password?
             </button>
+            <a
+              href="http://localhost:3001/api/auth/google"
+              className="text-green-300 hover:underline slide-up mt-2 cursor-pointer"
+            >
+              Login with Google
+            </a>
           </div>
         </div>
       </div>

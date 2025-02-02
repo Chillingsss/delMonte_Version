@@ -1,5 +1,5 @@
 "use client";
-import { retrieveData, storeData } from '@/app/utils/storageUtils'
+import { getDataFromSession, retrieveData, storeData, storeDataInSession } from '@/app/utils/storageUtils'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { CardContent, CardDescription } from '@/components/ui/card'
@@ -28,7 +28,7 @@ function AddJobKnowledge({ previousStep, nextStep, knowledgeList }) {
     if (status === 1) {
       const filteredDatas = datas.filter((_, index) => index !== indexToRemove);
       setDatas(filteredDatas);
-      storeData("jobKnowledge", JSON.stringify(filteredDatas));
+      storeDataInSession("jobKnowledge", JSON.stringify(filteredDatas));
     }
     setShowAlert(false);
   };
@@ -43,7 +43,7 @@ function AddJobKnowledge({ previousStep, nextStep, knowledgeList }) {
     if (status !== 0) {
       console.log("status: ", status);
       setDatas([...datas, status]);
-      storeData("jobKnowledge", JSON.stringify([...datas, status]));
+      storeDataInSession("jobKnowledge", JSON.stringify([...datas, status]));
     } else {
       setDatas(datas);
     }
@@ -65,12 +65,12 @@ function AddJobKnowledge({ previousStep, nextStep, knowledgeList }) {
 
 
   useEffect(() => {
-    if (retrieveData("jobKnowledge") !== null || retrieveData("jobKnowledge") !== "[]") {
-      setDatas(JSON.parse(retrieveData("jobKnowledge")));
+    if (getDataFromSession("jobKnowledge") !== null || getDataFromSession("jobKnowledge") !== "[]") {
+      setDatas(JSON.parse(getDataFromSession("jobKnowledge")));
     } else {
       setDatas([]);
     }
-    console.log(JSON.stringify(JSON.parse(retrieveData("jobKnowledge"))));
+    console.log(JSON.stringify(JSON.parse(getDataFromSession("jobKnowledge"))));
   }, []);
 
   return (

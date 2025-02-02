@@ -2,54 +2,91 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import ComboBox from "../my_components/combo-box";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ArrowLeftCircle, CalendarIcon } from "lucide-react";
 import { format, formatISO, set } from "date-fns";
 import { cn } from "@/lib/utils";
 import EnterPin from "./modals/EnterPin";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Spinner from "@/components/ui/spinner";
-import { retrieveData, storeData } from "../utils/storageUtils";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "../utils/storageUtils";
 import { formatDate } from "./page";
 import ShowAlert from "@/components/ui/show-alert";
 import { useRouter } from "next/navigation";
 import DatePicker from "../my_components/DatePicker";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, {
-    message: "This field is required",
-  }).transform(value => value.charAt(0).toUpperCase() + value.slice(1)),
-  lastName: z.string().min(1, {
-    message: "This field is required",
-  }).transform(value => value.charAt(0).toUpperCase() + value.slice(1)),
-  middleName: z.string().min(1, {
-    message: "This field is required",
-  }).transform(value => value.charAt(0).toUpperCase() + value.slice(1)),
+  firstName: z
+    .string()
+    .min(1, {
+      message: "This field is required",
+    })
+    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
+  lastName: z
+    .string()
+    .min(1, {
+      message: "This field is required",
+    })
+    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
+  middleName: z
+    .string()
+    .min(1, {
+      message: "This field is required",
+    })
+    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
   email: z.string().email({
     message: "Invalid email address",
   }),
   alternateEmail: z.string().email({
     message: "Invalid email address",
   }),
-  contact: z.string().min(1, {
-    message: "This field is required",
-  }).regex(/^\+?[0-9]\d{1,14}$/, {
-    message: "Invalid contact number format",
-  }),
-  alternateContact: z.string().min(1, {
-    message: "This field is required",
-  }).regex(/^\+?[0-9]\d{1,14}$/, {
-    message: "Invalid contact number format",
-  }),
+  contact: z
+    .string()
+    .min(1, {
+      message: "This field is required",
+    })
+    .regex(/^\+?[0-9]\d{1,14}$/, {
+      message: "Invalid contact number format",
+    }),
+  alternateContact: z
+    .string()
+    .min(1, {
+      message: "This field is required",
+    })
+    .regex(/^\+?[0-9]\d{1,14}$/, {
+      message: "Invalid contact number format",
+    }),
   presentAddress: z.string().min(1, {
     message: "This field is required",
   }),
@@ -59,15 +96,20 @@ const formSchema = z.object({
   gender: z.string().min(1, {
     message: "This field is required",
   }),
-  dob: z.string().min(1, { message: "This field is required" })
-    .refine((date) => {
-      const parsedEndDate = Date.parse(date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return parsedEndDate <= today.getTime();
-    }, {
-      message: "Invalid date",
-    }),
+  dob: z
+    .string()
+    .min(1, { message: "This field is required" })
+    .refine(
+      (date) => {
+        const parsedEndDate = Date.parse(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return parsedEndDate <= today.getTime();
+      },
+      {
+        message: "Invalid date",
+      }
+    ),
   password: z.string().min(5, {
     message: "Password must be at least 5 characters",
   }),
@@ -98,7 +140,7 @@ const PersonalInformation = ({ handleSubmit }) => {
     { label: "Permanent Address", value: "permanentAddress" },
     { label: "Password", value: "password" },
     { label: "Confirm Password", value: "confirmPassword" },
-  ]
+  ];
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -136,8 +178,8 @@ const PersonalInformation = ({ handleSubmit }) => {
 
   const onSubmit = async (values) => {
     setIsLoading(true);
-    const storedPersonalInfo = retrieveData("personalInfo");
-    const userEmail = storedPersonalInfo ? JSON.parse(storedPersonalInfo).email : "";
+    const storedPersonalInfo = getDataFromSession("personalInfo");
+    const userEmail = storedPersonalInfo ? storedPersonalInfo.email : "";
 
     if (values.password !== values.confirmPassword) {
       toast.error("Passwords do not match");
@@ -162,7 +204,7 @@ const PersonalInformation = ({ handleSubmit }) => {
         toast.error("Email already exist");
         return;
       } else {
-        storeData("personalInfo", JSON.stringify(values));
+        storeDataInSession("personalInfo", JSON.stringify(values));
         handleSubmit(2);
         console.log("status submit: ", 2);
       }
@@ -178,7 +220,7 @@ const PersonalInformation = ({ handleSubmit }) => {
 
   const handleDateChange = (date) => {
     if (date) {
-      form.setValue("dob", formatISO(date, { representation: 'date' }));
+      form.setValue("dob", formatISO(date, { representation: "date" }));
       form.trigger("dob");
       setTimeout(() => {
         setShowDOB(false);
@@ -187,18 +229,18 @@ const PersonalInformation = ({ handleSubmit }) => {
   };
 
   useEffect(() => {
-    const storedPersonalInfo = retrieveData("personalInfo");
+    const storedPersonalInfo = getDataFromSession("personalInfo");
     if (storedPersonalInfo !== null) {
-      form.reset(JSON.parse(storedPersonalInfo));
+      form.reset(storedPersonalInfo);
     }
     console.log("personalInfo", storedPersonalInfo);
-  }, [form])
+  }, [form]);
 
   return (
     <>
       <div className="w-full max-w-4xl mt-7">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} >
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <Card className="w-full h-full flex flex-col bg-[#0e5a35]">
               <CardHeader>
                 <CardTitle className="text-2xl text-center">Sign up</CardTitle>
@@ -219,7 +261,16 @@ const PersonalInformation = ({ handleSubmit }) => {
                               <FormItem>
                                 <FormLabel>{data.label}</FormLabel>
                                 <FormControl>
-                                  <Input type={data.value.match(/password/i) ? "password" : "text"} className="bg-[#0e4028] border-2 border-[#0b864a]" placeholder={data.label} {...field} />
+                                  <Input
+                                    type={
+                                      data.value.match(/password/i)
+                                        ? "password"
+                                        : "text"
+                                    }
+                                    className="bg-[#0e4028] border-2 border-[#0b864a]"
+                                    placeholder={data.label}
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -278,7 +329,11 @@ const PersonalInformation = ({ handleSubmit }) => {
           </form>
         </Form>
       </div>
-      <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+      <ShowAlert
+        open={showAlert}
+        onHide={handleCloseAlert}
+        message={alertMessage}
+      />
     </>
   );
 };

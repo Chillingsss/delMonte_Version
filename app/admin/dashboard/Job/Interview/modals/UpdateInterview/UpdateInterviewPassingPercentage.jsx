@@ -1,31 +1,53 @@
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Edit } from 'lucide-react'
-import React, { useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import Spinner from '@/components/ui/spinner';
-import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
-import { toast } from 'sonner';
-import axios from 'axios';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Edit } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
+import { Input } from "@/components/ui/input";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { toast } from "sonner";
+import axios from "axios";
 
-function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInterviewDetails }) {
+function UpdateInterviewPassingPercentage({
+  currentPassingPercentage,
+  getJobInterviewDetails,
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const formSchema = z.object({
-    passingPercent: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Passing percent must be a number",
-    }).refine((value) => Number(value) <= 100, {
-      message: "Passing percent should not be more than 100",
-    }).refine((value) => Number(value) >= 0, {
-      message: "Passing percent should not be less than 0",
-    })
+    passingPercent: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Passing percent must be a number",
+      })
+      .refine((value) => Number(value) <= 100, {
+        message: "Passing percent should not be more than 100",
+      })
+      .refine((value) => Number(value) >= 0, {
+        message: "Passing percent should not be less than 0",
+      }),
   });
 
   const form = useForm({
@@ -44,9 +66,9 @@ function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInte
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
-        jobId: retrieveData("jobId"),
-        passingPercent: values.passingPercent
-      }
+        jobId: getDataFromSession("jobId"),
+        passingPercent: values.passingPercent,
+      };
       console.log("jsonData: ", JSON.stringify(jsonData));
       const formData = new FormData();
       formData.append("operation", "updateInterviewPassingPercent");
@@ -60,7 +82,9 @@ function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInte
       }
     } catch (error) {
       toast.error("Network error");
-      console.log("UpdateInterviewPassingPercentage.jsx => onSubmit(): " + error);
+      console.log(
+        "UpdateInterviewPassingPercentage.jsx => onSubmit(): " + error
+      );
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +92,7 @@ function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInte
   const handleOnHide = () => {
     setIsDialogOpen(false);
     form.reset();
-  }
+  };
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
@@ -91,7 +115,10 @@ function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInte
                     <FormItem>
                       <FormLabel>Passing Percent</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter passing percentage" {...field} />
+                        <Input
+                          placeholder="Enter passing percentage"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -111,7 +138,7 @@ function UpdateInterviewPassingPercentage({ currentPassingPercentage, getJobInte
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export default UpdateInterviewPassingPercentage
+export default UpdateInterviewPassingPercentage;

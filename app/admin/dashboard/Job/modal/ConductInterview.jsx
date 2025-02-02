@@ -1,15 +1,25 @@
-import { retrieveData } from '@/app/utils/storageUtils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus }) => {
+const ConductInterview = ({
+  open,
+  onHide,
+  candId,
+  handleInterviewChangeStatus,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasCriteria, setHasCriteria] = useState(false);
   const [interviewCriteria, setInterviewCriteria] = useState([]);
@@ -23,7 +33,7 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      const jsonData = { jobId: retrieveData("jobId") };
+      const jsonData = { jobId: getDataFromSession("jobId") };
       const formData = new FormData();
       formData.append("operation", "getCriteriaForInterview");
       formData.append("json", JSON.stringify(jsonData));
@@ -89,9 +99,9 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
     //pass ni or fail
     let status = 0;
 
-    interviewCriteria.forEach(criteria => {
+    interviewCriteria.forEach((criteria) => {
       if (!scores[criteria.inter_criteria_id]) {
-        setErrors(prevErrors => ({
+        setErrors((prevErrors) => ({
           ...prevErrors,
           [criteria.inter_criteria_id]: "This field is required",
         }));
@@ -106,15 +116,15 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
       status = percentageScore >= passingPercentage ? 1 : 0;
 
       const masterData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         candId: candId,
         status: status,
         percentageScore: percentageScore,
         score: score,
-        totalScore: overAllScore
-      }
-      const scoreData = interviewCriteria.map(criteria => ({
-        jobId: retrieveData("jobId"),
+        totalScore: overAllScore,
+      };
+      const scoreData = interviewCriteria.map((criteria) => ({
+        jobId: getDataFromSession("jobId"),
         criteriaId: criteria.inter_criteria_id,
         candId: candId,
         points: Number(scores[criteria.inter_criteria_id]) || 0,
@@ -128,8 +138,8 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
         const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
         const jsonData = {
           masterData: masterData,
-          scoreData: scoreData
-        }
+          scoreData: scoreData,
+        };
         console.log("jsonData: ", jsonData);
         const formData = new FormData();
         formData.append("operation", "scoreInterviewApplicant");
@@ -157,7 +167,9 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
       <Dialog open={open} onOpenChange={onHide}>
         <DialogContent>
           <DialogTitle>Conduct Interview</DialogTitle>
-          <DialogDescription>Score the applicant based on the criteria</DialogDescription>
+          <DialogDescription>
+            Score the applicant based on the criteria
+          </DialogDescription>
           <form onSubmit={handleSubmit}>
             <ScrollArea className="h-[500px] w-full">
               <Card>
@@ -173,15 +185,23 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
                               <div key={index}>
                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                   {criteria.criteria_inter_name}
-                                  <span className='ml-1 text-xs'>{`(${criteria.interview_categ_name})`}</span>
+                                  <span className="ml-1 text-xs">{`(${criteria.interview_categ_name})`}</span>
                                 </label>
                                 <CardDescription className="mb-2">
                                   Question: {criteria.inter_criteria_question}
                                 </CardDescription>
                                 <Input
                                   type="number"
-                                  value={scores[criteria.inter_criteria_id] || ''}
-                                  onChange={(e) => handleInputChange(criteria.inter_criteria_id, criteria.inter_criteria_points, e.target.value)}
+                                  value={
+                                    scores[criteria.inter_criteria_id] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleInputChange(
+                                      criteria.inter_criteria_id,
+                                      criteria.inter_criteria_points,
+                                      e.target.value
+                                    )
+                                  }
                                   placeholder={`Enter points (0-${criteria.inter_criteria_points})`}
                                   onKeyDown={(e) => {
                                     if (["e", "E", "+", "-"].includes(e.key)) {
@@ -200,8 +220,10 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
                         </>
                       ) : (
                         <div>
-                          <div className='flex flex-col justify-center items-center gap-3'>
-                            <div className='font-bold text-xl mt-3'>No interview criteria added yet</div>
+                          <div className="flex flex-col justify-center items-center gap-3">
+                            <div className="font-bold text-xl mt-3">
+                              No interview criteria added yet
+                            </div>
                           </div>
                         </div>
                       )}
@@ -210,8 +232,17 @@ const ConductInterview = ({ open, onHide, candId, handleInterviewChangeStatus })
                 </CardContent>
               </Card>
             </ScrollArea>
-            <div className={`mt-4 flex justify-end gap-2 ${!hasCriteria && "hidden"}`}>
-              <Button type="button" className="mt-5 btn btn-secondary" onClick={onHide} variant="outline">
+            <div
+              className={`mt-4 flex justify-end gap-2 ${
+                !hasCriteria && "hidden"
+              }`}
+            >
+              <Button
+                type="button"
+                className="mt-5 btn btn-secondary"
+                onClick={onHide}
+                variant="outline"
+              >
                 Cancel
               </Button>
               <Button type="submit" className="mt-5 btn btn-primary">

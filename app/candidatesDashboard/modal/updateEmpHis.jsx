@@ -12,6 +12,7 @@ import {
   removeDataFromCookie,
   removeDataFromSession,
   retrieveData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
 
@@ -121,7 +122,7 @@ const UpdateEmpHis = ({
   const handleSave = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const updatedData = {
         cand_id: cand_id,
@@ -264,14 +265,14 @@ const UpdateEmpHis = ({
               className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
             >
               Cancel
-            </button> 
+            </button>
             <button
               onClick={handleSave}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Save
             </button>
-                      
+
           </div>
         </div>
       </div>

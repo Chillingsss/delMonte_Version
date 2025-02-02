@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import ComboBox from '@/app/my_components/combo-box';
 import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 
 function AddEducation({ open, onHide, courseCategory }) {
   const formSchema = z.object({
@@ -38,7 +38,7 @@ function AddEducation({ open, onHide, courseCategory }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedEducation = JSON.parse(retrieveData("jobEducation")) || [];
+      const selectedEducation = JSON.parse(getDataFromSession("jobEducation")) || [];
       let isValid = true;
       selectedEducation.forEach((element) => {
         if (element.courseCategory === values.courseCategory) {

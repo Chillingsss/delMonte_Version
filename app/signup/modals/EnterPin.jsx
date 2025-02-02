@@ -21,6 +21,9 @@ export default function EnterPin({ open, onHide, pin, expirationDate }) {
     try {
       const expiredDate = new Date(expirationDateTime);
       const currentDateTime = new Date();
+
+      console.log("pin code: " + pinCode);
+      console.log("code: " + code);
       if (code === pinCode) {
         if (expiredDate < currentDateTime) {
           toast.error("Pin code has expired. Please try again.");
@@ -32,7 +35,6 @@ export default function EnterPin({ open, onHide, pin, expirationDate }) {
       } else {
         toast.error("Incorrect pin code.");
       }
-
     } catch (error) {
       toast.error("Network error");
       console.log("EnterPin.jsx => handleSubmit(): " + error);
@@ -44,7 +46,7 @@ export default function EnterPin({ open, onHide, pin, expirationDate }) {
   };
 
   const handleHide = () => {
-    console.log("Normal hide")
+    console.log("Normal hide");
     onHide(0);
   };
 
@@ -78,7 +80,12 @@ export default function EnterPin({ open, onHide, pin, expirationDate }) {
           </div>
         </div>
         <DialogFooter>
-          <Button className="dark:bg-[#f5f5f5] dark:text-[#0e4028]" onClick={handleSubmit}>Submit</Button>
+          <Button
+            className="dark:bg-[#f5f5f5] dark:text-[#0e4028]"
+            onClick={handleSubmit}
+          >
+            Submit
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

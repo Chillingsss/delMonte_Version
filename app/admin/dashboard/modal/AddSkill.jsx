@@ -1,16 +1,29 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 
 function AddSkill({ open, onHide, skill }) {
   const formSchema = z.object({
@@ -20,11 +33,14 @@ function AddSkill({ open, onHide, skill }) {
     jobSkill: z.string().min(1, {
       message: "This field is required",
     }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -38,7 +54,7 @@ function AddSkill({ open, onHide, skill }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = JSON.parse(retrieveData("jobSkill")) || [];
+      const selectedSkill = JSON.parse(getDataFromSession("jobSkill")) || [];
       let isValid = true;
       selectedSkill.forEach((element) => {
         if (element.skill === values.skill) {
@@ -58,14 +74,16 @@ function AddSkill({ open, onHide, skill }) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleOnHide}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl font-bold">Add Skill</DialogTitle>
+            <DialogTitle className="text-center text-2xl font-bold">
+              Add Skill
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -97,7 +115,11 @@ function AddSkill({ open, onHide, skill }) {
                       <FormItem>
                         <FormLabel>Job Skill Description</FormLabel>
                         <FormControl>
-                          <Textarea style={{ height: "200px" }} placeholder="Enter description" {...field} />
+                          <Textarea
+                            style={{ height: "200px" }}
+                            placeholder="Enter description"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -129,7 +151,7 @@ function AddSkill({ open, onHide, skill }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default AddSkill
+export default AddSkill;

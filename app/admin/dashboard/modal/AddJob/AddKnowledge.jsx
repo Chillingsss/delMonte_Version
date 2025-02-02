@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import ComboBox from '@/app/my_components/combo-box';
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 
 function AddKnowledge({ open, onHide, knowledgeList }) {
   const formSchema = z.object({
@@ -38,7 +38,7 @@ function AddKnowledge({ open, onHide, knowledgeList }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedKnowledge = JSON.parse(retrieveData("jobKnowledge")) || [];
+      const selectedKnowledge = JSON.parse(getDataFromSession("jobKnowledge")) || [];
       let isValid = true;
       selectedKnowledge.forEach((element) => {
         if (element.knowledgeId === values.knowledgeId) {

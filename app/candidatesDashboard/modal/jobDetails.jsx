@@ -16,6 +16,7 @@ import {
   removeDataFromSession,
   retrieveData,
   removeData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 // import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -53,7 +54,7 @@ const JobDetailsModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
 
       const jsonData = { cand_id: cand_id };
 
@@ -198,7 +199,7 @@ const JobDetailsModal = ({
           </button>
         </div>,
         {
-          duration: 6000,
+          duration: 4000,
           position: "top-center",
           style: {
             background: "transparent",
@@ -213,8 +214,8 @@ const JobDetailsModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const user_id = retrieveData("user_id");
-      const jobId = retrieveData("jobId");
+      const user_id = getDataFromSession("user_id");
+      const jobId = getDataFromSession("jobId");
 
       // console.log("user_id:", user_id, "jobId:", jobId);
 
@@ -246,7 +247,7 @@ const JobDetailsModal = ({
         // removeData("jobId");
 
         setIsRedirecting(true);
-        removeData("jobId");
+        getDataFromSession("jobId");
 
         setTimeout(() => {
           setIsRedirecting(false);

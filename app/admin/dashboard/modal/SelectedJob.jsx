@@ -1,4 +1,4 @@
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData, storeData, storeDataInSession } from '@/app/utils/storageUtils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -23,7 +23,7 @@ function SelectedJob({ open, onHide, jobId }) {
   const getSelectedJobs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const url = retrieveData("url") + "admin.php";
+      const url = getDataFromSession("url") + "admin.php";
       const jsonData = {
         "jobId": jobId
       }
@@ -46,7 +46,7 @@ function SelectedJob({ open, onHide, jobId }) {
   useEffect(() => {
     if (open) {
       getSelectedJobs();
-      storeData("jobId", jobId);
+      storeDataInSession("jobId", jobId);
     }
   }, [getSelectedJobs, jobId, open]);
 

@@ -1,5 +1,5 @@
 // app/candidatesDashboard/sideBar/CancelJobModal.jsx
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import React, { useState } from "react";
 import axios from "axios";
 import { FaTimes } from "react-icons/fa";
@@ -18,7 +18,7 @@ const CancelJobModal = ({
   const [isRedirecting, setIsRedirecting] = useState(false);
   const handleCancelJob = async () => {
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = retrieveData("user_id");
+    const userId = getDataFromSession("user_id");
     // console.log("appId", jobAppId, jobMId);
 
     try {

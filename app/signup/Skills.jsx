@@ -5,7 +5,7 @@ import ShowAlert from '@/components/ui/show-alert'
 import { PlusIcon, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import AddSkillModal from './modals/AddSkillModal'
-import { retrieveData, storeData } from '../utils/storageUtils'
+import { getDataFromSession, retrieveData, storeData, storeDataInSession } from '../utils/storageUtils'
 
 function Skills({ skillList }) {
   const [skillData, setSkillData] = useState([]);
@@ -21,7 +21,7 @@ function Skills({ skillList }) {
     if (status === 1) {
       const filteredSkillData = skillData.filter((_, index) => index !== indexToRemove);
       setSkillData(filteredSkillData);
-      storeData("skills", JSON.stringify(filteredSkillData));
+      storeDataInSession("skills", JSON.stringify(filteredSkillData));
     }
     setShowAlert(false);
   };
@@ -46,8 +46,8 @@ function Skills({ skillList }) {
   };
 
   useEffect(() => {
-    if (retrieveData("skills") !== null || retrieveData("skills") !== "[]") {
-      setSkillData(JSON.parse(retrieveData("skills")));
+    if (getDataFromSession("skills") !== null || getDataFromSession("skills") !== "[]") {
+      setSkillData(JSON.parse(getDataFromSession("skills")));
     }
   }, []);
 

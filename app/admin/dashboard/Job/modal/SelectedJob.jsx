@@ -1,22 +1,34 @@
-import { removeData, retrieveData, storeData } from '@/app/utils/storageUtils';
-import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import Spinner from '@/components/ui/spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import InterviewPage from '../Interview/InterviewPage';
-import ViewApplicants from '../ViewApplicants/ViewApplicants';
-import ExamPage from '../Exam/ExamPage';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import JobDetails from './JobDetails';
-import UpdateJobMaster from './UpdateJobMaster';
-import BackgroundCheckPage from '../BackgroundCheck/BackgroundCheckPage';
-import JobOfferPage from '../JobOffer/JobOfferPage';
-import DecisionPendingPage from '../DecisionPending/DecisionPendingPage';
-import EmployedPage from '../Employed/EmployedPage';
-import ReapplyPage from '../Reapplied/ReapplyPage';
+import {
+  getDataFromSession,
+  removeData,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Spinner from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axios from "axios";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import InterviewPage from "../Interview/InterviewPage";
+import ViewApplicants from "../ViewApplicants/ViewApplicants";
+import ExamPage from "../Exam/ExamPage";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import JobDetails from "./JobDetails";
+import UpdateJobMaster from "./UpdateJobMaster";
+import BackgroundCheckPage from "../BackgroundCheck/BackgroundCheckPage";
+import JobOfferPage from "../JobOffer/JobOfferPage";
+import DecisionPendingPage from "../DecisionPending/DecisionPendingPage";
+import EmployedPage from "../Employed/EmployedPage";
+import ReapplyPage from "../Reapplied/ReapplyPage";
 
 function SelectedJob({ open, onHide, jobId, getJobs }) {
   const [data, setData] = useState([]);
@@ -36,13 +48,13 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
       if (res.data !== 0) {
         const response = res.data;
         console.log("res ni RESDATA: ", response);
-        storeData("jobTotalPoints", response.jobTotalPoints);
-        storeData("jobTitle", response.jobMaster[0].jobM_title);
+        storeDataInSession("jobTotalPoints", response.jobTotalPoints);
+        storeDataInSession("jobTitle", response.jobMaster[0].jobM_title);
         // storeData("interviewPassing", response.passingPercentage);
         setData(res.data);
         if (res.data.exam !== 0) {
-          const response = res.data.exam
-          storeData("examId", response.examMaster[0].exam_id)
+          const response = res.data.exam;
+          storeDataInSession("examId", response.examMaster[0].exam_id);
         }
       }
     } catch (error) {
@@ -56,18 +68,18 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
   useEffect(() => {
     if (open) {
       getSelectedJobs();
-      storeData("jobId", jobId);
+      storeDataInSession("jobId", jobId);
     }
   }, [getSelectedJobs, jobId, open]);
 
   const handleChangeStatus = async (id, status) => {
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         candId: id,
-        status: status
-      }
+        status: status,
+      };
       console.log("jsonData: ", jsonData);
       const formData = new FormData();
       formData.append("json", JSON.stringify(jsonData));
@@ -81,7 +93,7 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
       toast.error("Network error");
       console.log("InterviewPage.jsx => handleChangeStatus(): " + error);
     }
-  }
+  };
 
   const handleClose = () => {
     sessionStorage.clear();
@@ -102,7 +114,10 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
   return (
     <>
       <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="flex flex-col h-screen md:h-[90vh] overflow-y-auto">
+        <SheetContent
+          side="bottom"
+          className="flex flex-col h-screen md:h-[90vh] overflow-y-auto"
+        >
           <SheetTitle />
           <SheetDescription />
           {isLoading ? (
@@ -125,7 +140,11 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
                 </SheetDescription>
               </SheetHeader>
               <Card className="p-1 w-full md:p-2 dark:bg-[#1c1917] flex-grow">
-                <Tabs defaultValue={selectedTab} className="flex flex-col h-full" onValueChange={(value) => setSelectedTab(value)}>
+                <Tabs
+                  defaultValue={selectedTab}
+                  className="flex flex-col h-full"
+                  onValueChange={(value) => setSelectedTab(value)}
+                >
                   <ScrollArea className="overflow-x-auto">
                     <TabsList className="flex md:flex-wrap gap-2">
                       <TabsTrigger value={1}>Details</TabsTrigger>
@@ -153,10 +172,14 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
                       <ExamPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={5}>
-                      <BackgroundCheckPage handleChangeStatus={handleChangeStatus} />
+                      <BackgroundCheckPage
+                        handleChangeStatus={handleChangeStatus}
+                      />
                     </TabsContent>
                     <TabsContent value={6}>
-                      <DecisionPendingPage handleChangeStatus={handleChangeStatus} />
+                      <DecisionPendingPage
+                        handleChangeStatus={handleChangeStatus}
+                      />
                     </TabsContent>
                     <TabsContent value={7}>
                       <JobOfferPage handleChangeStatus={handleChangeStatus} />

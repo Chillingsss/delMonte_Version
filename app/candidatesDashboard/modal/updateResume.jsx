@@ -9,6 +9,7 @@ import {
   removeDataFromCookie,
   removeDataFromSession,
   retrieveData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 import Tesseract from "tesseract.js";
@@ -121,7 +122,7 @@ const UpdateResume = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
       const jsonData = { cand_id };
       const formData = new FormData();
       formData.append("operation", "getCandidateExpectedKeywords");
@@ -226,7 +227,7 @@ const UpdateResume = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = retrieveData("user_id");
+      const cand_id = getDataFromSession("user_id");
       let textFromImage = "";
 
       if (data.image) {

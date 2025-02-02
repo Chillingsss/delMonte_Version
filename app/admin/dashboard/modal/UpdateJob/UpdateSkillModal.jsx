@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import ComboBox from '@/app/my_components/combo-box';
 import { Input } from '@/components/ui/input';
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession } from '@/app/utils/storageUtils';
 
 function UpdateSkillModal({ open, onHide, skill, updateData }) {
   const formSchema = z.object({
@@ -38,7 +38,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = JSON.parse(retrieveData("jobSkill")) || [];
+      const selectedSkill = JSON.parse(getDataFromSession("jobSkill")) || [];
       let isValid = true;
       selectedSkill.forEach((element) => {
         if (element.skill === values.skill) {

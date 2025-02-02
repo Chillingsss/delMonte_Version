@@ -1,17 +1,27 @@
 "use client";
-import { retrieveData, storeData } from '@/app/utils/storageUtils'
-import { Alert, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { CardContent, CardDescription } from '@/components/ui/card'
-import ShowAlert from '@/components/ui/show-alert'
-import { PlusIcon, X } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import AddExperience from '../modal/AddJob/AddExperience';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+} from "@/app/utils/storageUtils";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardDescription } from "@/components/ui/card";
+import ShowAlert from "@/components/ui/show-alert";
+import { PlusIcon, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import AddExperience from "../modal/AddJob/AddExperience";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
 
 function AddJobExperience({ previousStep, handleSubmit }) {
   const [datas, setDatas] = useState([]);
@@ -36,7 +46,7 @@ function AddJobExperience({ previousStep, handleSubmit }) {
 
   const handleOpenModal = () => {
     setShowModal(true);
-  }
+  };
 
   const handleCloseModal = (status) => {
     if (status !== 0) {
@@ -50,7 +60,9 @@ function AddJobExperience({ previousStep, handleSubmit }) {
 
   const handleRemoveList = (indexToRemove) => {
     setIndexToRemove(indexToRemove);
-    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently delete the item and remove it from your list"
+    );
   };
 
   const handleNextStep = () => {
@@ -59,23 +71,36 @@ function AddJobExperience({ previousStep, handleSubmit }) {
     //   return;
     // }
     handleSubmit();
-  }
+  };
 
   useEffect(() => {
-    if (retrieveData("jobExperience") !== null || retrieveData("jobExperience") !== "[]") {
-      setDatas(JSON.parse(retrieveData("jobExperience")));
+    if (
+      getDataFromSession("jobExperience") !== null ||
+      getDataFromSession("jobExperience") !== "[]"
+    ) {
+      setDatas(JSON.parse(getDataFromSession("jobExperience")));
     } else {
       setDatas([]);
     }
-    console.log(JSON.stringify(JSON.parse(retrieveData("jobExperience"))));
+    console.log(
+      JSON.stringify(JSON.parse(getDataFromSession("jobExperience")))
+    );
   }, []);
 
   return (
     <>
       <div>
-        <div className='flex justify-end gap-2 mb-3'>
-          <Button variant="secondary" onClick={() => previousStep(80)} className="mt-3">Previous</Button>
-          <Button onClick={handleNextStep} className="mt-3">Submit</Button>
+        <div className="flex justify-end gap-2 mb-3">
+          <Button
+            variant="secondary"
+            onClick={() => previousStep(80)}
+            className="mt-3"
+          >
+            Previous
+          </Button>
+          <Button onClick={handleNextStep} className="mt-3">
+            Submit
+          </Button>
         </div>
         <Button onClick={handleOpenModal}>
           <PlusIcon className="h-4 w-4 mr-1" />
@@ -90,8 +115,12 @@ function AddJobExperience({ previousStep, handleSubmit }) {
                     <TableRow>
                       <TableHead className="w-1/12">Index</TableHead>
                       <TableHead className="w-10/12">Experience</TableHead>
-                      <TableHead className="w-1/12 text-center">Year/s of experience</TableHead>
-                      <TableHead className="w-1/12 text-center">Points</TableHead>
+                      <TableHead className="w-1/12 text-center">
+                        Year/s of experience
+                      </TableHead>
+                      <TableHead className="w-1/12 text-center">
+                        Points
+                      </TableHead>
                       <TableHead className="w-1/12 text-center"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -102,8 +131,12 @@ function AddJobExperience({ previousStep, handleSubmit }) {
                         <TableCell className="w-10/12 whitespace-normal">
                           {data.jobExperience}
                         </TableCell>
-                        <TableCell className="w-1/12 text-center">{data.yearsOfExperience}</TableCell>
-                        <TableCell className="w-1/12 text-center">{data.points}</TableCell>
+                        <TableCell className="w-1/12 text-center">
+                          {data.yearsOfExperience}
+                        </TableCell>
+                        <TableCell className="w-1/12 text-center">
+                          {data.points}
+                        </TableCell>
                         <TableCell className="w-1/12 text-center">
                           <button
                             className="h-4 w-4"
@@ -119,7 +152,10 @@ function AddJobExperience({ previousStep, handleSubmit }) {
               </div>
               <div className="block md:hidden">
                 {datas.map((data, index) => (
-                  <div key={index} className="relative w-full p-4 rounded-md shadow">
+                  <div
+                    key={index}
+                    className="relative w-full p-4 rounded-md shadow"
+                  >
                     <div className="flex justify-end">
                       <button
                         className="h-6 w-6"
@@ -128,10 +164,8 @@ function AddJobExperience({ previousStep, handleSubmit }) {
                         <X className="h-6 w-6" />
                       </button>
                     </div>
-                    <div className="mt-2 text-sm">
-                      {data.jobExperience}
-                    </div>
-                    <div className='text-end'>
+                    <div className="mt-2 text-sm">{data.jobExperience}</div>
+                    <div className="text-end">
                       <Badge className="mt-2 text-xs font-bold">
                         Year/s of Experience: {data.yearsOfExperience}
                       </Badge>
@@ -141,7 +175,6 @@ function AddJobExperience({ previousStep, handleSubmit }) {
                 ))}
               </div>
             </>
-
           ) : (
             <CardDescription className="text-center">
               No experience added yet
@@ -149,10 +182,14 @@ function AddJobExperience({ previousStep, handleSubmit }) {
           )}
         </Alert>
         <AddExperience open={showModal} onHide={handleCloseModal} />
-        <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+        <ShowAlert
+          open={showAlert}
+          onHide={handleCloseAlert}
+          message={alertMessage}
+        />
       </div>
     </>
-  )
+  );
 }
 
-export default AddJobExperience
+export default AddJobExperience;

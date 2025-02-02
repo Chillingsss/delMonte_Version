@@ -1,18 +1,30 @@
 "use client";
-import { retrieveData, storeData } from '@/app/utils/storageUtils'
-import { Button } from '@/components/ui/button'
-import { Card, CardDescription } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import ShowAlert from '@/components/ui/show-alert'
-import { Edit2, PlusIcon, Trash2 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import AddSkill from '../AddJob/AddSkill';
-import { Badge } from '@/components/ui/badge';
-import UpdateSkillModal from './UpdateJob/UpdateSkillModal';
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import ShowAlert from "@/components/ui/show-alert";
+import { Edit2, PlusIcon, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import AddSkill from "../AddJob/AddSkill";
+import { Badge } from "@/components/ui/badge";
+import UpdateSkillModal from "./UpdateJob/UpdateSkillModal";
 
 function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
-  const skill = JSON.parse(retrieveData("skillsList"));
+  const skill = JSON.parse(getDataFromSession("skillsList"));
   const [datas, setDatas] = useState([]);
   const [updateData, setUpdateData] = useState({});
   const [indexToRemove, setIndexToRemove] = useState(null);
@@ -25,8 +37,8 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
   const handleCloseAlert = async (status) => {
     if (status === 1) {
       const jsonData = {
-        id: indexToRemove
-      }
+        id: indexToRemove,
+      };
       await deleteData("deleteJobSkills", jsonData, "getJobSkills");
     }
     setShowAlert(false);
@@ -36,21 +48,21 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
 
   const handleOpenModal = () => {
     setShowModal(true);
-  }
+  };
 
   const handleAddList = (status) => {
     if (status !== 0) {
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         // skillText: status.jobSkill,
         skillId: status.skill,
-        points: status.points
-      }
+        points: status.points,
+      };
       handleAddData("addJobSkills", jsonData, "getJobSkills");
     } else {
       setDatas(datas);
     }
-  }
+  };
 
   const handleCloseModal = (status) => {
     setShowModal(false);
@@ -58,13 +70,15 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
 
   const handleRemoveList = (indexToRemove) => {
     setIndexToRemove(indexToRemove);
-    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently delete the item and remove it from your list"
+    );
   };
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const handleOpenUpdateModal = () => {
     setShowUpdateModal(true);
-  }
+  };
 
   const handleCloseUpdateModal = (values) => {
     if (values !== 0) {
@@ -72,29 +86,37 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
         id: updateData.id,
         // skillText: values.jobSkill,
         skillId: values.skill,
-        points: values.points
-      }
+        points: values.points,
+      };
       handleUpdate("updateJobSkills", jsonData, "getJobSkills");
     }
     setShowUpdateModal(false);
-  }
+  };
 
   const handleEdit = (id, skillId, points, jobSkill) => {
-    setUpdateData({ id: id, skill: skillId, points: points, jobSkill: jobSkill });
+    setUpdateData({
+      id: id,
+      skill: skillId,
+      points: points,
+      jobSkill: jobSkill,
+    });
     handleOpenUpdateModal();
-  }
+  };
 
   useEffect(() => {
     if (data) {
       setDatas(data);
       const filteredData = data.map((element) => ({
         skill: element.jskills_skillsId,
-      }))
-      storeData("jobSkill", JSON.stringify(filteredData));
+      }));
+      storeDataInSession("jobSkill", JSON.stringify(filteredData));
     }
-    console.log("datas ni skills:", data)
-    console.log("skills ni skills:", skill)
-    console.log("retrieveData ni skills", JSON.parse(retrieveData("jobSkill")))
+    console.log("datas ni skills:", data);
+    console.log("skills ni skills:", skill);
+    console.log(
+      "retrieveData ni skills",
+      JSON.parse(getDataFromSession("jobSkill"))
+    );
   }, [data, skill]);
 
   return (
@@ -114,8 +136,12 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
                       <TableHead className="w-1/12">Index</TableHead>
                       <TableHead className="w-1/12 ">Skill</TableHead>
                       {/* <TableHead className="w-10/12">Description</TableHead> */}
-                      <TableHead className="w-1/12 text-center">Points</TableHead>
-                      <TableHead className="w-1/12 text-center">Actions</TableHead>
+                      <TableHead className="w-1/12 text-center">
+                        Points
+                      </TableHead>
+                      <TableHead className="w-1/12 text-center">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -123,18 +149,35 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
                       <TableRow key={index}>
                         <TableCell className="w-1/12">{index + 1}</TableCell>
                         <TableCell className="w-1/12">
-                          {skill.find((item) => item.value === data.jskills_skillsId)?.label}
+                          {
+                            skill.find(
+                              (item) => item.value === data.jskills_skillsId
+                            )?.label
+                          }
                         </TableCell>
                         {/* <TableCell className="w-10/12 whitespace-normal">
                           {data.jskills_text}
                         </TableCell> */}
-                        <TableCell className="w-1/12 text-center">{data.jskills_points}</TableCell>
                         <TableCell className="w-1/12 text-center">
-                          <div className='flex justify-center'>
-                            <button onClick={() => handleEdit(data.jskills_id, data.jskills_skillsId, data.jskills_points)}>
+                          {data.jskills_points}
+                        </TableCell>
+                        <TableCell className="w-1/12 text-center">
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() =>
+                                handleEdit(
+                                  data.jskills_id,
+                                  data.jskills_skillsId,
+                                  data.jskills_points
+                                )
+                              }
+                            >
                               <Edit2 className="h-4 w-4 mr-4" />
                             </button>
-                            <button className="h-4 w-4" onClick={() => handleRemoveList(data.jskills_id)}>
+                            <button
+                              className="h-4 w-4"
+                              onClick={() => handleRemoveList(data.jskills_id)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -146,22 +189,40 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
               </div>
               <div className="block md:hidden">
                 {datas.map((data, index) => (
-                  <div key={index} className="relative w-full p-4 rounded-md shadow">
+                  <div
+                    key={index}
+                    className="relative w-full p-4 rounded-md shadow"
+                  >
                     <div className="flex justify-end">
-                      <button onClick={() => handleEdit(data.jskills_id, data.jskills_skillsId, data.jskills_points)}>
+                      <button
+                        onClick={() =>
+                          handleEdit(
+                            data.jskills_id,
+                            data.jskills_skillsId,
+                            data.jskills_points
+                          )
+                        }
+                      >
                         <Edit2 className="h-4 w-4 mr-4" />
                       </button>
-                      <button className="h-4 w-4" onClick={() => handleRemoveList(data.jskills_id)}>
+                      <button
+                        className="h-4 w-4"
+                        onClick={() => handleRemoveList(data.jskills_id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="mt-2 text-sm">
-                      <div className='mb-1 text-xl break-words'>
-                        {skill.find((item) => item.value === data.jskills_skillsId)?.label}
+                      <div className="mb-1 text-xl break-words">
+                        {
+                          skill.find(
+                            (item) => item.value === data.jskills_skillsId
+                          )?.label
+                        }
                       </div>
                       {/* {data.jskills_text} */}
                     </div>
-                    <div className='text-end'>
+                    <div className="text-end">
                       <Badge className="mt-2 text-xs font-bold">
                         Points: {data.jskills_points}
                       </Badge>
@@ -177,12 +238,32 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
             </CardDescription>
           )}
         </Card>
-        {showModal && <AddSkill open={showModal} onHide={handleCloseModal} skill={skill} handleAddList={handleAddList} isUpdate={true} />}
-        {showUpdateModal && <UpdateSkillModal open={showUpdateModal} onHide={handleCloseUpdateModal} skill={skill} updateData={updateData} />}
-        <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} duration={1} />
+        {showModal && (
+          <AddSkill
+            open={showModal}
+            onHide={handleCloseModal}
+            skill={skill}
+            handleAddList={handleAddList}
+            isUpdate={true}
+          />
+        )}
+        {showUpdateModal && (
+          <UpdateSkillModal
+            open={showUpdateModal}
+            onHide={handleCloseUpdateModal}
+            skill={skill}
+            updateData={updateData}
+          />
+        )}
+        <ShowAlert
+          open={showAlert}
+          onHide={handleCloseAlert}
+          message={alertMessage}
+          duration={1}
+        />
       </div>
     </>
-  )
+  );
 }
 
 export default UpdateSkill;

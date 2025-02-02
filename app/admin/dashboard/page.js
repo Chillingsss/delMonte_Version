@@ -17,45 +17,10 @@ import GeneralExam from "./Masterfiles/GeneralExam";
 import InterviewCategoryMaster from "./Masterfiles/InterviewCategoryMaster";
 import InterviewCriteriaMaster from "./Masterfiles/InterviewCriteriaMaster";
 import { useRouter } from "next/navigation";
-import { retrieveData, retrieveDataFromCookie } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 
 export default function Page() {
   const [viewIndex, setViewIndex] = useState(0);
-
-  useEffect(() => {
-    const token = retrieveDataFromCookie("auth_token");
-
-    if (!token) {
-      sessionStorage.clear();
-
-      // Clear all cookies
-      document.cookie.split(";").forEach((cookie) => {
-        const cookieName = cookie.split("=")[0].trim();
-        document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
-      });
-
-      router.push("/");
-      return;
-    }
-
-    switch (userLevel) {
-      case "100.0":
-        router.replace("/admin/dashboard");
-        break;
-      case "2":
-        router.replace("/superAdminDashboard");
-        break;
-      case "supervisor":
-        router.replace("/supervisorDashboard");
-        break;
-      case "1.0":
-        router.replace("/candidatesDashboard");
-        break;
-      default:
-        // console.log("Unexpected user level, redirecting to landing area.");
-        router.replace("/");
-    }
-  }, []);
 
   const adminViews = [
     { view: <AdminDashboard /> },
@@ -76,7 +41,30 @@ export default function Page() {
 
   const router = useRouter();
 
-  const userLevel = retrieveData("user_level");
+  useEffect(() => {
+    const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
+
+    console.log("userLevel:", userLevel); // Debugging output
+
+    switch (userLevel) {
+      case "100":
+      case "100.0":
+        router.replace("/admin/dashboard");
+        break;
+      case "2":
+        router.replace("/superAdminDashboard");
+        break;
+      case "supervisor":
+        router.replace("/supervisorDashboard");
+        break;
+      case "1": // If stored as an integer, it will be "1" as a string
+      case "1.0": // This covers cases where it might be stored as "1.0"
+        router.replace("/candidatesDashboard");
+        break;
+      default:
+        router.replace("/");
+    }
+  }, [router]);
 
   // const userName = retrieveData("first_name");
   // const userId = retrieveData("user_id");

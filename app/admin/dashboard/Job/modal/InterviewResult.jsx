@@ -1,4 +1,4 @@
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 import { Card, CardContent } from '@/components/ui/card';
 import Spinner from '@/components/ui/spinner';
 import axios from 'axios';
@@ -19,14 +19,14 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         candId: candId
       }
       const formData = new FormData();
       formData.append("operation", "getCandInterviewResult");
       formData.append("json", JSON.stringify(jsonData));
       const res = await axios.post(url, formData);
-      
+
       if (res.data && res.data !== -1 && res.data !== 0) {
         setInterviewResults(res.data);
       } else {

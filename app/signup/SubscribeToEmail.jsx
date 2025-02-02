@@ -1,7 +1,7 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
-import React, { useState } from 'react';
-import { storeData } from '../utils/storageUtils';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import React, { useState } from "react";
+import { storeData, storeDataInSession } from "../utils/storageUtils";
 
 function SubscribeToEmail() {
   const [isChecked, setIsChecked] = useState(false);
@@ -9,18 +9,18 @@ function SubscribeToEmail() {
   const handleCheckboxChange = () => {
     const newValue = isChecked ? 0 : 1;
     setIsChecked(newValue);
-    storeData("isSubscribeToEmail", newValue);
+    storeDataInSession("isSubscribeToEmail", newValue);
   };
 
   return (
     <>
-      <Alert className="bg-[#0e4028]"> 
+      <Alert className="bg-[#0e4028]">
         <AlertDescription>
           <div className="items-top flex space-x-2">
-            <Checkbox 
-              id="terms1" 
-              checked={isChecked} 
-              onCheckedChange={handleCheckboxChange} 
+            <Checkbox
+              id="terms1"
+              checked={isChecked}
+              onCheckedChange={handleCheckboxChange}
             />
             <div className="grid gap-1.5 leading-none">
               <label

@@ -1,4 +1,4 @@
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 import { Badge } from '@/components/ui/badge';
 import Spinner from '@/components/ui/spinner';
 import axios from 'axios';
@@ -16,7 +16,7 @@ const JobDetails = ({ getSelectedJobs }) => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      const jobId = retrieveData("jobId");
+      const jobId = getDataFromSession("jobId");
       const jsonData = { jobId: jobId };
       const formData = new FormData();
       formData.append("operation", "getJobDetails");

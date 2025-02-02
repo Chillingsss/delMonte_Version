@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { tailChase } from "ldrs";
-import { retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 
 tailChase.register();
 
@@ -22,7 +22,7 @@ const JobOfferModal = ({
   const handleResponse = async (status) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
 
       const jsonData = {
         job_offer_id: jobOfferDetails.joboffer_id,

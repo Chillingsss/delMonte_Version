@@ -1,16 +1,34 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+} from "@/app/utils/storageUtils";
 
 function UpdateTrainingModal({ open, onHide, training, updateData }) {
   const formSchema = z.object({
@@ -20,11 +38,14 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
     // jobTraining: z.string().min(1, {
     //   message: "This field is required",
     // }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -38,11 +59,12 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedTraining = JSON.parse(retrieveData("jobTraining")) || [];
+      const selectedTraining =
+        JSON.parse(getDataFromSession("jobTraining")) || [];
       let isValid = true;
       const filteredSelectedData = selectedTraining.filter((element) => {
         return element.training !== updateData.training;
-      })
+      });
       filteredSelectedData.forEach((element) => {
         if (element.training === values.training) {
           toast.error("You already have this training");
@@ -50,8 +72,9 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
         }
       });
       if (isValid) {
-        const totalPoints = Number(retrieveData("jobTotalPoints") || 0);
-        const newTotalPoints = (totalPoints - Number(updateData.points)) + Number(values.points);
+        const totalPoints = Number(getDataFromSession("jobTotalPoints") || 0);
+        const newTotalPoints =
+          totalPoints - Number(updateData.points) + Number(values.points);
         if (newTotalPoints > 100) {
           toast.error("Total points cannot exceed 100");
           return;
@@ -68,7 +91,7 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -76,7 +99,10 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update Training</DialogTitle>
-            <DialogDescription>Job&apos;s total points: {retrieveData("jobTotalPoints") || 0} </DialogDescription>
+            <DialogDescription>
+              Job&apos;s total points:{" "}
+              {getDataFromSession("jobTotalPoints") || 0}{" "}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -140,7 +166,7 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default UpdateTrainingModal
+export default UpdateTrainingModal;

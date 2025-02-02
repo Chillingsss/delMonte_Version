@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { retrieveData } from '@/app/utils/storageUtils';
-import { toast } from 'sonner';
-import axios from 'axios';
-import SelectedApplicant from '../modal/SelectedApplicant';
-import SetToInterviewModal from './modal/SetToInterviewModal';
-import UpdateJobPassingPercentage from './modal/UpdateJobPassingPercentage';
-import DataTable from '@/app/my_components/DataTable';
-import Spinner from '@/components/ui/spinner';
-import PotentialCandidatesModal from './modal/PotentialCandidatesModal';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect, useState } from "react";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { toast } from "sonner";
+import axios from "axios";
+import SelectedApplicant from "../modal/SelectedApplicant";
+import SetToInterviewModal from "./modal/SetToInterviewModal";
+import UpdateJobPassingPercentage from "./modal/UpdateJobPassingPercentage";
+import DataTable from "@/app/my_components/DataTable";
+import Spinner from "@/components/ui/spinner";
+import PotentialCandidatesModal from "./modal/PotentialCandidatesModal";
+import { Badge } from "@/components/ui/badge";
 
 const ViewApplicants = ({ handleChangeStatus }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,9 +38,9 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   const getPendingDetails = async () => {
     setIsLoading(true);
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const formData = new FormData();
-      const jsonData = { jobId: retrieveData("jobId") };
+      const jsonData = { jobId: getDataFromSession("jobId") };
       console.log("jsonData: ", jsonData);
       formData.append("operation", "getPendingDetails");
       formData.append("json", JSON.stringify(jsonData));
@@ -55,24 +55,43 @@ const ViewApplicants = ({ handleChangeStatus }) => {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const columns = [
-    { header: 'Full Name', accessor: 'FullName' },
+    { header: "Full Name", accessor: "FullName" },
     {
-      header: 'Total Points',
+      header: "Total Points",
       accessor: (row) => `${row.totalPoints || 0}/${row.maxPoints || 0}`,
-      className: (row) => `${row.percentage >= passingPercentage ? 'text-green-500' : 'text-red-500'}`,
+      className: (row) =>
+        `${
+          row.percentage >= passingPercentage
+            ? "text-green-500"
+            : "text-red-500"
+        }`,
       hiddenOnMobile: true,
     },
     {
-      header: 'Percentage',
+      header: "Percentage",
       accessor: "percentage",
-      className: (row) => `${row.percentage >= passingPercentage ? 'text-green-500' : 'text-red-500'}`,
-      sortable: true
+      className: (row) =>
+        `${
+          row.percentage >= passingPercentage
+            ? "text-green-500"
+            : "text-red-500"
+        }`,
+      sortable: true,
     },
-    { header: 'Date', accessor: 'Date', sortable: true, hiddenOnMobile: true },
-    { header: 'Status', accessor: 'status_name', className: (row) => `${row.status_name === "Pending" || row.status_name === "Processed" ? 'text-green-500' : 'text-red-500'}` }
+    { header: "Date", accessor: "Date", sortable: true, hiddenOnMobile: true },
+    {
+      header: "Status",
+      accessor: "status_name",
+      className: (row) =>
+        `${
+          row.status_name === "Pending" || row.status_name === "Processed"
+            ? "text-green-500"
+            : "text-red-500"
+        }`,
+    },
   ];
 
   useEffect(() => {
@@ -82,24 +101,40 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   return (
     <div>
       <div className="flex items-center justify-end ml-1 md:mx-3 ">
-        <p>Passing percentage: <Badge>{passingPercentage ? passingPercentage : 0}%</Badge> </p>
-        <UpdateJobPassingPercentage currentPassingPercentage={passingPercentage} getSelectedJob={getPendingDetails} />
+        <p>
+          Passing percentage:{" "}
+          <Badge>{passingPercentage ? passingPercentage : 0}%</Badge>{" "}
+        </p>
+        <UpdateJobPassingPercentage
+          currentPassingPercentage={passingPercentage}
+          getSelectedJob={getPendingDetails}
+        />
       </div>
-      <div className='p-3'>
-        {isLoading ? <Spinner /> :
+      <div className="p-3">
+        {isLoading ? (
+          <Spinner />
+        ) : (
           <DataTable
             columns={columns}
             data={data}
             itemsPerPage={5}
-            onRowClick={(row) => handleShowSelectedApplicant(row.cand_id, row.status_name)}
+            onRowClick={(row) =>
+              handleShowSelectedApplicant(row.cand_id, row.status_name)
+            }
             headerAction={
-              <div className='flex'>
-                <SetToInterviewModal datas={data} passingPercentage={passingPercentage} getPendingCandidates={getPendingDetails} />
-                <PotentialCandidatesModal passingPercentage={passingPercentage} />
+              <div className="flex">
+                <SetToInterviewModal
+                  datas={data}
+                  passingPercentage={passingPercentage}
+                  getPendingCandidates={getPendingDetails}
+                />
+                <PotentialCandidatesModal
+                  passingPercentage={passingPercentage}
+                />
               </div>
             }
           />
-        }
+        )}
       </div>
 
       {showSelectedApplicant && (
@@ -114,6 +149,5 @@ const ViewApplicants = ({ handleChangeStatus }) => {
     </div>
   );
 };
-
 
 export default ViewApplicants;

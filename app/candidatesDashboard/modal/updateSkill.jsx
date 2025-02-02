@@ -10,6 +10,7 @@ import {
   removeDataFromCookie,
   removeDataFromSession,
   retrieveData,
+  getDataFromSession,
 } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
@@ -151,7 +152,7 @@ const UpdateSkill = ({
   const handleSave = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candidateId = retrieveData("user_id");
+      const candidateId = getDataFromSession("user_id");
 
       const updatedData = {
         candidateId: candidateId,

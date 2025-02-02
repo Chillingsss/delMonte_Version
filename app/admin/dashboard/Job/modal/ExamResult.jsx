@@ -1,4 +1,4 @@
-import { retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Spinner from '@/components/ui/spinner';
 import axios from 'axios';
@@ -14,7 +14,7 @@ const ExamResult = ({ candId }) => {
   const getCandidateExamPoints = useCallback(async () => {
     setIsLoading(true);
     try {
-      const jobId = retrieveData("jobId");
+      const jobId = getDataFromSession("jobId");
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = { candidateId: candId, jobId: jobId }
       console.log("jsonData", jsonData);

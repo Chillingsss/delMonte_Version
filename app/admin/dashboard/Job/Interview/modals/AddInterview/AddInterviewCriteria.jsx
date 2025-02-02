@@ -1,29 +1,51 @@
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import React, { useEffect } from 'react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import { retrieveData } from '@/app/utils/storageUtils';
-import ComboBox from '@/app/my_components/combo-box';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import ComboBox from "@/app/my_components/combo-box";
 
-function AddInterviewCriteria({ open, onHide, interviewCriteria, addCriteria }) {
+function AddInterviewCriteria({
+  open,
+  onHide,
+  interviewCriteria,
+  addCriteria,
+}) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [interviewCategory, setInterviewCategory] = React.useState([]);
-  const [allInterviewCriteriaList, setAllInterviewCriteriaList] = React.useState([]);
+  const [allInterviewCriteriaList, setAllInterviewCriteriaList] =
+    React.useState([]);
   const [interviewCriteriaList, setInterviewCriteriaList] = React.useState([]);
 
   const formSchema = z.object({
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    }),
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
     interviewQuestion: z.string().min(1, {
       message: "This field is required",
     }),
@@ -92,7 +114,7 @@ function AddInterviewCriteria({ open, onHide, interviewCriteria, addCriteria }) 
     }
     try {
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         criteriaId: values.interviewCriteria,
         points: values.points,
         question: values.interviewQuestion,

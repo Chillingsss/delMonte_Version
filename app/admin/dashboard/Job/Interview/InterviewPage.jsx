@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import ViewInterviewCriteria from './modals/ViewInterviewCriteria';
-import { retrieveData } from '@/app/utils/storageUtils';
-import axios from 'axios';
-import { toast } from 'sonner';
-import Spinner from '@/components/ui/spinner';
-import DataTable from '@/app/my_components/DataTable';
-import SelectedApplicant from '../modal/SelectedApplicant';
+import React, { useEffect, useState } from "react";
+import ViewInterviewCriteria from "./modals/ViewInterviewCriteria";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import axios from "axios";
+import { toast } from "sonner";
+import Spinner from "@/components/ui/spinner";
+import DataTable from "@/app/my_components/DataTable";
+import SelectedApplicant from "../modal/SelectedApplicant";
 
 const InterviewPage = ({ handleChangeStatus }) => {
   const [candidates, setCandidates] = useState([]);
@@ -25,8 +25,8 @@ const InterviewPage = ({ handleChangeStatus }) => {
   const getInterviewCandidates = async () => {
     setIsLoading(true);
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
-      const jsonData = { jobId: retrieveData('jobId') };
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+      const jsonData = { jobId: getDataFromSession("jobId") };
       const formData = new FormData();
       formData.append("operation", "getInterviewCandidates");
       formData.append("json", JSON.stringify(jsonData));
@@ -49,9 +49,9 @@ const InterviewPage = ({ handleChangeStatus }) => {
   const columns = [
     { header: "Full Name", accessor: "fullName" },
     // { header: "Status", accessor: "status_name" },
-    { header: "Schedule date", accessor: "schedDate"},
-    { header: "Schedule time", accessor: "schedTime"}
- ];
+    { header: "Schedule date", accessor: "schedDate" },
+    { header: "Schedule time", accessor: "schedTime" },
+  ];
 
   useEffect(() => {
     getInterviewCandidates();
@@ -62,7 +62,7 @@ const InterviewPage = ({ handleChangeStatus }) => {
       {isLoading ? (
         <Spinner />
       ) : (
-        <div className='p-3'>
+        <div className="p-3">
           <DataTable
             columns={columns}
             itemsPerPage={5}
@@ -73,7 +73,7 @@ const InterviewPage = ({ handleChangeStatus }) => {
           />
         </div>
       )}
-      {isInterviewModalOpen &&
+      {isInterviewModalOpen && (
         <SelectedApplicant
           open={isInterviewModalOpen}
           onHide={handleCloseInterviewModal}
@@ -81,7 +81,7 @@ const InterviewPage = ({ handleChangeStatus }) => {
           candId={selectedCandId}
           handleChangeStatus={handleChangeStatus}
         />
-      }
+      )}
     </div>
   );
 };

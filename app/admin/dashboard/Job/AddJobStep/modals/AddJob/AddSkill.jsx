@@ -1,29 +1,60 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect, useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import ComboBox from '@/app/my_components/combo-box';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
-import AddSkillMaster from '@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddSkillMaster';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import ComboBox from "@/app/my_components/combo-box";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import AddSkillMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddSkillMaster";
 
-function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, isUpdate = false }) {
+function AddSkill({
+  open,
+  onHide,
+  handleAddList,
+  handleAddData,
+  addTotalPoints,
+  isUpdate = false,
+}) {
   const [openState, setOpenState] = useState(false);
-  const [skillData, setSkillData] = useState(JSON.parse(retrieveData("skillsList")));
+  const [skillData, setSkillData] = useState(
+    JSON.parse(getDataFromSession("skillsList"))
+  );
   const formSchema = z.object({
     skill: z.number().min(1, {
       message: "This field is required",
     }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -36,23 +67,26 @@ function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, 
 
   const handleOthers = () => {
     setOpenState(true);
-  }
+  };
 
   const handleCloseState = () => {
     setOpenState(false);
-  }
+  };
 
   const addColumn = (values, id) => {
-    storeData("skillsList", JSON.stringify([...skillData, { value: id, label: values.skillName }]));
+    storeDataInSession(
+      "skillsList",
+      JSON.stringify([...skillData, { value: id, label: values.skillName }])
+    );
     setSkillData([...skillData, { value: id, label: values.skillName }]);
     if (!isUpdate) {
       handleAddData(values, id);
     }
-  }
+  };
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = JSON.parse(retrieveData("jobSkill")) || [];
+      const selectedSkill = JSON.parse(getDataFromSession("jobSkill")) || [];
       let isValid = true;
       selectedSkill.forEach((element) => {
         if (element.skill === values.skill) {
@@ -64,13 +98,13 @@ function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, 
         if (!isUpdate) {
           if (addTotalPoints(values.points) === false) return;
         }
-        const jobTotalPoints = Number(retrieveData("jobTotalPoints"));
+        const jobTotalPoints = Number(getDataFromSession("jobTotalPoints"));
         const jobPointSum = jobTotalPoints + Number(values.points);
         if (jobPointSum > 100) {
           toast.error("Total points must not exceed 100");
           return;
         }
-        storeData("jobTotalPoints", jobPointSum);
+        storeDataInSession("jobTotalPoints", jobPointSum);
         handleAddList(values);
         form.reset();
       }
@@ -82,7 +116,7 @@ function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, 
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -90,7 +124,11 @@ function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, 
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Skill</DialogTitle>
-            {isUpdate && <DialogDescription>Total points: {retrieveData("jobTotalPoints")}</DialogDescription>}
+            {isUpdate && (
+              <DialogDescription>
+                Total points: {getDataFromSession("jobTotalPoints")}
+              </DialogDescription>
+            )}
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -148,7 +186,7 @@ function AddSkill({ open, onHide, handleAddList, handleAddData, addTotalPoints, 
         closeState={handleCloseState}
       />
     </>
-  )
+  );
 }
 
-export default AddSkill
+export default AddSkill;

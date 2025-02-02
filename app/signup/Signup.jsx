@@ -8,7 +8,9 @@ import axios from "axios";
 import Spinner from "@/components/ui/spinner";
 import EnterPin from "./modals/EnterPin";
 import {
+  getDataFromSession,
   removeData,
+  removeSessionData,
   retrieveData,
   retrieveDataFromCookie,
   storeData,
@@ -23,51 +25,6 @@ const Signup = () => {
   const [pincode, setPincode] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [expirationDate, setExpirationDate] = useState("");
-
-  useEffect(() => {
-    const token = retrieveDataFromCookie("auth_token");
-
-    const encodedToken = retrieveDataFromCookie("auth_token");
-    const tokenData = encodedToken ? JSON.parse(atob(encodedToken)) : null;
-    const userLevel = tokenData?.userLevel;
-    // const userName = retrieveDataFromCookie("first_name");
-    // const userId = retrieveData("user_id");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const token = retrieveDataFromCookie("auth_token");
-    // const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    // const userLevel = retrieveDataFromCookie("auth_token");
-
-    if (!token) {
-      sessionStorage.clear();
-
-      // Clear all cookies
-      document.cookie.split(";").forEach((cookie) => {
-        const cookieName = cookie.split("=")[0].trim();
-        document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
-      });
-
-      router.push("/signup");
-      return;
-    }
-
-    switch (userLevel) {
-      case "100.0":
-        router.replace("/admin/dashboard");
-        break;
-      case "2":
-        router.replace("/superAdminDashboard");
-        break;
-      case "supervisor":
-        router.replace("/supervisorDashboard");
-        break;
-      case "1.0":
-        router.replace("/candidatesDashboard");
-        break;
-      default:
-        // console.log("Unexpected user level, redirecting to landing area.");
-        router.replace("/");
-    }
-  }, []);
 
   const handleShowPin = () => {
     setShowPin(true);
@@ -96,14 +53,14 @@ const Signup = () => {
       const formData = new FormData();
       formData.append(
         "json",
-        JSON.stringify(JSON.parse(retrieveData("personalInfo")))
+        JSON.stringify(getDataFromSession("personalInfo"))
       );
       formData.append("operation", "signup");
       const res = await axios.post(url, formData);
       console.log("res ni handleSaveInformation: ", res.data);
       if (res.data === 1) {
         toast.success("Signup successful");
-        removeData("personalInfo");
+        removeSessionData("personalInfo");
         setTimeout(() => {
           router.push("/login");
         }, 1250);
@@ -131,7 +88,7 @@ const Signup = () => {
   };
 
   const handleSubmit = async (status) => {
-    const personalInfo = JSON.parse(retrieveData("personalInfo"));
+    const personalInfo = getDataFromSession("personalInfo");
     if (status === 2) {
       try {
         setIsLoading(true);

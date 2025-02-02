@@ -1,18 +1,35 @@
 "use client";
-import { retrieveData, storeData } from '@/app/utils/storageUtils'
-import { Alert, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { CardContent, CardDescription } from '@/components/ui/card'
-import ShowAlert from '@/components/ui/show-alert'
-import { PlusIcon, X } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import AddSkill from './modals/AddJob/AddSkill';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardDescription } from "@/components/ui/card";
+import ShowAlert from "@/components/ui/show-alert";
+import { PlusIcon, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import AddSkill from "./modals/AddJob/AddSkill";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
-function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints }) {
+function AddJobSkill({
+  previousStep,
+  nextStep,
+  addTotalPoints,
+  deductTotalPoints,
+}) {
   const [datas, setDatas] = useState([]);
   const [indexToRemove, setIndexToRemove] = useState(null);
   const [skillData, setSkillData] = useState([]);
@@ -29,7 +46,7 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
     if (status === 1) {
       const filteredDatas = datas.filter((_, index) => index !== indexToRemove);
       setDatas(filteredDatas);
-      storeData("jobSkill", JSON.stringify(filteredDatas));
+      storeDataInSession("jobSkill", JSON.stringify(filteredDatas));
       deductTotalPoints(Number(selectedPoints));
     }
     setShowAlert(false);
@@ -39,7 +56,7 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
 
   const handleOpenModal = () => {
     setShowModal(true);
-  }
+  };
 
   const handleCloseModal = (status) => {
     setShowModal(false);
@@ -48,28 +65,33 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
   const handleRemoveList = (indexToRemove, points) => {
     setSelectedPoints(points);
     setIndexToRemove(indexToRemove);
-    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently delete the item and remove it from your list"
+    );
   };
 
   const handleNextStep = () => {
     nextStep(93);
-  }
+  };
 
   const handleAddData = (data, id) => {
     setSkillData([...skillData, { value: id, label: data.skillName }]);
-  }
+  };
 
   const handleAddList = (status) => {
     setDatas([...datas, status]);
-    storeData("jobSkill", JSON.stringify([...datas, status]));
+    storeDataInSession("jobSkill", JSON.stringify([...datas, status]));
     toast.success("Skill added successfully");
   };
 
   useEffect(() => {
-    const skillList = JSON.parse(retrieveData("skillsList"));
+    const skillList = JSON.parse(getDataFromSession("skillsList"));
     setSkillData(skillList);
-    if (retrieveData("jobSkill") !== null || retrieveData("jobSkill") !== "[]") {
-      setDatas(JSON.parse(retrieveData("jobSkill")));
+    if (
+      getDataFromSession("jobSkill") !== null ||
+      getDataFromSession("jobSkill") !== "[]"
+    ) {
+      setDatas(JSON.parse(getDataFromSession("jobSkill")));
     } else {
       setDatas([]);
     }
@@ -78,9 +100,17 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
   return (
     <>
       <div>
-        <div className='flex justify-end gap-2 mb-3'>
-          <Button variant="secondary" onClick={() => previousStep(60)} className="mt-3">Previous</Button>
-          <Button onClick={handleNextStep} className="mt-3">Next</Button>
+        <div className="flex justify-end gap-2 mb-3">
+          <Button
+            variant="secondary"
+            onClick={() => previousStep(60)}
+            className="mt-3"
+          >
+            Previous
+          </Button>
+          <Button onClick={handleNextStep} className="mt-3">
+            Next
+          </Button>
         </div>
         <Button onClick={handleOpenModal}>
           <PlusIcon className="h-4 w-4 mr-1" />
@@ -94,7 +124,9 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-1/12 ">Skill</TableHead>
-                      <TableHead className="w-1/12 text-center">Points</TableHead>
+                      <TableHead className="w-1/12 text-center">
+                        Points
+                      </TableHead>
                       <TableHead className="w-1/12 text-center"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -102,9 +134,14 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
                     {datas.map((data, index) => (
                       <TableRow key={index}>
                         <TableCell className="w-1/12">
-                          {skillData.find((item) => item.value === data.skill)?.label}
+                          {
+                            skillData.find((item) => item.value === data.skill)
+                              ?.label
+                          }
                         </TableCell>
-                        <TableCell className="w-1/12 text-center">{data.points}</TableCell>
+                        <TableCell className="w-1/12 text-center">
+                          {data.points}
+                        </TableCell>
                         <TableCell className="w-1/12 text-center">
                           <button
                             className="h-4 w-4"
@@ -120,7 +157,10 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
               </div>
               <div className="block md:hidden">
                 {datas.map((data, index) => (
-                  <div key={index} className="relative w-full p-4 rounded-md shadow">
+                  <div
+                    key={index}
+                    className="relative w-full p-4 rounded-md shadow"
+                  >
                     <div className="flex justify-end">
                       <button
                         className="h-4 w-4"
@@ -130,11 +170,14 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
                       </button>
                     </div>
                     <div className="mt-2 text-sm">
-                      <div className='mb-1 text-xl break-words'>
-                        {skillData.find((item) => item.value === data.skill)?.label}
+                      <div className="mb-1 text-xl break-words">
+                        {
+                          skillData.find((item) => item.value === data.skill)
+                            ?.label
+                        }
                       </div>
                     </div>
-                    <div className='text-end'>
+                    <div className="text-end">
                       <Badge className="mt-2 text-xs font-bold">
                         Points: {data.points}
                       </Badge>
@@ -157,10 +200,14 @@ function AddJobSkill({ previousStep, nextStep, addTotalPoints, deductTotalPoints
           handleAddData={handleAddData}
           addTotalPoints={addTotalPoints}
         />
-        <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+        <ShowAlert
+          open={showAlert}
+          onHide={handleCloseAlert}
+          message={alertMessage}
+        />
       </div>
     </>
-  )
+  );
 }
 
 export default AddJobSkill;

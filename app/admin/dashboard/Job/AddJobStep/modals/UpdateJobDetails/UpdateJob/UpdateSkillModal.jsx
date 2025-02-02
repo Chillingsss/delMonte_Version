@@ -1,16 +1,35 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
 
 function UpdateSkillModal({ open, onHide, skill, updateData }) {
   const formSchema = z.object({
@@ -20,11 +39,14 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
     // jobSkill: z.string().min(1, {
     //   message: "This field is required",
     // }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -42,7 +64,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
       let isValid = true;
       const filteredSelectedData = selectedSkill.filter((element) => {
         return element.skill !== updateData.skill;
-      })
+      });
       filteredSelectedData.forEach((element) => {
         if (element.skill === values.skill) {
           toast.error("You already have this skill");
@@ -50,13 +72,14 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
         }
       });
       if (isValid) {
-        const totalPoints = Number(retrieveData("jobTotalPoints") || 0);
-        const newTotalPoints = (totalPoints - Number(updateData.points)) + Number(values.points);
+        const totalPoints = Number(getDataFromSession("jobTotalPoints") || 0);
+        const newTotalPoints =
+          totalPoints - Number(updateData.points) + Number(values.points);
         if (newTotalPoints > 100) {
           toast.error("Total points cannot exceed 100");
           return;
         }
-        storeData("jobTotalPoints", newTotalPoints);
+        storeDataInSession("jobTotalPoints", newTotalPoints);
         onHide(values);
         form.reset();
       }
@@ -68,7 +91,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -76,7 +99,10 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Update Skill</DialogTitle>
-            <DialogDescription>Job&apos;s total points: {retrieveData("jobTotalPoints") || 0} </DialogDescription>
+            <DialogDescription>
+              Job&apos;s total points:{" "}
+              {getDataFromSession("jobTotalPoints") || 0}{" "}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -140,7 +166,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
-export default UpdateSkillModal
+export default UpdateSkillModal;

@@ -38,6 +38,8 @@ import {
   retrieveData,
   storeData,
   removeData,
+  removeSessionData,
+  getDataFromSession,
 } from "../../utils/storageUtils"; // Import the utility functions
 import { FaUserTie, FaUserTimes } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -62,7 +64,6 @@ const Sidebar = ({
   fetchJobs,
   fetchNotification,
   fetchProfiles,
-  refreshTransactions,
 }) => {
   const router = useRouter();
   const sidebarRef = useRef(null);
@@ -207,7 +208,7 @@ const Sidebar = ({
   //   fetchExamResult();
   // }, []);
 
-  const userId = retrieveData("user_id");
+  // const userId = retrieveData("user_id");
 
   const getStatusIcon = (status) => {
     switch (status.toLowerCase()) {
@@ -283,7 +284,7 @@ const Sidebar = ({
     setIsExamModalOpen(true);
     setSelectedJobPassingPoints(jobPassingPoints);
     // storeData("jobMId", jobMId);
-    storeData("app_id", jobAppId);
+    storeDataInSession("app_id", jobAppId);
     // storeData("pass_percentage", jobPassingPoints);
   };
 
@@ -296,7 +297,7 @@ const Sidebar = ({
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = retrieveData("user_id");
+      const candId = getDataFromSession("user_id");
       // const appId = localStorage.getItem("app_id");
 
       console.log("jobMId", jobMId);
@@ -327,8 +328,8 @@ const Sidebar = ({
 
   // Function to open job offer modal
   const openJobOfferModal = (appId, jobMId) => {
-    // console.log("Opening job offer modal for app ID:", appId);
-    // console.log("jobMId", jobMId);
+    console.log("Opening job offer modal for app ID:", appId);
+    console.log("jobMId", jobMId);
     setAppId(appId);
     fetchJobOffer(jobMId);
   };
@@ -383,20 +384,20 @@ const Sidebar = ({
   //   }
   // };
 
-  // const refreshTransaction = () => {
-  //   if (fetchAppliedJobs) {
-  //     fetchAppliedJobs();
-  //   }
-  //   if (fetchNotification) {
-  //     fetchNotification();
-  //   }
-  //   if (fetchJobs) {
-  //     fetchJobs();
-  //   }
-  //   if (fetchProfiles) {
-  //     fetchProfiles();
-  //   }
-  // };
+  const refreshTransaction = () => {
+    if (fetchAppliedJobs) {
+      fetchAppliedJobs();
+    }
+    if (fetchNotification) {
+      fetchNotification();
+    }
+    if (fetchJobs) {
+      fetchJobs();
+    }
+    if (fetchProfiles) {
+      fetchProfiles();
+    }
+  };
 
   return (
     <>
@@ -412,7 +413,7 @@ const Sidebar = ({
           // ref={dropdownUsernameRef}
         >
           <div
-            onClick={refreshTransactions}
+            onClick={refreshTransaction}
             className="flex justify-center items-center mt-2 cursor-pointer"
           >
             <img
@@ -655,7 +656,7 @@ const Sidebar = ({
           startTimer={isExamModalOpen}
           onClose={() => {
             closeExamModal();
-            removeData("app_id");
+            removeSessionData("app_id");
           }}
         />
       )}

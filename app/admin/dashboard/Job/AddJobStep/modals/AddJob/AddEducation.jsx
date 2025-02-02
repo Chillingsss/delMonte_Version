@@ -1,21 +1,49 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import React, { useEffect, useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import ComboBox from '@/app/my_components/combo-box';
-import { Input } from '@/components/ui/input';
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
-import AddCourseMaster from '@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddCourseMaster';
-import AddCourseCategoryMaster from '@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddCourseCategoryMaster';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import ComboBox from "@/app/my_components/combo-box";
+import { Input } from "@/components/ui/input";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import AddCourseMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddCourseMaster";
+import AddCourseCategoryMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddCourseCategoryMaster";
 
-function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, addTotalPoints = false }) {
-  const [courseCategory, setCourseCategory] = useState(JSON.parse(retrieveData("courseCategoryList")));
+function AddEducation({
+  open,
+  onHide,
+  handleAddList,
+  isUpdate,
+  handleAddData,
+  addTotalPoints = false,
+}) {
+  const [courseCategory, setCourseCategory] = useState(
+    JSON.parse(getDataFromSession("courseCategoryList"))
+  );
   const [openState, setOpenState] = useState(false);
   const formSchema = z.object({
     courseCategory: z.number().min(1, {
@@ -24,11 +52,14 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
     // jobEducation: z.string().min(1, {
     //   message: "This field is required",
     // }),
-    points: z.string().min(1, {
-      message: "This field is required",
-    }).refine((value) => !isNaN(Number(value)), {
-      message: "Points must be a number",
-    })
+    points: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Points must be a number",
+      }),
   });
 
   const form = useForm({
@@ -42,24 +73,34 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
 
   const handleOthers = () => {
     setOpenState(true);
-  }
+  };
 
   const handleCloseState = () => {
     setOpenState(false);
-  }
+  };
 
   const addColumn = (values, id) => {
     console.log("values ni addColumn: ", values);
-    storeData("courseCategoryList", JSON.stringify([...courseCategory, { value: id, label: values.courseCategoryName }]));
-    setCourseCategory([...courseCategory, { value: id, label: values.courseCategoryName }]);
+    storeDataInSession(
+      "courseCategoryList",
+      JSON.stringify([
+        ...courseCategory,
+        { value: id, label: values.courseCategoryName },
+      ])
+    );
+    setCourseCategory([
+      ...courseCategory,
+      { value: id, label: values.courseCategoryName },
+    ]);
     if (!isUpdate) {
       handleAddData(values, id);
     }
-  }
+  };
 
   const onSubmit = (values) => {
     try {
-      const selectedEducation = JSON.parse(retrieveData("jobEducation")) || [];
+      const selectedEducation =
+        JSON.parse(getDataFromSession("jobEducation")) || [];
       let isValid = true;
       selectedEducation.forEach((element) => {
         if (element.courseCategory === values.courseCategory) {
@@ -69,13 +110,13 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
       });
       if (isValid) {
         if (isUpdate) {
-          const jobTotalPoints = Number(retrieveData("jobTotalPoints"));
+          const jobTotalPoints = Number(getDataFromSession("jobTotalPoints"));
           const jobPointSum = jobTotalPoints + Number(values.points);
           if (jobPointSum > 100) {
             toast.error("Total points must not exceed 100");
             return;
           }
-          storeData("jobTotalPoints", jobPointSum);
+          storeDataInSession("jobTotalPoints", jobPointSum);
           onHide(values);
         } else {
           if (addTotalPoints(values.points) === false) return;
@@ -91,7 +132,7 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
 
   const handleOnHide = () => {
     onHide(0);
-  }
+  };
 
   return (
     <>
@@ -99,7 +140,11 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Education</DialogTitle>
-            {isUpdate && <DialogDescription>Total points: {retrieveData("jobTotalPoints")}</DialogDescription>}
+            {isUpdate && (
+              <DialogDescription>
+                Total points: {getDataFromSession("jobTotalPoints")}
+              </DialogDescription>
+            )}
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -170,7 +215,7 @@ function AddEducation({ open, onHide, handleAddList, isUpdate, handleAddData, ad
         closeState={handleCloseState}
       />
     </>
-  )
+  );
 }
 
-export default AddEducation
+export default AddEducation;

@@ -1,42 +1,63 @@
-"use client"
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import React, { useEffect, useState } from 'react'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import Spinner from '@/components/ui/spinner';
-import axios from 'axios';
-import DatePicker from '@/app/my_components/DatePicker';
-import { Textarea } from '@/components/ui/textarea';
-import { retrieveData } from '@/app/utils/storageUtils';
-import { Edit2 } from 'lucide-react';
+"use client";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React, { useEffect, useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import Spinner from "@/components/ui/spinner";
+import axios from "axios";
+import DatePicker from "@/app/my_components/DatePicker";
+import { Textarea } from "@/components/ui/textarea";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { Edit2 } from "lucide-react";
 
 const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [open, setOpen] = useState(false);
 
   const formSchema = z.object({
-    salary: z.string()
+    salary: z
+      .string()
       .min(1, { message: "Salary is required" })
       .refine((val) => !isNaN(val), { message: "Salary must be a number" })
-      .transform(val => Number(val)),
+      .transform((val) => Number(val)),
     document: z.string().min(1, {
       message: "Document is required",
     }),
-    expiryDate: z.string().min(1, {
-      message: "Expiry date is required"
-    }).refine((date) => {
-      const parsedDate = Date.parse(date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return parsedDate >= today.getTime();
-    }, {
-      message: "Date must be today or later",
-    }),
+    expiryDate: z
+      .string()
+      .min(1, {
+        message: "Expiry date is required",
+      })
+      .refine(
+        (date) => {
+          const parsedDate = Date.parse(date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return parsedDate >= today.getTime();
+        },
+        {
+          message: "Date must be today or later",
+        }
+      ),
   });
 
   const form = useForm({
@@ -51,16 +72,16 @@ const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
   const onSubmit = async (values) => {
     setIsSubmit(true);
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
+      const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const formattedValues = {
         ...values,
-        expiryDate: new Date(values.expiryDate).toISOString().split('T')[0]
+        expiryDate: new Date(values.expiryDate).toISOString().split("T")[0],
       };
 
       const jsonData = {
         ...formattedValues,
         candidateId: candidate.cand_id,
-        jobId: retrieveData('jobId')
+        jobId: getDataFromSession("jobId"),
       };
       console.log("jsonData ni updateJobOffer: ", jsonData);
       const formData = new FormData();
@@ -108,12 +129,18 @@ const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild disabled={disabled}>
         <div onClick={handleEditClick}>
-          <Edit2 className={`w-5 h-5 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`} />
+          <Edit2
+            className={`w-5 h-5 ${
+              disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+            }`}
+          />
         </div>
       </DialogTrigger>
       <DialogContent className="w-[95vw] max-w-[600px] sm:w-full">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold">Update Job Offer</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-bold">
+            Update Job Offer
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -125,7 +152,11 @@ const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
                 <FormItem>
                   <FormLabel>Salary</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Enter salary" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Enter salary"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,7 +170,11 @@ const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
                 <FormItem>
                   <FormLabel>Document</FormLabel>
                   <FormControl>
-                    <Textarea rows={5} placeholder="Enter document details" {...field} />
+                    <Textarea
+                      rows={5}
+                      placeholder="Enter document details"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,17 +190,17 @@ const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {
 
             <div className="flex flex-cols gap-2 justify-end mt-5">
               <DialogClose asChild>
-                <Button variant="outline" >Close</Button>
+                <Button variant="outline">Close</Button>
               </DialogClose>
               <Button type="submit">
-                {isSubmit && <Spinner />} {isSubmit ? 'Updating...' : 'Update'}
+                {isSubmit && <Spinner />} {isSubmit ? "Updating..." : "Update"}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default UpdateJobOffer
+export default UpdateJobOffer;

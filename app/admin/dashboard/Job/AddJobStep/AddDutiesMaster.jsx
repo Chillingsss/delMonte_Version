@@ -1,16 +1,28 @@
-"use client"
-import { retrieveData, storeData } from '@/app/utils/storageUtils';
-import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { CardContent, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import ShowAlert from '@/components/ui/show-alert';
-import { PlusIcon, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import AddDuties from './modals/AddJob/AddDuties';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
+"use client";
+import {
+  getDataFromSession,
+  retrieveData,
+  storeData,
+  storeDataInSession,
+} from "@/app/utils/storageUtils";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import ShowAlert from "@/components/ui/show-alert";
+import { PlusIcon, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import AddDuties from "./modals/AddJob/AddDuties";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
 
 function AddDutiesMaster({ previousStep, nextStep }) {
   const [datas, setDatas] = useState([]);
@@ -27,23 +39,22 @@ function AddDutiesMaster({ previousStep, nextStep }) {
     if (status === 1) {
       const filteredDatas = datas.filter((_, index) => index !== indexToRemove);
       setDatas(filteredDatas);
-      storeData("duties", JSON.stringify(filteredDatas));
+      storeDataInSession("duties", JSON.stringify(filteredDatas));
     }
     setShowAlert(false);
   };
 
   const handleAddList = (status) => {
     setDatas([...datas, status]);
-    storeData("duties", JSON.stringify([...datas, status]));
+    storeDataInSession("duties", JSON.stringify([...datas, status]));
     toast.success("Duty added successfully");
-
-  }
+  };
 
   const [showModal, setShowModal] = useState(false);
 
   const handleOpenModal = () => {
     setShowModal(true);
-  }
+  };
 
   const handleCloseModal = (status) => {
     // if (status !== 0) {
@@ -57,32 +68,51 @@ function AddDutiesMaster({ previousStep, nextStep }) {
 
   const handleRemoveList = (indexToRemove) => {
     setIndexToRemove(indexToRemove);
-    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+    handleShowAlert(
+      "This action cannot be undone. It will permanently delete the item and remove it from your list"
+    );
   };
 
   const handleNextStep = () => {
-    if (retrieveData("duties") === null || retrieveData("duties") === "[]") {
+    if (
+      getDataFromSession("duties") === null ||
+      getDataFromSession("duties") === "[]"
+    ) {
       toast.error("Duties is required");
       return;
     }
     nextStep(30);
-  }
+  };
 
   useEffect(() => {
-    if (retrieveData("duties") !== null || retrieveData("duties") !== "[]") {
-      setDatas(JSON.parse(retrieveData("duties")));
+    if (
+      getDataFromSession("duties") !== null ||
+      getDataFromSession("duties") !== "[]"
+    ) {
+      setDatas(JSON.parse(getDataFromSession("duties")));
     } else {
       setDatas([]);
     }
-    console.log("dutiessss", JSON.stringify(JSON.parse(retrieveData("duties"))));
+    console.log(
+      "dutiessss",
+      JSON.stringify(JSON.parse(getDataFromSession("duties")))
+    );
   }, []);
 
   return (
     <>
       <div>
-        <div className='flex justify-end gap-2 mb-3'>
-          <Button variant="secondary" onClick={() => previousStep(0)} className="mt-3">Previous</Button>
-          <Button onClick={handleNextStep} className="mt-3">Next</Button>
+        <div className="flex justify-end gap-2 mb-3">
+          <Button
+            variant="secondary"
+            onClick={() => previousStep(0)}
+            className="mt-3"
+          >
+            Previous
+          </Button>
+          <Button onClick={handleNextStep} className="mt-3">
+            Next
+          </Button>
         </div>
         <Button onClick={handleOpenModal}>
           <PlusIcon className="h-4 w-4 mr-1" />
@@ -122,7 +152,10 @@ function AddDutiesMaster({ previousStep, nextStep }) {
               </div>
               <div className="block md:hidden">
                 {datas.map((data, index) => (
-                  <div key={index} className="relative w-full p-4 rounded-md shadow">
+                  <div
+                    key={index}
+                    className="relative w-full p-4 rounded-md shadow"
+                  >
                     <div className="flex justify-end">
                       <button
                         className="h-4 w-4"
@@ -146,11 +179,19 @@ function AddDutiesMaster({ previousStep, nextStep }) {
             </CardDescription>
           )}
         </Alert>
-        <AddDuties open={showModal} onHide={handleCloseModal} handleAddList={handleAddList} />
-        <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
+        <AddDuties
+          open={showModal}
+          onHide={handleCloseModal}
+          handleAddList={handleAddList}
+        />
+        <ShowAlert
+          open={showAlert}
+          onHide={handleCloseAlert}
+          message={alertMessage}
+        />
       </div>
     </>
-  )
+  );
 }
 
 export default AddDutiesMaster;
