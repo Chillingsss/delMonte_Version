@@ -3,7 +3,6 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-// import { setCookie } from "cookies-next";
 import {
   storeDataInCookie,
   storeDataInSession,
@@ -14,10 +13,17 @@ export default function Callback() {
   const searchParams = new URLSearchParams(window.location.search);
   const token = searchParams.get("token");
   const cand_id = searchParams.get("cand_id");
-
+  const firstname = searchParams.get("cand_firstname");
+  const lastname = searchParams.get("cand_lastname");
   const cand_userLevel = searchParams.get("cand_userLevel");
 
-  console.log("Received User Level:", cand_userLevel);
+  console.log("Received User Data:", {
+    token,
+    cand_id,
+    firstname,
+    lastname,
+    cand_userLevel,
+  });
 
   useEffect(() => {
     if (token) {
@@ -30,9 +36,11 @@ export default function Callback() {
       // Store cand_id and cand_userLevel in session storage
       if (cand_id) {
         storeDataInSession("user_id", cand_id);
-        storeDataInSession("user_level", 1);
+        storeDataInSession("user_level", cand_userLevel);
         localStorage.setItem("user_id", cand_id);
-        localStorage.setItem("user_level", 1.0);
+        localStorage.setItem("user_level", cand_userLevel);
+        localStorage.setItem("user_firstname", firstname);
+        localStorage.setItem("user_lastname", lastname);
       }
 
       // Redirect to the dashboard
@@ -42,7 +50,7 @@ export default function Callback() {
       // Optionally, redirect to an error page or login page
       router.push("/login");
     }
-  }, [token, cand_id, cand_userLevel, router]);
+  }, [token, cand_id, firstname, lastname, cand_userLevel, router]);
 
   return <div>Authenticating...</div>;
 }

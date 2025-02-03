@@ -13,7 +13,7 @@ module.exports = {
     const [candidateRows] = await pool.execute(
       `SELECT
           a.cand_id,
-          b.userL_level AS cand_userLevel,  -- Fetch the actual user level name
+          b.userL_level AS cand_userLevel,
           a.cand_firstname,
           a.cand_lastname
        FROM tblcandidates a

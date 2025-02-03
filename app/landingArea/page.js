@@ -36,24 +36,15 @@ export default function LandingArea() {
 
   useEffect(() => {
     // Retrieve the user level from session storage
-    const userLevelData = getDataFromSession("user_level");
-
-    // Ensure userLevel is a string for comparison
-    let userLevel;
-    if (typeof userLevelData === "object" && userLevelData !== null) {
-      // If the decrypted data is an object, extract the user level
-      userLevel = String(
-        userLevelData.level || userLevelData.user_level || ""
-      ).trim();
-    } else {
-      // If it's not an object, treat it as a string
-      userLevel = String(userLevelData || "").trim();
-    }
+    const userLevel = getDataFromSession("user_level");
 
     console.log("userLevel:", userLevel); // Debugging output
 
+    // Convert userLevel to string for consistent comparison
+    const userLevelString = String(userLevel);
+
     // Redirect based on the user level
-    switch (userLevel) {
+    switch (userLevelString) {
       case "100":
       case "100.0":
         router.replace("/admin/dashboard");
@@ -69,7 +60,7 @@ export default function LandingArea() {
         router.replace("/candidatesDashboard");
         break;
       default:
-        console.warn("Unknown user level:", userLevel); // Log a warning for debugging
+        console.warn("Unknown user level:", userLevelString); // Log a warning for debugging
         router.replace("/"); // Redirect to the home page or login page
     }
   }, [router]);

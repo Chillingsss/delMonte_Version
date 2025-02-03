@@ -170,15 +170,9 @@ export default function DashboardCandidates() {
 
   useEffect(() => {
     // Retrieve the auth token from cookies
-    const myToken = getDataFromCookie("auth_token");
-
-    // If the token is missing, redirect to the login page
-    if (!myToken) {
-      removeCookie("auth_token");
-    }
 
     // Retrieve and sanitize the user level from session storage
-    const userLevel = String(getDataFromSession("user_level") || "").trim(); // Ensure it's a string and handle null/undefined
+    const userLevel = String(getDataFromSession("user_level") || "").trim();
 
     console.log("userLevel:", userLevel); // Debugging output
 
@@ -266,6 +260,8 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const candId = getDataFromSession("user_id");
+
+      console.log("candId", candId);
 
       const formData = new FormData();
       formData.append("operation", "getNotification");
