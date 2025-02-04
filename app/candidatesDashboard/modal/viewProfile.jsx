@@ -3485,7 +3485,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 {isSidebarOpen && (
                   <button
                     className={`text-4xl ${
-                      isDarkMode ? "text-white" : "text-gray-800"
+                      isDarkMode ? "text-white" : "text-gray-300"
                     }`}
                     onClick={() => setIsSidebarOpen(false)} // Close sidebar
                   >
@@ -3523,7 +3523,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 isDarkMode ? "bg-[#1A202C]" : "bg-[#F4F7FC]"
               }`}
             >
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mt-2">
                 <button
                   className={`md:hidden p-4 ${
                     isDarkMode ? "text-gray-300" : "text-gray-600"

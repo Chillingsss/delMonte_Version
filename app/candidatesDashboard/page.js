@@ -169,6 +169,7 @@ export default function DashboardCandidates() {
 
     // Redirect based on the user level
     switch (userLevel) {
+      case "100": 
       case "100.0":
         router.replace("/admin/dashboard");
         break;
@@ -804,8 +805,8 @@ export default function DashboardCandidates() {
             dropdownNotificationRefMobile.current = el;
           }}
         >
-          <div className="relative mr-4">
-            <div className="w-48">
+          <div className="relative mr-2">
+            <div className="w-32">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <SearchIcon className="w-5 h-5 text-gray-400" />
               </div>
@@ -816,7 +817,7 @@ export default function DashboardCandidates() {
                 className={`block w-full px-4 py-2 rounded-2xl focus:outline-none focus:border-green-500 pl-10 ${
                   isDarkMode
                     ? "bg-transparent text-gray-800"
-                    : "bg-transparent text-gray-800"
+                    : "bg-transparent text-gray-300"
                 }`}
                 placeholder="Search active jobs"
                 value={searchQuery}

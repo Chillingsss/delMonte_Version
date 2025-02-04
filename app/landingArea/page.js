@@ -95,27 +95,27 @@ export default function LandingArea() {
 
   return (
     <div className="min-h-screen bg-[#f4f7fc]">
-      <div className="p-6 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-32 bg-[#116b40] slide-up">
+      <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-32 bg-[#116b40] slide-up">
         <img
           src="/assets/images/delMontes.png"
           alt="Del Monte Logo"
-          className="h-[120px] w-auto"
+          className="h-10 sm:h-10 md:h-[120px] w-auto"
         />
 
         <div className="flex justify-center items-center h-full">
-          <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-semibold">
+          <h1 className="text-xs sm:text-sm md:text-base lg:text-xl xl:text-2xl font-semibold">
             Explore Exciting Careers at Del Monte
           </h1>
         </div>
 
         <Link href="/login">
-          <button className="bg-green-500 text-white px-4 py-2 rounded-md">
+          <button className="bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm md:text-base rounded-md">
             Log In
           </button>
         </Link>
       </div>
 
-      <div className="p-8 mt-[calc(7rem+8px)] overflow-y-auto ">
+      <div className="p-8 mt-[calc(4rem+8px)] sm:mt-[calc(5rem+8px)] md:mt-[calc(6rem+8px)] lg:mt-[calc(7rem+8px)] overflow-y-auto">
         <h2 className="text-3xl font-semibold text-[#188C54] mb-6">
           Active Jobs
         </h2>
