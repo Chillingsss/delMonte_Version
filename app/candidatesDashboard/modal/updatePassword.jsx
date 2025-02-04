@@ -2,24 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { retrieveDataFromCookie,
+import {
   retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  getDataFromSession} from "@/app/utils/storageUtils";
-import { Toaster, toast } from "react-hot-toast"; // Updated import
+  getDataFromSession,
+} from "@/app/utils/storageUtils";
+import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react"; // Added import for X icon
+import { X } from "lucide-react";
 
 const UpdatePassword = ({
   showModal,
   setShowModal,
   candidateEmail,
-  candidatePassword,
-  candidateAlternateEmail,
   fetchProfile,
 }) => {
   const [email, setEmail] = useState("");
@@ -34,6 +28,7 @@ const UpdatePassword = ({
   const [isPinCodeSent, setIsPinCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
+  const [requiresPassword, setRequiresPassword] = useState(true); // New state to track if password is required
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
@@ -83,6 +78,31 @@ const UpdatePassword = ({
     };
   }, []);
 
+  useEffect(() => {
+    // Check if the user has a password set
+    const checkPasswordExists = async () => {
+      try {
+        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+        const cand_id = getDataFromSession("user_id");
+
+        const formData = new FormData();
+        formData.append("operation", "checkPasswordExists");
+        formData.append("json", JSON.stringify({ cand_id }));
+
+        const response = await axios.post(url, formData);
+        const data = response.data;
+
+        if (data.passwordExists === false) {
+          setRequiresPassword(false); // No password set in the database
+        }
+      } catch (error) {
+        console.error("Error checking password existence:", error);
+      }
+    };
+
+    checkPasswordExists();
+  }, []);
+
   // Password validation function
   const validatePassword = (password) => {
     const hasNumber = /\d/;
@@ -99,42 +119,45 @@ const UpdatePassword = ({
     if (requestLoading) return;
     setRequestLoading(true);
 
-    if (!currentPassword) {
+    if (requiresPassword && !currentPassword) {
       toast.error("Please enter your current password.");
       setRequestLoading(false);
       return;
     }
 
-    if (currentPassword !== candidatePassword) {
-      toast.error("Current password is incorrect.");
-      setRequestLoading(false);
-      return;
-    }
-
-    console.log("Password is correct, proceeding to request PIN code...");
-
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const cand_id = getDataFromSession("user_id");
       const formData = new FormData();
+
+      // If password is required, verify it first
+      if (requiresPassword) {
+        formData.append("operation", "verifyCurrentPassword");
+        formData.append("json", JSON.stringify({ cand_id, currentPassword }));
+
+        const response = await axios.post(url, formData);
+        const data = response.data;
+
+        if (!data.success) {
+          toast.error("Current password is incorrect.");
+          setRequestLoading(false);
+          return;
+        }
+      }
+
+      // Request PIN code to be sent to the email
       formData.append("operation", "getPinCodeUpdate");
+      formData.append("json", JSON.stringify({ email: candidateEmail }));
 
-      const emailToUse =
-        alternateEmail === candidateAlternateEmail
-          ? alternateEmail
-          : candidateEmail;
-      formData.append("json", JSON.stringify({ email: emailToUse }));
+      const pinResponse = await axios.post(url, formData);
+      const pinData = pinResponse.data;
 
-      console.log("Email to use for PIN code request:", emailToUse);
-
-      const response = await axios.post(url, formData);
-      const data = response.data;
-
-      if (data.pincode) {
-        setPinCode(data.pincode);
+      if (pinData.pincode) {
+        setPinCode(pinData.pincode);
         setIsPinCodeSent(true); // Show the Save button
         toast.success("PIN code sent to the provided email.");
-      } else if (data.error) {
-        toast.error(data.error);
+      } else if (pinData.error) {
+        toast.error(pinData.error);
       } else {
         toast.error("Failed to send PIN code.");
       }
@@ -155,13 +178,13 @@ const UpdatePassword = ({
     }
 
     if (!password) {
-      toast.error("Please provide at least a new email or new password.");
+      toast.error("Please provide a new password.");
       return;
     }
 
     if (password && !passwordValid) {
       toast.error(
-        "Password must be at least 5 characters long and contain a number."
+        "Password must be at least 8 characters long and contain a number."
       );
       return;
     }
@@ -183,7 +206,7 @@ const UpdatePassword = ({
         "json",
         JSON.stringify({
           email: email || candidateEmail,
-          password: password || candidatePassword,
+          password: password,
           cand_id: cand_id,
         })
       );
@@ -207,34 +230,52 @@ const UpdatePassword = ({
 
   return (
     <div className={`modal ${showModal ? "block" : "hidden"}`}>
-      <div className={`modal-content ${isDarkMode ? "bg-gray-700" : "bg-gray-200"} p-6 rounded-lg shadow-lg w-full relative`}>
+      <div
+        className={`modal-content ${
+          isDarkMode ? "bg-gray-700" : "bg-gray-200"
+        } p-6 rounded-lg shadow-lg w-full relative`}
+      >
         <X
           className="absolute top-4 right-4 cursor-pointer"
           onClick={() => setShowModal(false)}
         />
-        <h3 className={`text-xl font-semibold ${isDarkMode ? "text-gray-300" : "text-gray-800"} mb-4`}>
+        <h3
+          className={`text-xl font-semibold ${
+            isDarkMode ? "text-gray-300" : "text-gray-800"
+          } mb-4`}
+        >
           Update Password
         </h3>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className={`block ${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm font-normal`}>
-              Current Password:
-            </label>
-            <input
-              type="password"
-              name="currentPassword"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Enter Current Password"
-              className={`w-full p-2 border rounded-lg mt-1 ${isDarkMode ? "bg-gray-600" : "bg-white"}`}
-              required
-            />
-          </div>
+          {requiresPassword && (
+            <div className="mb-4">
+              <label
+                className={`block ${
+                  isDarkMode ? "text-gray-300" : "text-gray-600"
+                } text-sm font-normal`}
+              >
+                Current Password:
+              </label>
+              <input
+                type="password"
+                name="currentPassword"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter Current Password"
+                className={`w-full p-2 border rounded-lg mt-1 ${
+                  isDarkMode ? "bg-gray-600" : "bg-white"
+                }`}
+                required
+              />
+            </div>
+          )}
           <div className="mb-4">
             <button
               type="button"
               onClick={requestPinCode}
-              className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${isDarkMode ? "bg-blue-600" : ""}`}
+              className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${
+                isDarkMode ? "bg-blue-600" : ""
+              }`}
               disabled={requestLoading || loading}
             >
               {requestLoading ? "Sending..." : "SEND OTP"}
@@ -243,7 +284,11 @@ const UpdatePassword = ({
           {isPinCodeSent && (
             <>
               <div className="mb-4">
-                <label className={`block ${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } text-sm font-normal`}
+                >
                   New Password:
                 </label>
                 <input
@@ -255,9 +300,9 @@ const UpdatePassword = ({
                     validatePassword(e.target.value);
                   }}
                   placeholder="Enter New Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${isDarkMode ? "bg-gray-700" : "bg-white"} ${
-                    passwordValid ? "border-green-500" : "border-red-500"
-                  }`}
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-700" : "bg-white"
+                  } ${passwordValid ? "border-green-500" : "border-red-500"}`}
                 />
                 <p
                   className={`text-sm mt-1 ${
@@ -270,7 +315,11 @@ const UpdatePassword = ({
                 </p>
               </div>
               <div className="mb-4">
-                <label className={`block ${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } text-sm font-normal`}
+                >
                   Confirm Password:
                 </label>
                 <input
@@ -282,9 +331,9 @@ const UpdatePassword = ({
                     checkPasswordsMatch(e.target.value);
                   }}
                   placeholder="Confirm Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${isDarkMode ? "bg-gray-600" : "bg-white"} ${
-                    passwordsMatch ? "border-green-500" : "border-red-500"
-                  }`}
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-600" : "bg-white"
+                  } ${passwordsMatch ? "border-green-500" : "border-red-500"}`}
                 />
                 <p
                   className={`text-sm mt-1 ${
@@ -297,7 +346,11 @@ const UpdatePassword = ({
                 </p>
               </div>
               <div className="mb-4">
-                <label className={`block ${isDarkMode ? "text-gray-300" : "text-gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } text-sm font-normal`}
+                >
                   Enter PIN Code (sent to the provided email):
                 </label>
                 <input
@@ -306,7 +359,9 @@ const UpdatePassword = ({
                   value={enteredPinCode}
                   onChange={(e) => setEnteredPinCode(e.target.value)}
                   placeholder="Enter PIN Code"
-                  className={`w-full p-2 border rounded-lg mt-1 ${isDarkMode ? "bg-gray-600" : "bg-white"}`}
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-600" : "bg-white"
+                  }`}
                   required
                 />
               </div>

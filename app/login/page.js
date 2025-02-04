@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
-import { Toaster, toast } from "react-hot-toast"; // Update import
+import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import {
   storeDataInSession,
@@ -16,7 +16,6 @@ import {
   storeDataInLocal,
 } from "../utils/storageUtils";
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
-import { Input } from "@/components/ui/input";
 import { FcGoogle } from "react-icons/fc";
 import { lineSpinner } from "ldrs";
 

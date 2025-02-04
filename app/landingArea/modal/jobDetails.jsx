@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import { retrieveData } from "@/app/utils/storageUtils";
 
 const JobDetailsModal = ({ job, onCloses }) => {
   const modalRef = useRef(null);

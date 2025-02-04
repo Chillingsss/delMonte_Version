@@ -1,12 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronDown,
-  faSignOutAlt,
   faInfoCircle,
-  faSun,
-  faMoon,
-  faUser,
   faClock,
   faCheckCircle,
   faTimesCircle,
@@ -18,45 +13,21 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { MdOutlineCancel } from "react-icons/md";
 import { TbPencilX } from "react-icons/tb";
-
-import ViewProfile from "../modal/viewProfile";
-
-import {
-  faUser as faUserRegular,
-  faCheckCircle as faCheckCircleRegular,
-} from "@fortawesome/free-regular-svg-icons";
-
 import axios from "axios";
-import secureLocalStorage from "react-secure-storage";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
   storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  storeData,
-  removeData,
   removeSessionData,
   getDataFromSession,
-} from "../../utils/storageUtils"; // Import the utility functions
-import { FaUserTie, FaUserTimes } from "react-icons/fa";
+} from "../../utils/storageUtils";
 import { useRouter } from "next/navigation";
 import ExamModal from "../exam/exam";
 import JobOfferModal from "../modal/jobOffer";
-import CancelJobModal from "../modal/cancelJobApplied"; // Import the new modal component
-
-// Import useNavigate
+import CancelJobModal from "../modal/cancelJobApplied";
 
 const Sidebar = ({
-  userName,
   isDarkMode,
-  setIsDarkMode,
-  handleLogout,
   isMenuOpen,
   setIsMenuOpen,
-  handleViewProfileClick,
   appliedJobs,
   examResults,
   fetchAppliedJobs,

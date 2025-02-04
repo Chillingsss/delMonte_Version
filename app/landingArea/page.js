@@ -4,17 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import secureLocalStorage from "react-secure-storage";
 import JobDetailsModal from "./modal/jobDetails";
-import {
-  storeData,
-  retrieveData,
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  getDataFromCookie,
-  getDataFromSession,
-  removeCookie,
-} from "../utils/storageUtils";
+import { getDataFromSession } from "../utils/storageUtils";
 import { Briefcase } from "lucide-react";
 import { lineSpinner } from "ldrs";
 

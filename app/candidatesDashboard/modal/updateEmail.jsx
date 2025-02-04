@@ -2,17 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { retrieveDataFromCookie,
+import {
   retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  getDataFromSession} from "@/app/utils/storageUtils";
-import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
+  getDataFromSession,
+} from "@/app/utils/storageUtils";
+import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react"; // Added import for X icon
+import { X } from "lucide-react";
 
 const UpdateEmail = ({
   showModal,
@@ -33,18 +29,7 @@ const UpdateEmail = ({
   const [isNewEmailPinCodeSent, setIsNewEmailPinCodeSent] = useState(false); // New email OTP sent
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-
-  // Password validation function
-  const validatePassword = (password) => {
-    const hasNumber = /\d/;
-    const isValid = password.length >= 8 && hasNumber.test(password);
-    setPasswordValid(isValid);
-  };
-
-  // Check if passwords match
-  const checkPasswordsMatch = (confirmPassword) => {
-    setPasswordsMatch(password === confirmPassword);
-  };
+  const [isPinCodeVerified, setIsPinCodeVerified] = useState(false); // PIN code verified
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
@@ -94,21 +79,39 @@ const UpdateEmail = ({
     };
   }, []);
 
-  // Request OTP to be sent to current email
+  // Request OTP to be sent to current email after verifying current password
   const requestPinCodeToCurrentEmail = async () => {
     if (!currentPassword) {
       toast.error("Please enter your current password.");
       return;
     }
 
-    if (currentPassword !== candidatePassword) {
-      toast.error("Current password is incorrect.");
-      return;
-    }
-
     setRequestLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const cand_id = getDataFromSession("user_id");
+
+      // Verify the current password
+      const verifyPasswordFormData = new FormData();
+      verifyPasswordFormData.append("operation", "verifyCurrentPassword");
+      verifyPasswordFormData.append(
+        "json",
+        JSON.stringify({ cand_id, currentPassword })
+      );
+
+      const verifyPasswordResponse = await axios.post(
+        url,
+        verifyPasswordFormData
+      );
+      const verifyPasswordData = verifyPasswordResponse.data;
+
+      if (!verifyPasswordData.success) {
+        toast.error("Current password is incorrect.");
+        setRequestLoading(false);
+        return;
+      }
+
+      // Request PIN code to be sent to current email
       const formData = new FormData();
       formData.append("operation", "getPinCodeUpdate");
       formData.append(
@@ -138,12 +141,16 @@ const UpdateEmail = ({
     }
   };
 
-  const verifyPinCodeAndSendToNewEmail = async () => {
-    if (enteredPinCode !== currentEmailPinCode) {
+  const verifyPinCode = () => {
+    if (enteredPinCode === currentEmailPinCode) {
+      setIsPinCodeVerified(true);
+      toast.success("PIN code verified. You can now enter your new email.");
+    } else {
       toast.error("Invalid PIN code for current email.");
-      return;
     }
+  };
 
+  const verifyPinCodeAndSendToNewEmail = async () => {
     if (!newEmail) {
       toast.error("Please enter a new email.");
       return;
@@ -227,20 +234,32 @@ const UpdateEmail = ({
     <>
       <Toaster position="bottom-left" /> {/* Add Toaster component */}
       <div className={`modal ${showModal ? "block" : "hidden"}`}>
-        <div className={`modal-content bg-gray-200 p-6 rounded-lg shadow-lg w-full relative ${isDarkMode ? "bg-gray-700" : ""}`}>
+        <div
+          className={`modal-content bg-gray-200 p-6 rounded-lg shadow-lg w-full relative ${
+            isDarkMode ? "bg-gray-700" : ""
+          }`}
+        >
           <X
             className="absolute top-4 right-4 cursor-pointer"
             onClick={() => setShowModal(false)}
           />
-          <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-800"} mb-4`}>
+          <h3
+            className={`text-xl font-semibold ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            } mb-4`}
+          >
             Update Email
           </h3>
 
-          {/* Step 1: Enter current password and new email */}
+          {/* Step 1: Enter current password */}
           {!isPinCodeSent && (
             <>
               <div className="mb-4">
-                <label className={`block text-${isDarkMode ? "gray-300" : "gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block text-${
+                    isDarkMode ? "gray-300" : "gray-600"
+                  } text-sm font-normal`}
+                >
                   Current Password:
                 </label>
                 <input
@@ -248,14 +267,17 @@ const UpdateEmail = ({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter Current Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${isDarkMode ? "bg-gray-600" : "bg-white"}`}
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-600" : "bg-white"
+                  }`}
                   required
                 />
               </div>
-
               <button
                 onClick={requestPinCodeToCurrentEmail}
-                className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${isDarkMode ? "bg-blue-600" : ""}`}
+                className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${
+                  isDarkMode ? "bg-blue-600" : ""
+                }`}
                 disabled={requestLoading || loading}
               >
                 {requestLoading
@@ -265,8 +287,8 @@ const UpdateEmail = ({
             </>
           )}
 
-          {/* Step 2: Enter and verify OTP from current email, send OTP to new email */}
-          {isPinCodeSent && !isNewEmailPinCodeSent && (
+          {/* Step 2: Enter and verify OTP from current email */}
+          {isPinCodeSent && !isPinCodeVerified && (
             <>
               <div className="mb-4">
                 <label className="block text-gray-600 text-sm font-normal">
@@ -277,11 +299,32 @@ const UpdateEmail = ({
                   value={enteredPinCode}
                   onChange={(e) => setEnteredPinCode(e.target.value)}
                   placeholder="Enter OTP"
-                  className={`w-full p-2 border rounded-lg mt-1 bg-white ${isDarkMode ? "bg-gray-600" : ""}`}
+                  className={`w-full p-2 border rounded-lg mt-1 bg-white ${
+                    isDarkMode ? "bg-gray-600" : ""
+                  }`}
                 />
               </div>
+              <button
+                onClick={verifyPinCode}
+                className={`p-2 rounded-lg bg-green-500 text-white mt-2 ${
+                  isDarkMode ? "bg-green-600" : ""
+                }`}
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify OTP"}
+              </button>
+            </>
+          )}
+
+          {/* Step 3: Enter new email and send OTP to new email */}
+          {isPinCodeVerified && !isNewEmailPinCodeSent && (
+            <>
               <div className="mb-4">
-                <label className={`block text-${isDarkMode ? "gray-300" : "gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block text-${
+                    isDarkMode ? "gray-300" : "gray-600"
+                  } text-sm font-normal`}
+                >
                   New Email:
                 </label>
                 <input
@@ -289,25 +332,33 @@ const UpdateEmail = ({
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="Enter New Email"
-                  className={`w-full p-2 border rounded-lg mt-1 bg-white ${isDarkMode ? "bg-gray-600" : ""}`}
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-600" : "bg-white"
+                  }`}
                   required
                 />
               </div>
               <button
                 onClick={verifyPinCodeAndSendToNewEmail}
-                className={`p-2 rounded-lg bg-green-500 text-white mt-2 ${isDarkMode ? "bg-green-600" : ""}`}
+                className={`p-2 rounded-lg bg-green-500 text-white mt-2 ${
+                  isDarkMode ? "bg-green-600" : ""
+                }`}
                 disabled={loading}
               >
-                {loading ? "Verifying..." : "Verify and Send OTP to New Email"}
+                {loading ? "Sending OTP..." : "Send OTP to New Email"}
               </button>
             </>
           )}
 
-          {/* Step 3: OTP sent to new email */}
+          {/* Step 4: Enter and verify OTP from new email */}
           {isNewEmailPinCodeSent && (
             <>
               <div className="mb-4">
-                <label className={`block text-${isDarkMode ? "gray-300" : "gray-600"} text-sm font-normal`}>
+                <label
+                  className={`block text-${
+                    isDarkMode ? "gray-300" : "gray-600"
+                  } text-sm font-normal`}
+                >
                   Enter OTP from New Email:
                 </label>
                 <input
@@ -315,12 +366,16 @@ const UpdateEmail = ({
                   value={enteredNewPinCode}
                   onChange={(e) => setEnteredNewPinCode(e.target.value)}
                   placeholder="Enter OTP"
-                  className={`w-full p-2 border rounded-lg mt-1 bg-white ${isDarkMode ? "bg-gray-600" : ""}`}
+                  className={`w-full p-2 border rounded-lg mt-1 bg-white ${
+                    isDarkMode ? "bg-gray-600" : ""
+                  }`}
                 />
               </div>
               <button
                 onClick={handleSubmit}
-                className={`p-2 rounded-lg bg-green-500 text-white mt-2 ${isDarkMode ? "bg-green-600" : ""}`}
+                className={`p-2 rounded-lg bg-green-500 text-white mt-2 ${
+                  isDarkMode ? "bg-green-600" : ""
+                }`}
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit"}

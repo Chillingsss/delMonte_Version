@@ -1,14 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  removeData,
   getDataFromSession,
   removeSessionData,
 } from "@/app/utils/storageUtils";

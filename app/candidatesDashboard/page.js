@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
@@ -9,8 +8,6 @@ import "react-toastify/dist/ReactToastify.css";
 import {
   storeDataInSession,
   storeData,
-  removeData,
-  setupInactivityMonitoring,
   removeCookie,
   removeSessionData,
   clearAllCookies,
@@ -24,11 +21,7 @@ import {
   faMoon,
   faSun,
   faSignOutAlt,
-  faInfoCircle,
-  faUser,
   faBell,
-  faTimes,
-  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -37,7 +30,6 @@ import {
   faBell as faBellRegular,
 } from "@fortawesome/free-regular-svg-icons";
 import Sidebar from "./sideBar/sideBar";
-import secureLocalStorage from "react-secure-storage";
 import JobDetailsModal from "./modal/jobDetails";
 import ViewProfile from "./modal/viewProfile";
 import ExamModal from "./exam/exam";
@@ -54,7 +46,6 @@ import {
 import { SearchIcon, XCircleIcon, Briefcase, User } from "lucide-react";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { lineSpinner } from "ldrs";
-import { set } from "date-fns";
 
 lineSpinner.register();
 

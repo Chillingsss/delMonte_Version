@@ -14,11 +14,17 @@ passport.use(
       passReqToCallback: true,
     },
     async (req, accessToken, refreshToken, profile, done) => {
+      // Assume the last name is the last word and the rest is the first name
+      const names = profile.displayName.split(" ");
+      const lastName = names.pop(); // Remove the last element, which is the last name
+      const firstName = names.join(" "); // Join the rest as the first name
+
       const user = await User.findOrCreate({
         provider: "google",
         provider_user_id: profile.id,
         email: profile.emails[0].value,
-        name: profile.displayName,
+        first_name: firstName,
+        last_name: lastName,
       });
       done(null, user);
     }
@@ -35,11 +41,17 @@ passport.use(
       profileFields: ["id", "emails", "displayName"],
     },
     async (accessToken, refreshToken, profile, done) => {
+      // Assume the last name is the last word and the rest is the first name
+      const names = profile.displayName.split(" ");
+      const lastName = names.pop(); // Remove the last element, which is the last name
+      const firstName = names.join(" "); // Join the rest as the first name
+
       const user = await User.findOrCreate({
         provider: "facebook",
         provider_user_id: profile.id,
         email: profile.emails[0].value,
-        name: profile.displayName,
+        first_name: firstName,
+        last_name: lastName,
       });
       done(null, user);
     }
