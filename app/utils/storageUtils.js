@@ -3,98 +3,33 @@ import CryptoJS from "crypto-js";
 const BASE_SECRET_KEY =
   process.env.NEXT_PUBLIC_SECRET_KEY || "delMontedelMonte";
 
-// Check if a session key already exists in localStorage
-let SESSION_KEY = localStorage.getItem("SESSION_KEY");
-
-if (!SESSION_KEY) {
-  // Generate a new session key if it doesn't exist
-  SESSION_KEY = CryptoJS.lib.WordArray.random(16).toString();
-  localStorage.setItem("SESSION_KEY", SESSION_KEY);
-}
-
-// const BROWSER_KEY = CryptoJS.SHA256(navigator.userAgent).toString(); // Unique per browser
-
-const getBrowserFingerprint = () => {
-  const userAgent = navigator.userAgent;
-  const screenResolution = `${window.screen.width}x${window.screen.height}`;
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const language = navigator.language;
-  const hardwareConcurrency = navigator.hardwareConcurrency || "unknown";
-  const deviceMemory = navigator.deviceMemory || "unknown";
-
-  return CryptoJS.SHA256(
-    userAgent +
-      screenResolution +
-      timeZone +
-      language +
-      hardwareConcurrency +
-      deviceMemory
-  ).toString();
-};
-
-const BROWSER_KEY = getBrowserFingerprint();
+const BROWSER_KEY = CryptoJS.SHA256(navigator.userAgent).toString(); // Unique per browser
 
 // Generate dynamic secret key (changes per browser and per session)
 const getDynamicKey = () =>
-  CryptoJS.SHA256(BASE_SECRET_KEY + BROWSER_KEY + SESSION_KEY).toString();
+  CryptoJS.SHA256(BASE_SECRET_KEY + BROWSER_KEY).toString();
 
-// /**
-//  * Encrypts data using AES encryption.
-//  * @param {Object|string} data - The data to encrypt.
-//  * @returns {string} - Encrypted data.
-//  */
-// export const encryptData = (data) => {
-//   const stringData = typeof data === "string" ? data : JSON.stringify(data);
-//   return CryptoJS.AES.encrypt(stringData, getDynamicKey()).toString();
-// };
-
-// export const decryptData = (encryptedData) => {
-//   try {
-//     // Decrypt the data
-//     const bytes = CryptoJS.AES.decrypt(encryptedData, getDynamicKey());
-//     const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
-
-//     // Check if the decrypted data is valid JSON
-//     if (isValidJSON(decryptedData)) {
-//       return JSON.parse(decryptedData); // Only parse if it's JSON
-//     }
-//     return decryptedData; // Return as-is if it's not JSON
-//   } catch (error) {
-//     console.error("Decryption failed:", error);
-//     return null;
-//   }
-// };
-
-const getTimeBasedToken = () => {
-  const now = new Date();
-  const timeToken = Math.floor(now.getTime() / (1000 * 60)); // Token valid for 1 minute
-  return timeToken;
-};
-
-const encryptData = (data) => {
+/**
+ * Encrypts data using AES encryption.
+ * @param {Object|string} data - The data to encrypt.
+ * @returns {string} - Encrypted data.
+ */
+export const encryptData = (data) => {
   const stringData = typeof data === "string" ? data : JSON.stringify(data);
-  const timeToken = getTimeBasedToken();
-  const dataWithToken = `${stringData}|${timeToken}`;
-  return CryptoJS.AES.encrypt(dataWithToken, getDynamicKey()).toString();
+  return CryptoJS.AES.encrypt(stringData, getDynamicKey()).toString();
 };
 
-const decryptData = (encryptedData) => {
+export const decryptData = (encryptedData) => {
   try {
+    // Decrypt the data
     const bytes = CryptoJS.AES.decrypt(encryptedData, getDynamicKey());
     const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
-    const [data, timeToken] = decryptedData.split("|");
-    const currentTimeToken = getTimeBasedToken();
 
-    if (Math.abs(currentTimeToken - timeToken) > 1) {
-      // Allow 1-minute window
-      console.error("Token expired or invalid");
-      return null;
+    // Check if the decrypted data is valid JSON
+    if (isValidJSON(decryptedData)) {
+      return JSON.parse(decryptedData); // Only parse if it's JSON
     }
-
-    if (isValidJSON(data)) {
-      return JSON.parse(data);
-    }
-    return data;
+    return decryptedData; // Return as-is if it's not JSON
   } catch (error) {
     console.error("Decryption failed:", error);
     return null;
@@ -256,7 +191,7 @@ export const clearAllCookies = () => {
  */
 export const removeSessionData = (key) => {
   sessionStorage.removeItem(key);
-  localStorage.removeItem(`sessionSync_${key}`); // Also remove from local storage
+  // localStorage.removeItem(`sessionSync_${key}`); // Also remove from local storage
 };
 
 /**
@@ -265,11 +200,11 @@ export const removeSessionData = (key) => {
 export const clearAllSessionData = () => {
   sessionStorage.clear();
   // Clear all session sync data from local storage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("sessionSync_")) {
-      localStorage.removeItem(key);
-    }
-  });
+  // Object.keys(localStorage).forEach((key) => {
+  //   if (key.startsWith("sessionSync_")) {
+  //     localStorage.removeItem(key);
+  //   }
+  // });
 };
 
 /**

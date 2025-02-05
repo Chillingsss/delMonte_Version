@@ -39,6 +39,31 @@ export default function Login(user) {
   const [failedAttempts, setFailedAttempts] = useState(0); // Track failed attempts
   const [isLocked, setIsLocked] = useState(false); // Track if the login is locked
 
+  useEffect(() => {
+    const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
+
+    console.log("userLevel:", userLevel); // Debugging output
+
+    switch (userLevel) {
+      case "100":
+      case "100.0":
+        router.replace("/admin/dashboard");
+        break;
+      case "2":
+        router.replace("/superAdminDashboard");
+        break;
+      case "supervisor":
+        router.replace("/supervisorDashboard");
+        break;
+      case "1": // If stored as an integer, it will be "1" as a string
+      case "1.0": // This covers cases where it might be stored as "1.0"
+        router.replace("/candidatesDashboard");
+        break;
+      default:
+        router.replace("/login");
+    }
+  }, []);
+
   const generateCaptcha = useCallback(() => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -228,35 +253,6 @@ export default function Login(user) {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    const token = getDataFromCookie("auth_token");
-
-    if (token) {
-      const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
-
-      console.log("userLevel:", userLevel); // Debugging output
-
-      switch (userLevel) {
-        case "100":
-        case "100.0":
-          router.replace("/admin/dashboard");
-          break;
-        case "2":
-          router.replace("/superAdminDashboard");
-          break;
-        case "supervisor":
-          router.replace("/supervisorDashboard");
-          break;
-        case "1": // If stored as an integer, it will be "1" as a string
-        case "1.0": // This covers cases where it might be stored as "1.0"
-          router.replace("/candidatesDashboard");
-          break;
-        default:
-          router.replace("/login");
-      }
-    }
-  }, []);
 
   useEffect(() => {
     usernameRef.current.focus();
