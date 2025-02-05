@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { tailChase } from "ldrs";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 
 tailChase.register();
 
 const JobOfferModal = ({
   jobOfferDetails,
   onClose,
-  fetchJobOffer,
   fetchAppliedJobs,
   fetchNotification,
   fetchJobs,

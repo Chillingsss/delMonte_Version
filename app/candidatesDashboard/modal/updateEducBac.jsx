@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import axios from "axios";
 import {
   retrieveDataFromCookie,
@@ -546,6 +552,35 @@ const UpdateEducBac = ({
       [fieldName]: inputValue,
     }));
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 50
+      ) {
+        setPageNumber((prev) => ({
+          ...prev,
+          courses: prev.courses + 1,
+          institutions: prev.institutions + 1,
+          courseTypes: prev.courseTypes + 1,
+          courseCategory: prev.courseCategory + 1,
+        }));
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      handleScroll();
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("touchmove", handleTouchMove);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
 
   return (
     <div className={`modal ${showModalUpdateEduc ? "block" : "hidden"}`}>

@@ -286,3 +286,9 @@
 .react-datepicker__navigation--down-arrow {
   margin-left: 5px;
 }
+
+.custom-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+}
+

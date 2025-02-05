@@ -25,17 +25,17 @@ router.get(
     // console.log("User Data Before Redirect:", req.user);
 
     const token = generateToken(req.user);
-    const { cand_userId, cand_firstname, cand_lastname, cand_userLevel } =
-      req.user;
-
-    // Log the values to ensure they are not null
-    console.log("cand_userId:", cand_userId);
-    console.log("cand_firstname:", cand_firstname);
-    console.log("cand_lastname:", cand_lastname);
-    console.log("cand_userLevel:", cand_userLevel);
+    const {
+      cand_userId,
+      cand_firstname,
+      cand_lastname,
+      cand_userLevel,
+      adm_id,
+      adm_userLevel,
+    } = req.user;
 
     res.redirect(
-      `${process.env.CLIENT_URL}/auth/callback?token=${token}&cand_id=${cand_userId}&cand_firstname=${cand_firstname}&cand_lastname=${cand_lastname}&cand_userLevel=${cand_userLevel}`
+      `${process.env.CLIENT_URL}/auth/callback?token=${token}&cand_id=${cand_userId}&cand_firstname=${cand_firstname}&cand_lastname=${cand_lastname}&cand_userLevel=${cand_userLevel}&adm_id=${adm_id}&adm_userLevel=${adm_userLevel}`
     );
   }
 );

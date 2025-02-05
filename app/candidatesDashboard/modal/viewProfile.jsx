@@ -3519,7 +3519,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
             </aside>
 
             <main
-              className={`flex-1 p-4 md:p-6 md:rounded-r-lg relative h-screen md:h-auto max-h-screen overflow-y-auto scrollbar-custom ${
+              className={`flex-1 p-3 md:p-4 md:rounded-r-lg relative h-screen md:h-auto max-h-screen overflow-y-auto scrollbar-custom ${
                 isDarkMode ? "bg-[#1A202C]" : "bg-[#F4F7FC]"
               }`}
             >

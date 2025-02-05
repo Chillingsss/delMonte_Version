@@ -253,7 +253,7 @@ export default function Login(user) {
           router.replace("/candidatesDashboard");
           break;
         default:
-          router.replace("/");
+          router.replace("/login");
       }
     }
   }, []);
