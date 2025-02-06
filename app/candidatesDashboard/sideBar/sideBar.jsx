@@ -18,6 +18,7 @@ import {
   storeDataInSession,
   removeSessionData,
   getDataFromSession,
+  getDataFromCookie,
 } from "../../utils/storageUtils";
 import { useRouter } from "next/navigation";
 import ExamModal from "../exam/exam";
@@ -268,15 +269,24 @@ const Sidebar = ({
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
-      // const appId = localStorage.getItem("app_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       console.log("jobMId", jobMId);
       const formData = new FormData();
       formData.append("operation", "getJobOffer");
       formData.append(
         "json",
-        JSON.stringify({ cand_id: candId, jobM_id: jobMId })
+        JSON.stringify({ cand_id: userId, jobM_id: jobMId })
       );
 
       console.log("formData", formData);

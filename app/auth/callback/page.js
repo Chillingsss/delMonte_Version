@@ -40,21 +40,18 @@ export default function Callback() {
         "Setting cookies and session storage, then redirecting to dashboard..."
       );
       // Store the token in cookies
-      storeDataInCookie("auth_token", token, { maxAge: 3600 });
+      const tokenData = {
+        userId: cand_id || adm_id,
+        timestamp: new Date().getTime(),
+        userLevel: cand_userLevel || adm_userLevel,
+      };
+
+      console.log("Creating token with data:", tokenData);
+
+      storeDataInCookie("auth_token", tokenData, 3600);
 
       // Determine the user level and ID to store
       const userLevel = cand_userLevel || adm_userLevel;
-      const userId = cand_id || adm_id;
-
-      // Store user ID and userLevel in session storage
-      if (userId) {
-        storeDataInSession("user_id", userId);
-        storeDataInSession("user_level", userLevel);
-        localStorage.setItem("user_id", userId);
-        localStorage.setItem("user_level", userLevel);
-        localStorage.setItem("user_firstname", firstname);
-        localStorage.setItem("user_lastname", lastname);
-      }
 
       // Redirect based on user level
       switch (userLevel) {

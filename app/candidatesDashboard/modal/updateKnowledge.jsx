@@ -3,14 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
@@ -129,6 +123,18 @@ const UpdateKnowledge = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+
       // Validate custom knowledge before saving
       if (
         data.customKnowledge &&
@@ -143,7 +149,7 @@ const UpdateKnowledge = ({
       }
 
       const updatedKnowledge = {
-        cand_id: getDataFromSession("user_id"),
+        cand_id: userId,
         knowledge: [
           {
             canknow_id: data.canknow_id || null,

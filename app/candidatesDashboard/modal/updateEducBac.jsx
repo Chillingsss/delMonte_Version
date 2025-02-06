@@ -6,16 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import axios from "axios";
-import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  getDataFromSession,
-} from "@/app/utils/storageUtils";
+import { getDataFromCookie } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -214,7 +205,17 @@ const UpdateEducBac = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const candidateId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       if (
         data.customCourse &&
@@ -271,7 +272,7 @@ const UpdateEducBac = ({
       }
 
       const updatedData = {
-        candidateId: candidateId,
+        candidateId: userId,
         educationalBackground: [
           {
             educId: data.educ_back_id || null,

@@ -40,9 +40,16 @@ export default function Login(user) {
   const [isLocked, setIsLocked] = useState(false); // Track if the login is locked
 
   useEffect(() => {
-    const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userLevel) {
+        return tokenData.userLevel;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
 
-    console.log("userLevel:", userLevel); // Debugging output
+    const userLevel = getUserLevelFromCookie();
+    console.log("User Level:", userLevel);
 
     switch (userLevel) {
       case "100":
@@ -193,38 +200,12 @@ export default function Login(user) {
         const tokenData = {
           userId: user.adm_id || user.sup_id || user.cand_id,
           timestamp: new Date().getTime(),
-          userLevel:
-            user.adm_userLevel || user.sup_userLevel || user.cand_userLevel,
-          type: user.adm_id
-            ? "admin"
-            : user.sup_id
-            ? "supervisor"
-            : "candidate",
+          userLevel: user.adm_userLevel || user.cand_userLevel,
         };
 
         console.log("Creating token with data:", tokenData);
 
         storeDataInCookie("auth_token", tokenData, 3600);
-
-        if (user.adm_id) {
-          storeDataInSession("user_id", user.adm_id);
-          storeDataInSession("user_level", user.adm_userLevel);
-          storeDataInCookie("name", user.adm_name || "", 3600);
-          storeDataInCookie("email", user.adm_email || "", 3600);
-        } else if (user.sup_id) {
-          storeDataInSession("user_id", user.sup_id);
-          storeDataInSession("user_level", user.sup_userLevel);
-          storeDataInCookie("name", user.sup_name || "", 3600);
-          storeDataInCookie("email", user.sup_email || "", 3600);
-        } else {
-          storeDataInSession("user_id", user.cand_id);
-          storeDataInSession("user_level", user.cand_userLevel);
-          storeDataInCookie(
-            "name",
-            `${user.cand_firstname || ""} ${user.cand_lastname || ""}`,
-            3600
-          );
-        }
 
         // Redirect based on user type
         setTimeout(() => {
@@ -234,7 +215,7 @@ export default function Login(user) {
             router.push("/superAdminDashboard");
           } else if (user.sup_userLevel === "supervisor") {
             router.push("/supervisorDashboard");
-          } else {
+          } else if (user.cand_userLevel === "1.0") {
             router.push("/candidatesDashboard");
           }
         }, 2000);

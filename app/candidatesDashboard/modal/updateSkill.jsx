@@ -3,14 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
@@ -152,10 +146,20 @@ const UpdateSkill = ({
   const handleSave = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candidateId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const updatedData = {
-        candidateId: candidateId,
+        candidateId: userId,
         skills: [
           {
             skills_id: data.skills_id,

@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import {
+  getDataFromCookie,
+  getDataFromSession,
+} from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast"; // Updated import
 import Tesseract from "tesseract.js";
@@ -176,7 +179,17 @@ const UpdateTraining = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       if (
         data.customTraining &&
@@ -226,7 +239,7 @@ const UpdateTraining = ({
       }
 
       const updatedData = {
-        cand_id: cand_id,
+        cand_id: userId,
         training: [
           {
             training_id: train?.training_id || null,

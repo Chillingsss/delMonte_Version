@@ -2,14 +2,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 import Tesseract from "tesseract.js";
@@ -122,8 +116,18 @@ const UpdateResume = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
-      const jsonData = { cand_id };
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+      const jsonData = { userId };
       const formData = new FormData();
       formData.append("operation", "getCandidateExpectedKeywords");
       formData.append("json", JSON.stringify(jsonData));
@@ -227,7 +231,18 @@ const UpdateResume = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+
       let textFromImage = "";
 
       if (data.image) {
@@ -243,7 +258,7 @@ const UpdateResume = ({
       }
 
       const updatedData = {
-        cand_id: cand_id,
+        cand_id: userId,
         resume: [
           {
             canres_id: data.canres_id || null,

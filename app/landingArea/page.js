@@ -5,7 +5,7 @@ import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import JobDetailsModal from "./modal/jobDetails";
-import { getDataFromSession } from "../utils/storageUtils";
+import { getDataFromCookie, getDataFromSession } from "../utils/storageUtils";
 import { Briefcase } from "lucide-react";
 import { lineSpinner } from "ldrs";
 
@@ -27,15 +27,19 @@ export default function LandingArea() {
 
   useEffect(() => {
     // Retrieve the user level from session storage
-    const userLevel = getDataFromSession("user_level");
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userLevel) {
+        return tokenData.userLevel;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
 
-    console.log("userLevel:", userLevel); // Debugging output
-
-    // Convert userLevel to string for consistent comparison
-    const userLevelString = String(userLevel);
+    const userLevel = getUserLevelFromCookie();
+    console.log("User Level:", userLevel);
 
     // Redirect based on the user level
-    switch (userLevelString) {
+    switch (userLevel) {
       case "100":
       case "100.0":
         router.replace("/admin/dashboard");
@@ -51,7 +55,6 @@ export default function LandingArea() {
         router.replace("/candidatesDashboard");
         break;
       default:
-        console.warn("Unknown user level:", userLevelString); // Log a warning for debugging
         router.replace("/"); // Redirect to the home page or login page
     }
   }, [router]);

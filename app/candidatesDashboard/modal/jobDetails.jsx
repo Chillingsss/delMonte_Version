@@ -8,15 +8,8 @@ import { hourglass } from "ldrs";
 hourglass.register();
 
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
-  removeData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 // import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -54,9 +47,19 @@ const JobDetailsModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      const jsonData = { cand_id: cand_id };
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+
+      const jsonData = { cand_id: userId };
 
       const formData = new FormData();
       formData.append("operation", "getCandidateProfile");
@@ -71,38 +74,17 @@ const JobDetailsModal = ({
       setLoading(false);
     }
   }
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null; // Return null if userId is not found or tokenData is invalid
+  };
 
-  // async function fetchAppliedJobs() {
-  //   try {
-  //     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-  //     const personalInfoId = retrieveData("user_id");
-  //     // console.log("cand ID:", personalInfoId);
-
-  //     if (!personalInfoId) {
-  //       // console.error("No cand_id found in localStorage.");
-  //       return;
-  //     }
-
-  //     const formData = new FormData();
-  //     formData.append("operation", "getAppliedJobs");
-  //     formData.append("json", JSON.stringify({ cand_id: personalInfoId }));
-
-  //     const response = await axios.post(url, formData);
-
-  //     if (response.data.error) {
-  //       console.error(response.data.error);
-  //     } else {
-  //       setAppliedJobs(response.data);
-  //       console.log("Applied jobs:", response.data);
-  //       // const passingpoints = response.data.passing_points;
-  //       // localStorage.setItem("passing", passingpoints);
-  //       // localStorage.setItem("app_id", response.data[0].app_id);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching applied jobs:", error);
-  //   }
-  // }
+  // Example usage
+  const userId = getUserIdFromCookie();
+  console.log("User ID:", userId);
 
   useEffect(() => {
     fetchProfile();

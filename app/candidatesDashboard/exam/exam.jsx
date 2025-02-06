@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
+  getDataFromCookie,
   getDataFromSession,
   removeSessionData,
 } from "@/app/utils/storageUtils";
@@ -203,7 +204,17 @@ const ExamModal = ({
 
   const handleSubmit = async () => {
     try {
-      const candidateId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
       let totalScore = 0;
@@ -253,7 +264,7 @@ const ExamModal = ({
       });
 
       const resultData = {
-        examR_candId: candidateId,
+        examR_candId: userId,
         examR_examId: examId,
         examR_jobMId: jobMId,
         examR_score: totalScore,

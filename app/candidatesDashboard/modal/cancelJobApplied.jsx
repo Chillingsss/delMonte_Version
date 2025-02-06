@@ -1,5 +1,5 @@
 // app/candidatesDashboard/sideBar/CancelJobModal.jsx
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromCookie } from "@/app/utils/storageUtils";
 import React, { useState } from "react";
 import axios from "axios";
 import { FaTimes } from "react-icons/fa";
@@ -18,8 +18,17 @@ const CancelJobModal = ({
   const [isRedirecting, setIsRedirecting] = useState(false);
   const handleCancelJob = async () => {
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = getDataFromSession("user_id");
-    // console.log("appId", jobAppId, jobMId);
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     try {
       const formData = new FormData();

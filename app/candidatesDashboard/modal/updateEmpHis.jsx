@@ -5,14 +5,8 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  retrieveDataFromCookie,
-  retrieveDataFromSession,
-  storeDataInCookie,
-  storeDataInSession,
-  removeDataFromCookie,
-  removeDataFromSession,
-  retrieveData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
 
@@ -109,7 +103,9 @@ const UpdateEmpHis = ({
     }
 
     // Adjust for timezone
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+    const localDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60000
+    )
       .toISOString()
       .split("T")[0];
 
@@ -122,10 +118,20 @@ const UpdateEmpHis = ({
   const handleSave = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const updatedData = {
-        cand_id: cand_id,
+        cand_id: userId,
         employmentHistory: [
           {
             empH_id: data.empH_id || null,
@@ -169,15 +175,27 @@ const UpdateEmpHis = ({
     <>
       <Toaster position="bottom-left" />
       <div className={`modal ${showModal ? "block" : "hidden"}`}>
-        <div className={`modal-content ${isDarkMode ? "bg-gray-700" : "bg-gray-200"} p-6 rounded-lg shadow-lg`}>
-          <h3 className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-800"} mb-4`}>
+        <div
+          className={`modal-content ${
+            isDarkMode ? "bg-gray-700" : "bg-gray-200"
+          } p-6 rounded-lg shadow-lg`}
+        >
+          <h3
+            className={`text-xl font-semibold ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            } mb-4`}
+          >
             {data.empH_id
               ? "Edit Employment History"
               : "Add Employment History"}
           </h3>
 
           <div className={`mb-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-            <label className={`block text-gray-600 text-sm font-normal ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+            <label
+              className={`block text-gray-600 text-sm font-normal ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
               Position Name:
             </label>
             <input
@@ -186,12 +204,18 @@ const UpdateEmpHis = ({
               value={data.empH_positionName}
               onChange={handleChange}
               placeholder="Enter Position Name"
-              className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+              className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                isDarkMode ? "border-gray-400 text-white" : "border-black"
+              } text-black`}
             />
           </div>
 
           <div className={`mb-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-            <label className={`block text-gray-600 text-sm font-normal ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+            <label
+              className={`block text-gray-600 text-sm font-normal ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
               Company Name:
             </label>
             <input
@@ -200,20 +224,32 @@ const UpdateEmpHis = ({
               value={data.empH_companyName}
               onChange={handleChange}
               placeholder="Enter Company Name"
-              className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+              className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                isDarkMode ? "border-gray-400 text-white" : "border-black"
+              } text-black`}
             />
           </div>
 
           <div className={`mb-6 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-            <label className={`block text-gray-600 text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-800"} mb-2`}>
+            <label
+              className={`block text-gray-600 text-sm font-semibold ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              } mb-2`}
+            >
               Start Date:
             </label>
             <div className="relative">
               <DatePicker
-                selected={data.empH_startdate ? new Date(data.empH_startdate + 'T00:00:00') : null}
+                selected={
+                  data.empH_startdate
+                    ? new Date(data.empH_startdate + "T00:00:00")
+                    : null
+                }
                 onChange={(date) => handleDateChange(date, "empH_startdate")}
                 dateFormat="MMM dd, yyyy"
-                className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+                className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                  isDarkMode ? "border-gray-400 text-white" : "border-black"
+                } text-black`}
                 placeholderText="Select start date"
                 maxDate={new Date()}
                 showYearDropdown
@@ -223,26 +259,41 @@ const UpdateEmpHis = ({
                 isClearable
                 customInput={
                   <input
-                    className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+                    className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                      isDarkMode ? "border-gray-400 text-white" : "border-black"
+                    } text-black`}
                   />
                 }
               />
-
             </div>
           </div>
 
           <div className={`mb-6 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-            <label className={`block text-gray-600 text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-800"} mb-2`}>
+            <label
+              className={`block text-gray-600 text-sm font-semibold ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              } mb-2`}
+            >
               End Date:
             </label>
             <div className="relative">
               <DatePicker
-                selected={data.empH_enddate ? new Date(data.empH_enddate + 'T00:00:00') : null}
+                selected={
+                  data.empH_enddate
+                    ? new Date(data.empH_enddate + "T00:00:00")
+                    : null
+                }
                 onChange={(date) => handleDateChange(date, "empH_enddate")}
                 dateFormat="MMM dd, yyyy"
-                className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+                className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                  isDarkMode ? "border-gray-400 text-white" : "border-black"
+                } text-black`}
                 placeholderText="Select end date"
-                minDate={data.empH_startdate ? new Date(data.empH_startdate + 'T00:00:00') : null}
+                minDate={
+                  data.empH_startdate
+                    ? new Date(data.empH_startdate + "T00:00:00")
+                    : null
+                }
                 maxDate={new Date()}
                 showYearDropdown
                 showMonthDropdown
@@ -251,11 +302,12 @@ const UpdateEmpHis = ({
                 isClearable
                 customInput={
                   <input
-                    className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${isDarkMode ? "border-gray-400 text-white" : "border-black"} text-black`}
+                    className={`w-full mt-2 border-b-2 pb-2 bg-transparent ${
+                      isDarkMode ? "border-gray-400 text-white" : "border-black"
+                    } text-black`}
                   />
                 }
               />
-
             </div>
           </div>
 
@@ -272,7 +324,6 @@ const UpdateEmpHis = ({
             >
               Save
             </button>
-
           </div>
         </div>
       </div>

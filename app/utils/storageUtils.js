@@ -75,7 +75,7 @@ export const parseJwt = (token) => {
 export const storeDataInCookie = (key, value, expiryInSeconds) => {
   const encryptedValue = encryptData(value);
   const expires = new Date(Date.now() + expiryInSeconds * 1000).toUTCString();
-  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/; Secure; SameSite=Strict`;
+  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/`;
 };
 
 /**

@@ -17,7 +17,11 @@ import GeneralExam from "./Masterfiles/GeneralExam";
 import InterviewCategoryMaster from "./Masterfiles/InterviewCategoryMaster";
 import InterviewCriteriaMaster from "./Masterfiles/InterviewCriteriaMaster";
 import { useRouter } from "next/navigation";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import {
+  getDataFromCookie,
+  getDataFromSession,
+  retrieveData,
+} from "@/app/utils/storageUtils";
 
 export default function Page() {
   const [viewIndex, setViewIndex] = useState(0);
@@ -42,9 +46,16 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    const userLevel = String(getDataFromSession("user_level")).trim(); // Convert to string and trim spaces
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userLevel) {
+        return tokenData.userLevel;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
 
-    console.log("userLevel:", userLevel); // Debugging output
+    const userLevel = getUserLevelFromCookie();
+    console.log("User Level:", userLevel); // Debugging output
 
     switch (userLevel) {
       case "100":

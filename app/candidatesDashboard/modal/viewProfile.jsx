@@ -11,6 +11,7 @@ import {
   removeDataFromSession,
   retrieveData,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { FaArrowRight, FaBars } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
@@ -378,9 +379,19 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      const jsonData = { cand_id: cand_id };
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+
+      const jsonData = { cand_id: userId };
 
       const formData = new FormData();
       formData.append("operation", "getCandidateProfile");
@@ -508,7 +519,17 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSavePersonalInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "updateCandidatePersonalInfo");
@@ -524,7 +545,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
       // Create a copy of the data for JSON
       const dataForJson = {
         ...editData,
-        cand_id,
+        userId,
         candidateInformation: {
           ...editData.candidateInformation,
           cand_profPic:
@@ -583,10 +604,19 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSaveEmploymentInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      const cand_id = getDataFromSession("user_id");
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
-      const updatedData = { ...editData, cand_id };
+      const updatedData = { ...editData, userId };
 
       console.log("Sending data:", updatedData);
 
@@ -615,10 +645,21 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candidateId = getDataFromSession("user_id");
+
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const updatedData = {
-        candidateId: candidateId,
+        candidateId: userId,
         educationalBackground: [
           {
             educId: currentDeleteId,
@@ -630,9 +671,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
       console.log("Sending data:", updatedData);
 
       const formData = new FormData();
-      formData.append("candidateId", candidateId);
+      formData.append("candidateId", userId); // Use userId here
       formData.append("operation", "updateEducationalBackground");
-
       formData.append("json", JSON.stringify(updatedData));
 
       const response = await axios.post(url, formData, {
@@ -647,7 +687,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
         toast.success("Education record deleted successfully.");
         fetchProfile();
         console.log(
-          `Education record with ID ${educationId} deleted successfully.`
+          `Education record with ID ${currentDeleteId} deleted successfully.`
         );
       } else {
         console.error("Failed to delete the education record.");
@@ -668,10 +708,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const candidateId = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      cand_id: candidateId,
+      cand_id: userId,
       employmentHistory: [
         {
           empH_id: currentDeleteId,
@@ -684,7 +734,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("cand_id", candidateId);
+      formData.append("cand_id", userId);
       formData.append("operation", "updateCandidateEmploymentInfo");
       formData.append("json", JSON.stringify(updatedData));
 
@@ -714,10 +764,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const candidateId = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      candidateId: candidateId,
+      candidateId: userId,
       skills: [
         {
           skills_id: currentDeleteId,
@@ -728,7 +788,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("candidateId", candidateId);
+      formData.append("candidateId", userId);
       formData.append("operation", "updateCandidateSkills");
       formData.append("json", JSON.stringify(updatedData));
 
@@ -756,10 +816,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      cand_id: cand_id,
+      cand_id: userId,
       training: [
         {
           training_id: currentDeleteId,
@@ -772,7 +842,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("cand_id", cand_id);
+      formData.append("cand_id", userId);
       formData.append("operation", "updateCandidateTraining");
       formData.append("json", JSON.stringify(updatedData));
 
@@ -800,10 +870,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      cand_id: cand_id,
+      cand_id: userId,
       knowledge: [
         {
           canknow_id: currentDeleteId,
@@ -816,7 +896,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("cand_id", cand_id);
+      formData.append("cand_id", userId);
       formData.append("operation", "updateCandidateKnowledge");
       formData.append("json", JSON.stringify(updatedData));
 
@@ -844,10 +924,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      cand_id: cand_id,
+      cand_id: userId,
       license: [
         {
           license_id: currentDeleteId,
@@ -860,7 +950,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("cand_id", cand_id);
+      formData.append("cand_id", userId);
       formData.append("operation", "updateCandidateLicense");
       formData.append("json", JSON.stringify(updatedData));
 
@@ -888,10 +978,20 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const cand_id = getDataFromSession("user_id");
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+
+    // Example usage
+    const userId = getUserIdFromCookie();
+    console.log("User ID:", userId);
 
     const updatedData = {
-      cand_id: cand_id,
+      cand_id: userId,
       resume: [
         {
           canres_id: currentDeleteId,
@@ -902,7 +1002,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
     try {
       const formData = new FormData();
-      formData.append("cand_id", cand_id);
+      formData.append("cand_id", userId);
       formData.append("operation", "updateCandidateResume");
       formData.append("json", JSON.stringify(updatedData));
 

@@ -123,9 +123,19 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      const jsonData = { cand_id: cand_id };
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
+
+      const jsonData = { cand_id: userId };
 
       const formData = new FormData();
       formData.append("operation", "getCandidateProfile");
@@ -160,16 +170,20 @@ export default function DashboardCandidates() {
   });
 
   useEffect(() => {
-    // Retrieve the auth token from cookies
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userLevel) {
+        return tokenData.userLevel;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
 
-    // Retrieve and sanitize the user level from session storage
-    const userLevel = String(getDataFromSession("user_level") || "").trim();
-
-    console.log("userLevel:", userLevel); // Debugging output
+    const userLevel = getUserLevelFromCookie();
+    console.log("User Level:", userLevel);
 
     // Redirect based on the user level
     switch (userLevel) {
-      case "100": 
+      case "100":
       case "100.0":
         router.replace("/admin/dashboard");
         break;
@@ -217,11 +231,21 @@ export default function DashboardCandidates() {
     // setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "getActiveJob");
-      formData.append("json", JSON.stringify({ cand_id: candId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
 
       const response = await axios.post(url, formData);
 
@@ -251,13 +275,21 @@ export default function DashboardCandidates() {
   const fetchNotification = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      console.log("candId", candId);
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "getNotification");
-      formData.append("json", JSON.stringify({ cand_id: candId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
 
       const response = await axios.post(url, formData);
       console.log("Notification response:", response.data);
@@ -286,11 +318,21 @@ export default function DashboardCandidates() {
   const markNotificationsAsRead = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "markNotificationsAsRead");
-      formData.append("json", JSON.stringify({ cand_id: candId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
       await axios.post(url, formData);
 
       // Reset the count to zero on the frontend
@@ -459,11 +501,20 @@ export default function DashboardCandidates() {
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
-      // const appId = localStorage.getItem("app_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const data = {
-        cand_id: candId,
+        cand_id: userId,
         jobM_id: jobMId,
       };
 
@@ -536,17 +587,21 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const personalInfoId = getDataFromSession("user_id");
-      // console.log("cand ID:", personalInfoId);
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      if (!personalInfoId) {
-        // console.error("No cand_id found in localStorage.");
-        return;
-      }
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "getAppliedJobs");
-      formData.append("json", JSON.stringify({ cand_id: personalInfoId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
 
       const response = await axios.post(url, formData);
 
@@ -568,17 +623,21 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const personalInfoId = getDataFromSession("user_id");
-      // console.log("cand ID:", personalInfoId);
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
 
-      if (!personalInfoId) {
-        // console.error("No cand_id found in localStorage.");
-        return;
-      }
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "getReappliedJobs");
-      formData.append("json", JSON.stringify({ cand_id: personalInfoId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
 
       const response = await axios.post(url, formData);
 
@@ -599,11 +658,21 @@ export default function DashboardCandidates() {
   const fetchExamResult = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const formData = new FormData();
       formData.append("operation", "fetchExamResult");
-      formData.append("json", JSON.stringify({ cand_id: candId }));
+      formData.append("json", JSON.stringify({ cand_id: userId }));
       const examResultsResponse = await axios.post(url, formData);
 
       console.log("exam result", examResultsResponse.data);

@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  retrieveDataFromSession,
   getDataFromSession,
+  getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
@@ -83,11 +83,21 @@ const UpdatePassword = ({
     const checkPasswordExists = async () => {
       try {
         const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-        const cand_id = getDataFromSession("user_id");
+        const getUserIdFromCookie = () => {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
+          return null; // Return null if userId is not found or tokenData is invalid
+        };
+
+        // Example usage
+        const userId = getUserIdFromCookie();
+        console.log("User ID:", userId);
 
         const formData = new FormData();
         formData.append("operation", "checkPasswordExists");
-        formData.append("json", JSON.stringify({ cand_id }));
+        formData.append("json", JSON.stringify({ userId }));
 
         const response = await axios.post(url, formData);
         const data = response.data;

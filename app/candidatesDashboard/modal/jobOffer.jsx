@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { tailChase } from "ldrs";
-import { getDataFromSession } from "@/app/utils/storageUtils";
+import { getDataFromCookie, getDataFromSession } from "@/app/utils/storageUtils";
 
 tailChase.register();
 
@@ -21,13 +21,23 @@ const JobOfferModal = ({
   const handleResponse = async (status) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const candId = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
 
       const jsonData = {
         job_offer_id: jobOfferDetails.joboffer_id,
         status: status,
         app_id: appId,
-        cand_id: candId,
+        cand_id: userId,
       };
 
       const formData = new FormData();
