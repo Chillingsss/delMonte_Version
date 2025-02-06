@@ -40,9 +40,7 @@ function AddKnowledge({
   isUpdate = false,
 }) {
   const [openState, setOpenState] = useState(false);
-  const [knowledgeData, setKnowledgeData] = useState(
-    JSON.parse(getDataFromSession("knowledgeList"))
-  );
+  const [knowledgeData, setKnowledgeData] = useState(getDataFromSession("knowledgeList"));
   const formSchema = z.object({
     knowledgeId: z.number().min(1, {
       message: "This field is required",
@@ -99,7 +97,7 @@ function AddKnowledge({
     console.log("continue..");
     try {
       const selectedKnowledge =
-        JSON.parse(getDataFromSession("jobKnowledge")) || [];
+        getDataFromSession("jobKnowledge") || [];
       console.log("selectedKnowledge:", selectedKnowledge);
       let isValid = true;
       selectedKnowledge.forEach((element) => {

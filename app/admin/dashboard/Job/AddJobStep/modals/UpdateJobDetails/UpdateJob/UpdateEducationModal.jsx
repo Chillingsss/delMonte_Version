@@ -61,7 +61,7 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
   const onSubmit = (values) => {
     try {
       const selectedEducation =
-        JSON.parse(getDataFromSession("jobEducation")) || [];
+        getDataFromSession("jobEducation") || [];
       let isValid = true;
       const filteredSelectedData = selectedEducation.filter((element) => {
         return element.courseCategory !== updateData.categoryId;

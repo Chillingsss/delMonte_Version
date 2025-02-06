@@ -83,13 +83,13 @@ function AddDutiesMaster({ previousStep, nextStep }) {
       getDataFromSession("duties") !== null ||
       getDataFromSession("duties") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("duties")));
+      setDatas(getDataFromSession("duties"));
     } else {
       setDatas([]);
     }
     console.log(
       "dutiessss",
-      JSON.stringify(JSON.parse(getDataFromSession("duties")))
+      getDataFromSession("duties")
     );
   }, []);
 

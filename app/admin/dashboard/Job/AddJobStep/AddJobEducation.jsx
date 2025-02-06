@@ -98,14 +98,14 @@ function AddJobEducation({
 
   useEffect(() => {
     const courseCategoryList =
-      JSON.parse(getDataFromSession("courseCategoryList")) || [];
+      getDataFromSession("courseCategoryList") || [];
     setCourseCategoryData(courseCategoryList);
     console.log("courseCategoryList: ", courseCategoryList);
     if (
       getDataFromSession("jobEducation") !== null ||
       getDataFromSession("jobEducation") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobEducation")));
+      setDatas(getDataFromSession("jobEducation"));
     } else {
       setDatas([]);
     }

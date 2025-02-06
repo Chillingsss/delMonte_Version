@@ -46,7 +46,7 @@ export default function Callback() {
         userLevel: cand_userLevel || adm_userLevel,
       };
 
-      console.log("Creating token with data:", tokenData);
+      // console.log("Creating token with data:", tokenData);
 
       storeDataInCookie("auth_token", tokenData, 3600);
 

@@ -41,7 +41,7 @@ function AddTraining({
 }) {
   const [openState, setOpenState] = useState(false);
   const [trainingData, setTrainingData] = useState(
-    JSON.parse(retrieveData("trainingList"))
+    getDataFromSession("trainingList")
   );
 
   const formSchema = z.object({
@@ -97,7 +97,7 @@ function AddTraining({
 
   const onSubmit = (values) => {
     try {
-      const selectedTraining = JSON.parse(retrieveData("jobTraining")) || [];
+      const selectedTraining = getDataFromSession("jobTraining") || [];
       let isValid = true;
       selectedTraining.forEach((element) => {
         if (element.training === values.training) {

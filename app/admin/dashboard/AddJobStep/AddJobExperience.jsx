@@ -78,13 +78,11 @@ function AddJobExperience({ previousStep, handleSubmit }) {
       getDataFromSession("jobExperience") !== null ||
       getDataFromSession("jobExperience") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobExperience")));
+      setDatas(getDataFromSession("jobExperience"));
     } else {
       setDatas([]);
     }
-    console.log(
-      JSON.stringify(JSON.parse(getDataFromSession("jobExperience")))
-    );
+    // console.log(getDataFromSession("jobExperience"));
   }, []);
 
   return (

@@ -79,7 +79,7 @@ function AddJobEducation({ courseCategory, previousStep, nextStep }) {
       getDataFromSession("jobEducation") !== null ||
       getDataFromSession("jobEducation") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobEducation")));
+      setDatas(getDataFromSession("jobEducation"));
     } else {
       setDatas([]);
     }

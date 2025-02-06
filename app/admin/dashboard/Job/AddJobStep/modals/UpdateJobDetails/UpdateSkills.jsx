@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import UpdateSkillModal from "./UpdateJob/UpdateSkillModal";
 
 function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
-  const skill = JSON.parse(getDataFromSession("skillsList"));
+  const skill = getDataFromSession("skillsList");
   const [datas, setDatas] = useState([]);
   const [updateData, setUpdateData] = useState({});
   const [indexToRemove, setIndexToRemove] = useState(null);
@@ -113,10 +113,6 @@ function UpdateSkill({ data, handleAddData, handleUpdate, deleteData }) {
     }
     console.log("datas ni skills:", data);
     console.log("skills ni skills:", skill);
-    console.log(
-      "retrieveData ni skills",
-      JSON.parse(getDataFromSession("jobSkill"))
-    );
   }, [data, skill]);
 
   return (

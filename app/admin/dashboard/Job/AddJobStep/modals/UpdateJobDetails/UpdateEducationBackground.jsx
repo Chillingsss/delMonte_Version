@@ -24,7 +24,7 @@ import UpdateEducationModal from "./UpdateJob/UpdateEducationModal";
 import AddEducation from "../AddJob/AddEducation";
 
 function UpdateEducation({ data, handleAddData, handleUpdate, deleteData }) {
-  const courseCategory = JSON.parse(getDataFromSession("courseCategoryList"));
+  const courseCategory = getDataFromSession("courseCategoryList");
   const [datas, setDatas] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [updateData, setUpdateData] = useState({});

@@ -1090,11 +1090,27 @@ export default function DashboardCandidates() {
                           } else if (
                             result.status_name.toLowerCase() === "pending"
                           ) {
-                            openCancelJobAppliedModal(
-                              result.app_id,
-                              result.jobM_id,
-                              result.jobM_title
-                            );
+                            if (
+                              result.status_name.toLowerCase() ===
+                                "processed" ||
+                              result.status_name.toLowerCase() ===
+                                "job offer" ||
+                              result.status_name.toLowerCase() === "exam" ||
+                              result.status_name.toLowerCase() ===
+                                "interview" ||
+                              result.status_name.toLowerCase() ===
+                                "background check" ||
+                              result.status_name.toLowerCase() ===
+                                "decision pending"
+                            ) {
+                              // Do nothing or show an error message
+                            } else {
+                              openCancelJobAppliedModal(
+                                result.app_id,
+                                result.jobM_id,
+                                result.jobM_title
+                              );
+                            }
                           }
                         }}
                         className={`group relative rounded-lg transition-all duration-200 hover:scale-[1.01] cursor-pointer
@@ -1563,11 +1579,27 @@ export default function DashboardCandidates() {
                             } else if (
                               result.status_name.toLowerCase() === "pending"
                             ) {
-                              openCancelJobAppliedModal(
-                                result.app_id,
-                                result.jobM_id,
-                                result.jobM_title
-                              );
+                              if (
+                                result.status_name.toLowerCase() ===
+                                  "processed" ||
+                                result.status_name.toLowerCase() ===
+                                  "job offer" ||
+                                result.status_name.toLowerCase() === "exam" ||
+                                result.status_name.toLowerCase() ===
+                                  "interview" ||
+                                result.status_name.toLowerCase() ===
+                                  "background check" ||
+                                result.status_name.toLowerCase() ===
+                                  "decision pending"
+                              ) {
+                                // Do nothing or show an error message
+                              } else {
+                                openCancelJobAppliedModal(
+                                  result.app_id,
+                                  result.jobM_id,
+                                  result.jobM_title
+                                );
+                              }
                             }
                           }}
                           className={`group relative rounded-lg transition-all duration-200 hover:scale-[1.01] cursor-pointer

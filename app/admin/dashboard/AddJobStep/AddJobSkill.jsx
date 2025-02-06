@@ -79,7 +79,7 @@ function AddJobSkill({ skill, previousStep, nextStep }) {
       getDataFromSession("jobSkill") !== null ||
       getDataFromSession("jobSkill") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobSkill")));
+      setDatas(getDataFromSession("jobSkill"));
     } else {
       setDatas([]);
     }

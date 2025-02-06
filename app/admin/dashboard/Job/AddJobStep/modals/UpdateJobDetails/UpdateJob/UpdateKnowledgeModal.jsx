@@ -60,8 +60,7 @@ function UpdateKnowledgeModal({ open, onHide, knowledgeList, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedKnowledge =
-        JSON.parse(getDataFromSession("jobKnowledge")) || [];
+      const selectedKnowledge = getDataFromSession("jobKnowledge") || [];
       let isValid = true;
       const filteredSelectedData = selectedKnowledge.filter((element) => {
         return element.knowledgeId !== updateData.knowledgeId;

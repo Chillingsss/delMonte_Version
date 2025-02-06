@@ -98,13 +98,13 @@ function AddJobTraining({
   };
 
   useEffect(() => {
-    const trainingList = JSON.parse(getDataFromSession("trainingList"));
+    const trainingList = getDataFromSession("trainingList");
     setTrainingData(trainingList);
     if (
       getDataFromSession("jobTraining") !== null ||
       getDataFromSession("jobTraining") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobTraining")));
+      setDatas(getDataFromSession("jobTraining"));
     } else {
       setDatas([]);
     }

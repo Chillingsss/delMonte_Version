@@ -66,11 +66,11 @@ function AddJobKnowledge({ previousStep, nextStep, knowledgeList }) {
 
   useEffect(() => {
     if (getDataFromSession("jobKnowledge") !== null || getDataFromSession("jobKnowledge") !== "[]") {
-      setDatas(JSON.parse(getDataFromSession("jobKnowledge")));
+      setDatas(getDataFromSession("jobKnowledge"));
     } else {
       setDatas([]);
     }
-    console.log(JSON.stringify(JSON.parse(getDataFromSession("jobKnowledge"))));
+    console.log(getDataFromSession("jobKnowledge"));
   }, []);
 
   return (

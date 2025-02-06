@@ -91,12 +91,12 @@ function AddJob({ handleSwitchView }) {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
         jobMaster: getDataFromSession("jobMaster"),
-        jobMasterDuties: JSON.parse(getDataFromSession("duties")),
-        jobEducation: JSON.parse(getDataFromSession("jobEducation")),
-        jobTraining: JSON.parse(getDataFromSession("jobTraining")),
-        jobKnowledge: JSON.parse(getDataFromSession("jobKnowledge")),
-        jobSkill: JSON.parse(getDataFromSession("jobSkill")),
-        jobExperience: JSON.parse(getDataFromSession("jobExperience")),
+        jobMasterDuties: getDataFromSession("duties"),
+        jobEducation: getDataFromSession("jobEducation"),
+        jobTraining: getDataFromSession("jobTraining"),
+        jobKnowledge: getDataFromSession("jobKnowledge"),
+        jobSkill: getDataFromSession("jobSkill"),
+        jobExperience: getDataFromSession("jobExperience"),
         totalPoints: Number(getDataFromSession("totalPoints")),
       };
       console.log("jsonData", JSON.stringify(jsonData));

@@ -196,14 +196,24 @@ const JobDetailsModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const user_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const userId = getUserIdFromCookie();
+      console.log("User ID:", userId);
       const jobId = getDataFromSession("jobId");
 
       // console.log("user_id:", user_id, "jobId:", jobId);
 
       const formData = new FormData();
       formData.append("operation", "applyForJob");
-      formData.append("user_id", user_id);
+      formData.append("user_id", userId);
       formData.append("jobId", jobId);
 
       const response = await axios.post(url, formData);

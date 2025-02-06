@@ -85,13 +85,13 @@ function AddJobSkill({
   };
 
   useEffect(() => {
-    const skillList = JSON.parse(getDataFromSession("skillsList"));
+    const skillList = getDataFromSession("skillsList");
     setSkillData(skillList);
     if (
       getDataFromSession("jobSkill") !== null ||
       getDataFromSession("jobSkill") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSession("jobSkill")));
+      setDatas(getDataFromSession("jobSkill"));
     } else {
       setDatas([]);
     }

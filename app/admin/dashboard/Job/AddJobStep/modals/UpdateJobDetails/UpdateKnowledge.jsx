@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import UpdateKnowledgeModal from "./UpdateJob/UpdateKnowledgeModal";
 
 function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
-  const knowledgeList = JSON.parse(retrieveData("knowledgeList"));
+  const knowledgeList = retrieveData("knowledgeList");
   const [datas, setDatas] = useState([]);
   const [indexToRemove, setIndexToRemove] = useState(null);
   const [updateData, setUpdateData] = useState({});
@@ -114,10 +114,7 @@ function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
     }
     console.log("datas ni knowledge:", data);
     console.log("knowledge ni knowledge:", knowledgeList);
-    console.log(
-      "retrieveData ni knowledge",
-      JSON.parse(getDataFromSession("knowledgeList"))
-    );
+
   }, [data, knowledgeList]);
 
   return (

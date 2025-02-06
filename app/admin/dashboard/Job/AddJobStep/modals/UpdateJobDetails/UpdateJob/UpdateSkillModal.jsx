@@ -60,7 +60,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = JSON.parse(retrieveData("jobSkill")) || [];
+      const selectedSkill = retrieveData("jobSkill") || [];
       let isValid = true;
       const filteredSelectedData = selectedSkill.filter((element) => {
         return element.skill !== updateData.skill;

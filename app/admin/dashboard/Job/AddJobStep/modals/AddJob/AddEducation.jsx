@@ -41,9 +41,7 @@ function AddEducation({
   handleAddData,
   addTotalPoints = false,
 }) {
-  const [courseCategory, setCourseCategory] = useState(
-    JSON.parse(getDataFromSession("courseCategoryList"))
-  );
+  const [courseCategory, setCourseCategory] = useState(getDataFromSession("courseCategoryList"));
   const [openState, setOpenState] = useState(false);
   const formSchema = z.object({
     courseCategory: z.number().min(1, {
@@ -100,7 +98,7 @@ function AddEducation({
   const onSubmit = (values) => {
     try {
       const selectedEducation =
-        JSON.parse(getDataFromSession("jobEducation")) || [];
+        getDataFromSession("jobEducation") || [];
       let isValid = true;
       selectedEducation.forEach((element) => {
         if (element.courseCategory === values.courseCategory) {

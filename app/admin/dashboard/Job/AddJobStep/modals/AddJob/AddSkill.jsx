@@ -40,9 +40,7 @@ function AddSkill({
   isUpdate = false,
 }) {
   const [openState, setOpenState] = useState(false);
-  const [skillData, setSkillData] = useState(
-    JSON.parse(getDataFromSession("skillsList"))
-  );
+  const [skillData, setSkillData] = useState(getDataFromSession("skillsList"));
   const formSchema = z.object({
     skill: z.number().min(1, {
       message: "This field is required",
@@ -86,7 +84,7 @@ function AddSkill({
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = JSON.parse(getDataFromSession("jobSkill")) || [];
+      const selectedSkill = getDataFromSession("jobSkill") || [];
       let isValid = true;
       selectedSkill.forEach((element) => {
         if (element.skill === values.skill) {

@@ -79,7 +79,7 @@ function AddJobTraining({ training, previousStep, nextStep }) {
       getDataFromSession("jobTraining") !== null ||
       getDataFromSession("jobTraining") !== "[]"
     ) {
-      setDatas(JSON.parse(getDataFromSessionw("jobTraining")));
+      setDatas(JSON.parse(getDataFromSession("jobTraining")));
     } else {
       setDatas([]);
     }

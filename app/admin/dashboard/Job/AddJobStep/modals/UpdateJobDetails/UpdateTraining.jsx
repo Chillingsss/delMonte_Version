@@ -25,7 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import UpdateTrainingModal from "./UpdateJob/UpdateTrainingModal";
 
 function UpdateTraining({ data, handleAddData, handleUpdate, deleteData }) {
-  const training = JSON.parse(getDataFromSession("trainingList"));
+  const training = getDataFromSession("trainingList");
   const [datas, setDatas] = useState([]);
   const [indexToRemove, setIndexToRemove] = useState(null);
   const [alertMessage, setAlertMessage] = useState("");
@@ -110,10 +110,6 @@ function UpdateTraining({ data, handleAddData, handleUpdate, deleteData }) {
     }
     console.log("datas ni training:", data);
     console.log("training ni training:", training);
-    console.log(
-      "retrieveData ni training",
-      JSON.parse(getDataFromSession("jobTraining"))
-    );
   }, [data, training]);
 
   return (

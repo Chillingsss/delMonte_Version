@@ -59,8 +59,7 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedTraining =
-        JSON.parse(getDataFromSession("jobTraining")) || [];
+      const selectedTraining = getDataFromSession("jobTraining") || [];
       let isValid = true;
       const filteredSelectedData = selectedTraining.filter((element) => {
         return element.training !== updateData.training;
