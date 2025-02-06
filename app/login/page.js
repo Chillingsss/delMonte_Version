@@ -366,6 +366,18 @@ export default function Login(user) {
               {loading ? "Logging in..." : buttonText}
             </button>
           </form>
+          <div className="flex items-center justify-center mt-4 slide-up">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="mx-2 text-gray-500 text-sm">Or continue with</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+          <a
+            href="http://localhost:3001/api/auth/google"
+            className="flex items-center justify-center text-gray-100 text-base slide-up mt-4 cursor-pointer font-semibold py-3 rounded-lg w-full transition-colors duration-300 bg-transparent hover:bg-green-200 hover:text-gray-800 shadow-md"
+          >
+            <FcGoogle className="mr-2" size={24} />
+            Login with Google
+          </a>
           <div className="mt-4 text-white flex flex-col items-start">
             <p>
               Don't have an account?{" "}
@@ -382,13 +394,6 @@ export default function Login(user) {
             >
               Forgot Password?
             </button>
-            <a
-              href="http://localhost:3001/api/auth/google"
-              className="flex items-center justify-center text-gray-800 slide-up mt-4 cursor-pointer bg-[#EEEEEE] font-semibold py-3 rounded-lg shadow-md w-full"
-            >
-              <FcGoogle className="mr-2" size={24} />
-              Continue with Google
-            </a>
           </div>
         </div>
       </div>
