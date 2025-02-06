@@ -613,10 +613,10 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
       };
 
       // Example usage
-      const userId = getUserIdFromCookie();
+      const cand_id = getUserIdFromCookie();
       console.log("User ID:", userId);
 
-      const updatedData = { ...editData, userId };
+      const updatedData = { ...editData, cand_id };
 
       console.log("Sending data:", updatedData);
 

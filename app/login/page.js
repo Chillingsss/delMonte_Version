@@ -290,7 +290,10 @@ export default function Login(user) {
 
         <div className="flex flex-col justify-center w-full md:w-1/2 order-2 md:order-1">
           {/* <h1 className="text-2xl text-green-200 mb-2 slide-up">Welcome to</h1> */}
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 slide-up">
+          <h2
+            className="text-3xl md:text-4xl font-bold text-white mb-2 slide-up"
+            style={{ fontFamily: "Courier New, monospace" }}
+          >
             Del Monte
           </h2>
           <p className="text-green-200 mb-6 slide-up">
@@ -381,7 +384,7 @@ export default function Login(user) {
             </button>
             <a
               href="http://localhost:3001/api/auth/google"
-              className="flex items-center justify-center text-gray-800 hover:underline slide-up mt-4 cursor-pointer bg-white  font-semibold py-2 px-4 rounded-lg shadow-md"
+              className="flex items-center justify-center text-gray-800 slide-up mt-4 cursor-pointer bg-[#EEEEEE] font-semibold py-3 rounded-lg shadow-md w-full"
             >
               <FcGoogle className="mr-2" size={24} />
               Continue with Google

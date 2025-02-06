@@ -110,7 +110,7 @@ function AdminSidebar({ changeView, changeMasterFile }) {
     sessionStorage.clear();
     document.cookie.split(";").forEach((cookie) => {
       const cookieName = cookie.split("=")[0].trim();
-      document.cookie = `${cookieName}=;max-age=0;path=/;secure;samesite=Strict`;
+      document.cookie = `${cookieName}=;max-age=0;path=/;`;
     });
     window.location.href = "/";
   };
