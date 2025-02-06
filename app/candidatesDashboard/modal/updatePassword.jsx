@@ -137,7 +137,16 @@ const UpdatePassword = ({
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const cand_id = getUserIdFromCookie();
       const formData = new FormData();
 
       // If password is required, verify it first
@@ -208,7 +217,16 @@ const UpdatePassword = ({
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = getDataFromSession("user_id");
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      // Example usage
+      const cand_id = getUserIdFromCookie();
 
       const formData = new FormData();
       formData.append("operation", "updateEmailPassword");
