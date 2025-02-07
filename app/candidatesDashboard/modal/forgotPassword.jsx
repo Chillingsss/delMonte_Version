@@ -200,7 +200,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         ) : (
           <form onSubmit={handleSubmitPasswordChange}>
             <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-normal">
+              <label className="block text-gray-300 text-sm font-normal">
                 Enter PIN Code (sent to your email):
               </label>
               <input
@@ -214,7 +214,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-normal">
+              <label className="block text-gray-300 text-sm font-normal">
                 New Password:
               </label>
               <input
@@ -243,7 +243,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               </p>
             </div>
             <div className="mb-4">
-              <label className="block text-gray-600 text-sm font-normal">
+              <label className="block text-gray-300 text-sm font-normal">
                 Confirm New Password:
               </label>
               <input

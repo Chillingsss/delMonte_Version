@@ -202,12 +202,8 @@ export default function Login(user) {
           timestamp: new Date().getTime(),
           userLevel: user.adm_userLevel || user.cand_userLevel,
         };
-
-        // console.log("Creating token with data:", tokenData);
-
         storeDataInCookie("auth_token", tokenData, 3600);
 
-        // Redirect based on user type
         setTimeout(() => {
           if (user.adm_userLevel === "100.0") {
             router.push("/admin/dashboard");

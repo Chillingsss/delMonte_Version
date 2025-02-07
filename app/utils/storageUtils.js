@@ -1,7 +1,9 @@
 import CryptoJS from "crypto-js";
 
-const BASE_SECRET_KEY =
-  process.env.NEXT_PUBLIC_SECRET_KEY || "delMontedelMonte";
+const BASE_SECRET_KEY = process.env.NEXT_PUBLIC_SECRET_KEY;
+if (BASE_SECRET_KEY) {
+  console.log("Secret key found in environment variables!");
+}
 
 const BROWSER_KEY = CryptoJS.SHA256(navigator.userAgent).toString(); // Unique per browser
 
@@ -75,7 +77,7 @@ export const parseJwt = (token) => {
 export const storeDataInCookie = (key, value, expiryInSeconds) => {
   const encryptedValue = encryptData(value);
   const expires = new Date(Date.now() + expiryInSeconds * 1000).toUTCString();
-  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/`;
+  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/;`;
 };
 
 /**
