@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
   getDataFromSession,
@@ -18,6 +19,7 @@ const UpdateKnowledge = ({
   selectedKnowledge,
   fetchKnowledge,
 }) => {
+  const { data: session } = useSession();
   const [data, setData] = useState({
     canknow_id: know?.canknow_id || "",
     knowledge_id: know?.canknow_knowledgeId || "",
@@ -123,16 +125,8 @@ const UpdateKnowledge = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       // Validate custom knowledge before saving

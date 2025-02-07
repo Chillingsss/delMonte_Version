@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
   getDataFromCookie,
@@ -20,6 +21,7 @@ const UpdateTraining = ({
   selectedTraining,
   fetchTraining,
 }) => {
+  const { data: session } = useSession();
   const [data, setData] = useState({
     training_id: train?.training_id || "",
     perT_id: train?.training_perTId || "",
@@ -179,16 +181,8 @@ const UpdateTraining = ({
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       if (

@@ -1,7 +1,11 @@
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Toaster, toast } from "react-hot-toast";
 import { tailChase } from "ldrs";
-import { getDataFromCookie, getDataFromSession } from "@/app/utils/storageUtils";
+import {
+  getDataFromCookie,
+  getDataFromSession,
+} from "@/app/utils/storageUtils";
 
 tailChase.register();
 
@@ -13,6 +17,7 @@ const JobOfferModal = ({
   fetchJobs,
   appId,
 }) => {
+  const { data: session } = useSession();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [responseType, setResponseType] = useState("");
 
@@ -21,16 +26,7 @@ const JobOfferModal = ({
   const handleResponse = async (status) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const jsonData = {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
   retrieveDataFromCookie,
@@ -44,6 +45,7 @@ import DatePicker from "react-datepicker";
 import { endOfDay } from "date-fns";
 
 const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
+  const { data: session } = useSession();
   const [profile, setProfile] = useState({
     candidateInformation: {},
     educationalBackground: [],
@@ -378,17 +380,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   async function fetchProfile() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const userId = session.user.id;
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const jsonData = { cand_id: userId };
@@ -519,16 +512,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSavePersonalInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -604,17 +589,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSaveEmploymentInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const cand_id = getUserIdFromCookie();
-      console.log("User ID:", userId);
+      const cand_id = session.user.id;
 
       const updatedData = { ...editData, cand_id };
 
@@ -646,16 +621,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const updatedData = {
@@ -708,16 +675,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {
@@ -764,16 +723,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {
@@ -816,16 +767,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {
@@ -870,16 +813,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {
@@ -924,16 +859,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {
@@ -978,16 +905,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    const userId = session.user.id;
 
-    // Example usage
-    const userId = getUserIdFromCookie();
     console.log("User ID:", userId);
 
     const updatedData = {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
@@ -50,6 +51,7 @@ import { lineSpinner } from "ldrs";
 lineSpinner.register();
 
 export default function DashboardCandidates() {
+  const { data: session, status } = useSession();
   const [jobs, setJobs] = useState([]);
   const dropdownUsernameRef = useRef(null);
   const dropdownUsernameMobileRef = useRef(null);
@@ -115,26 +117,14 @@ export default function DashboardCandidates() {
     training: [],
   });
 
-  const [isInactive, setIsInactive] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchProfiles = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
-      console.log("User ID:", userId);
-
+      const userId = session.user.id;
+      console.log("User IDss:", userId);
       const jsonData = { cand_id: userId };
 
       const formData = new FormData();
@@ -170,48 +160,16 @@ export default function DashboardCandidates() {
   });
 
   useEffect(() => {
-    const getUserLevelFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userLevel) {
-        return tokenData.userLevel;
+    if (session?.user?.userLevel) {
+      if (session.user.userLevel === "1.0") {
+        router.push("/candidatesDashboard");
+      } else if (session.user.userLevel === "100.0") {
+        router.push("/admin/dashboard");
       }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
-
-    const userLevel = getUserLevelFromCookie();
-    console.log("User Level:", userLevel);
-
-    // Redirect based on the user level
-    switch (userLevel) {
-      case "100":
-      case "100.0":
-        router.replace("/admin/dashboard");
-        break;
-      case "2":
-        router.replace("/superAdminDashboard");
-        break;
-      case "supervisor":
-        router.replace("/supervisorDashboard");
-        break;
-      case "1": // Handle both "1" and "1.0" cases
-      case "1.0":
-        router.replace("/candidatesDashboard");
-        break;
-      default:
-        console.warn("Unknown user level:", userLevel); // Log a warning for debugging
-        router.replace("/"); // Redirect to the home page or login page
     }
-  }, [router]);
+  }, [session, router]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("theme", isDarkMode ? "darks" : "light");
-  //   console.log("Setting theme:", isDarkMode ? "darks" : "light");
-  // }, [isDarkMode]);
-
-  // const [isDarkMode, setIsDarkMode] = useState(() => {
-  //   const savedTheme = localStorage.getItem("theme");
-  //   return savedTheme === "darks";
-  // });
+  // const userId = session.user.id;/
 
   const handleViewProfileClick = (candId) => {
     setSelectedCandidateId(candId);
@@ -228,19 +186,15 @@ export default function DashboardCandidates() {
   };
 
   const fetchJobs = useCallback(async () => {
-    // setLoading(true);
+    if (!session?.user?.id) {
+      console.log("User session not available, skipping fetch.");
+      return;
+    }
+
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -259,13 +213,11 @@ export default function DashboardCandidates() {
     } catch (error) {
       console.error(
         "Error fetching jobs:",
-        error.response || error.message || error
+        error.response?.data || error.message || error
       );
       setError("Error fetching jobs");
-    } finally {
-      // setLoading(false);
     }
-  }, []);
+  }, [session]); // Added session as a dependency
 
   useEffect(() => {
     fetchJobs();
@@ -275,16 +227,7 @@ export default function DashboardCandidates() {
   const fetchNotification = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -318,16 +261,7 @@ export default function DashboardCandidates() {
   const markNotificationsAsRead = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -401,7 +335,7 @@ export default function DashboardCandidates() {
   // const first_name = secureLocalStorage.getItem("first_name");
   // const updatedFirstName = first_name.toUpperCase();
   // secureLocalStorage.setItem("first_name", updatedFirstName);
-  const userId = getDataFromSession("user_id");
+  // const userId = getDataFromSession("user_id");
 
   // useEffect(() => {
   //   try {
@@ -465,52 +399,24 @@ export default function DashboardCandidates() {
   //   }
   // }, []);
 
-  const handleLogout = () => {
-    // console.log('Executing logout');
-    removeCookie("auth_token");
-    removeCookie("name");
-    removeCookie("email");
-    removeSessionData("user_id");
-    removeSessionData("user_level");
+  // const handleLogout = () => {
+  //   // console.log('Executing logout');
+  //   removeCookie("auth_token");
+  //   removeCookie("name");
+  //   removeCookie("email");
+  //   removeSessionData("user_id");
+  //   removeSessionData("user_level");
 
-    // If you want to clear everything
-    clearAllCookies();
-    clearAllSessionData();
-    router.push("/");
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      const logoutChannel = new BroadcastChannel("logout_channel");
-
-      logoutChannel.onmessage = (event) => {
-        if (event.data === "LOGOUT") {
-          // Clear sessionStorage
-          sessionStorage.clear();
-          // Redirect to login
-          router.push("/");
-        }
-      };
-
-      return () => {
-        logoutChannel.close();
-      };
-    }
-  }, [router]);
+  //   // If you want to clear everything
+  //   clearAllCookies();
+  //   clearAllSessionData();
+  //   router.push("/");
+  // };
 
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const data = {
@@ -587,16 +493,7 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -623,16 +520,7 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -658,16 +546,7 @@ export default function DashboardCandidates() {
   const fetchExamResult = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -816,25 +695,14 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    const handleUserActivity = () => {
-      setIsInactive(false);
-      sessionStorage.setItem("isInactive", "false");
-    };
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
 
-    const inactivityTimeout = setTimeout(() => {
-      setIsInactive(true);
-      sessionStorage.setItem("isInactive", "true");
-    }, 3000);
-
-    window.addEventListener("mousemove", handleUserActivity);
-    window.addEventListener("keydown", handleUserActivity);
-
-    return () => {
-      clearTimeout(inactivityTimeout);
-      window.removeEventListener("mousemove", handleUserActivity);
-      window.removeEventListener("keydown", handleUserActivity);
-    };
-  }, []);
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
 
   return (
     <div
@@ -1253,7 +1121,9 @@ export default function DashboardCandidates() {
               {/* Menu Items */}
               <div className="p-2">
                 <button
-                  onClick={() => handleViewProfileClick(userId)}
+                  onClick={() =>
+                    handleViewProfileClick(session?.user?.userLevel)
+                  }
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                     isDarkMode
                       ? "hover:bg-gray-700 text-gray-200"
@@ -1280,7 +1150,7 @@ export default function DashboardCandidates() {
                 </button>
 
                 <button
-                  onClick={handleLogout}
+                  onClick={() => signOut()}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                     isDarkMode
                       ? "hover:bg-gray-700 text-red-400"
@@ -1307,7 +1177,6 @@ export default function DashboardCandidates() {
         fetchJobs={fetchJobs}
         fetchNotification={fetchNotification}
         fetchProfiles={fetchProfiles}
-        handleLogout={handleLogout}
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         ref={sidebarRef}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,6 +18,7 @@ const UpdateEmpHis = ({
   fetchProfile,
   profile,
 }) => {
+  const { data: session } = useSession();
   const [data, setData] = useState({
     empH_id: employment?.empH_id || "",
     empH_positionName: employment?.empH_positionName || "",
@@ -118,16 +120,8 @@ const UpdateEmpHis = ({
   const handleSave = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const updatedData = {

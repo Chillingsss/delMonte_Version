@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faInfoCircle,
@@ -37,6 +38,7 @@ const Sidebar = ({
   fetchNotification,
   fetchProfiles,
 }) => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const sidebarRef = useRef(null);
   const dropdownUsernameRef = useRef(null);
@@ -269,16 +271,7 @@ const Sidebar = ({
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-
-      // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session.user.id;
       console.log("User ID:", userId);
 
       console.log("jobMId", jobMId);

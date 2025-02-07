@@ -46,9 +46,6 @@ export default function Callback() {
         userLevel: cand_userLevel || adm_userLevel,
       };
 
-      // console.log("Creating token with data:", tokenData);
-
-      storeDataInCookie("auth_token", tokenData, 3600);
 
       // Determine the user level and ID to store
       const userLevel = cand_userLevel || adm_userLevel;

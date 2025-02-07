@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
   getDataFromSession,
@@ -16,6 +17,7 @@ const UpdatePassword = ({
   candidateEmail,
   fetchProfile,
 }) => {
+  const { data: session } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -137,16 +139,8 @@ const UpdatePassword = ({
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const cand_id = session.user.id;
 
-      // Example usage
-      const cand_id = getUserIdFromCookie();
       const formData = new FormData();
 
       // If password is required, verify it first

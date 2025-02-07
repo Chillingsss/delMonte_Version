@@ -1,6 +1,7 @@
 // app/candidatesDashboard/sideBar/CancelJobModal.jsx
 import { getDataFromCookie } from "@/app/utils/storageUtils";
 import React, { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import { FaTimes } from "react-icons/fa";
 import { Toaster, toast } from "react-hot-toast"; // Updated import
@@ -15,19 +16,11 @@ const CancelJobModal = ({
   fetchJobs,
   fetchNotification,
 }) => {
+  const { data: session, status } = useSession();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const handleCancelJob = async () => {
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const getUserIdFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userId) {
-        return tokenData.userId;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
-
-    // Example usage
-    const userId = getUserIdFromCookie();
+    const userId = session.user.id;
     console.log("User ID:", userId);
 
     try {

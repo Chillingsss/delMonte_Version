@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
   getDataFromCookie,
@@ -21,6 +22,7 @@ const ExamModal = ({
   fetchJobs,
   fetchExamResult,
 }) => {
+  const { data: session } = useSession();
   const [timeLeft, setTimeLeft] = useState(null);
   const [examData, setExamData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -204,17 +206,8 @@ const ExamModal = ({
 
   const handleSubmit = async () => {
     try {
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
-      console.log("User ID:", userId);
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
       let totalScore = 0;

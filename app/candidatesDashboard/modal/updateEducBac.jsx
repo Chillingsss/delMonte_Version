@@ -5,6 +5,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import { getDataFromCookie } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
@@ -40,6 +41,7 @@ const UpdateEducBac = ({
   fetchCourseTypes,
   fetchCourseCategorys,
 }) => {
+  const { data: session } = useSession();
   const [pageNumber, setPageNumber] = useState({
     courses: 0,
     institutions: 0,
@@ -205,16 +207,8 @@ const UpdateEducBac = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       if (

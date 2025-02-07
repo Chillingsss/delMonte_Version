@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import { getDataFromCookie } from "@/app/utils/storageUtils";
 import Select from "react-select";
@@ -15,6 +16,7 @@ const UpdateLicense = ({
   fetchProfile,
   fetchLicense,
 }) => {
+  const { data: session } = useSession();
   const [data, setData] = useState({
     license_id: selectedLicense?.license_id || "",
     license_masterId: selectedLicense?.license_masterId || "",
@@ -160,16 +162,8 @@ const UpdateLicense = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       // Validate custom license type before saving

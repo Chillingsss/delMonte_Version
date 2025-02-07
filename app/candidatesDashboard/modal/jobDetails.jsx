@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import Link from "next/link";
 import { hourglass } from "ldrs";
@@ -30,6 +31,7 @@ const JobDetailsModal = ({
   fetchNotification,
   appliedJobs,
 }) => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const modalRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -47,16 +49,8 @@ const JobDetailsModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+      const userId = session.user.id;
 
-      // Example usage
-      const userId = getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const jsonData = { cand_id: userId };
