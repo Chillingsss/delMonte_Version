@@ -94,7 +94,7 @@ const UpdatePassword = ({
         };
 
         // Example usage
-        const userId = getUserIdFromCookie();
+        const userId = session?.user?.id || getUserIdFromCookie();
         console.log("User ID:", userId);
 
         const formData = new FormData();
@@ -139,7 +139,14 @@ const UpdatePassword = ({
 
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const cand_id = session?.user?.id || getUserIdFromCookie();
 
       const formData = new FormData();
 
@@ -220,7 +227,7 @@ const UpdatePassword = ({
       };
 
       // Example usage
-      const cand_id = getUserIdFromCookie();
+      const cand_id = session?.user?.id || getUserIdFromCookie();
 
       const formData = new FormData();
       formData.append("operation", "updateEmailPassword");

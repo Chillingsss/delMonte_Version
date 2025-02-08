@@ -91,7 +91,14 @@ const UpdateEmail = ({
     setRequestLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       console.log("User ID:", userId);
 
@@ -213,7 +220,7 @@ const UpdateEmail = ({
       };
 
       // Example usage
-      const userId = getUserIdFromCookie();
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       const formData = new FormData();
       formData.append("operation", "updateEmailPassword");

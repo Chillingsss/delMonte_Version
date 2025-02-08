@@ -27,29 +27,36 @@ export default function LandingArea() {
     setIsModalOpen(true);
   };
   useEffect(() => {
-    if (status === "loading") return; // Wait for session to load
-    if (!session?.user) return; // No user? Stay on landing page
+    let userLevel = session?.user?.userLevel;
 
-    // Redirect based on user level
-    switch (session.user.userLevel) {
-      case "100":
-      case "100.0":
-        router.replace("/admin/dashboard");
-        break;
-      case "2":
-        router.replace("/superAdminDashboard");
-        break;
-      case "supervisor":
-        router.replace("/supervisorDashboard");
-        break;
-      case "1":
-      case "1.0":
-        router.replace("/candidatesDashboard");
-        break;
-      default:
-        router.replace("/"); // If no valid role, send to home
+    // If no session, check auth_token from cookies
+    if (!userLevel) {
+      const tokenData = getDataFromCookie("auth_token");
+      userLevel = tokenData?.userLevel;
     }
-  }, [session, status, router]);
+
+    if (!userLevel) return; // No user level? Do nothing
+
+    console.log("User level:", userLevel);
+
+    // Convert userLevel to a string to match object keys
+    userLevel = String(userLevel);
+
+    // Routes mapping
+    const routes = {
+      100: "/admin/dashboard",
+      "100.0": "/admin/dashboard",
+      2: "/superAdminDashboard",
+      supervisor: "/supervisorDashboard",
+      1: "/candidatesDashboard",
+      "1.0": "/candidatesDashboard",
+    };
+
+    // Ensure router.replace runs only if necessary
+    if (routes[userLevel] && routes[userLevel] !== window.location.pathname) {
+      router.replace(routes[userLevel]);
+    }
+  }, [session, router]);
 
   async function fetchJobs() {
     try {

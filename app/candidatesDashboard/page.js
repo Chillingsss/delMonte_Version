@@ -119,6 +119,29 @@ export default function DashboardCandidates() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+    };
+
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
+
+    console.log("nakuha ka:", userLevel);
+
+    if (!userLevel) {
+      console.log("No valid session or cookie found. Redirecting to login...");
+      router.push("/login"); // Redirect to login if both are missing
+      return;
+    }
+
+    if (userLevel === "1.0") {
+      router.push("/candidatesDashboard");
+    } else if (userLevel === "100.0") {
+      router.push("/admin/dashboard");
+    }
+  }, [session, router]);
+
   const fetchProfiles = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
@@ -165,29 +188,6 @@ export default function DashboardCandidates() {
     return jobData.some((data) => data?.includes(searchQuery.toLowerCase()));
   });
 
-  useEffect(() => {
-    const getUserLevelFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null; // Return userId if found, otherwise null
-    };
-
-    const userLevel = session?.user?.userLevel; // Prioritize session, fallback to cookie
-
-    console.log("nakuha ka:", userLevel);
-
-    if (!userLevel) {
-      console.log("No valid session or cookie found. Redirecting to login...");
-      router.push("/login"); // Redirect to login if both are missing
-      return;
-    }
-
-    if (userLevel === "1.0") {
-      router.push("/candidatesDashboard");
-    } else if (userLevel === "100.0") {
-      router.push("/admin/dashboard");
-    }
-  }, [session, router]);
-
   // const userId = session.user.id;/
 
   const handleViewProfileClick = (candId) => {
@@ -214,7 +214,7 @@ export default function DashboardCandidates() {
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
-      const userId = session?.user?.id;
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       console.log("User ID:", userId);
 
@@ -579,7 +579,7 @@ export default function DashboardCandidates() {
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
-      const userId = session?.user?.id;
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -612,7 +612,7 @@ export default function DashboardCandidates() {
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
-      const userId = session?.user?.id;
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -629,8 +629,12 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    if (status === "loading") return; // Don't run if session is still loading
-    if (status !== "authenticated") return; // Don't run if session is missing
+    if (status === "loading") return; // Wait for session to load
+
+    // Check if user exists from session or auth_token in cookies
+    const user = session?.user || getDataFromCookie("auth_token");
+
+    if (!user) return; // No session and no auth_token? Do nothing
 
     setIsLoading(true);
     setTimeout(async () => {
@@ -771,7 +775,9 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    const authToken = getDataFromCookie("auth_token");
+
+    if (status === "unauthenticated" && !authToken) {
       router.push("/");
     }
   }, [status, router]);

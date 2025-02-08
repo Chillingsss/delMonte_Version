@@ -380,7 +380,16 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   async function fetchProfile() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       console.log("User ID:", userId);
 
@@ -512,7 +521,16 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSavePersonalInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       console.log("User ID:", userId);
 
@@ -589,7 +607,15 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const handleSaveEmploymentInfo = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const cand_id = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      const cand_id = session?.user?.id || getUserIdFromCookie();
 
       const updatedData = { ...editData, cand_id };
 
@@ -621,7 +647,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-      const userId = session.user.id;
+      const userId = session?.user?.id || getUserIdFromCookie();
 
       console.log("User ID:", userId);
 
@@ -675,7 +701,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id || getUserIdFromCookie();
 
     console.log("User ID:", userId);
 
@@ -723,7 +756,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id || getUserIdFromCookie();
 
     console.log("User ID:", userId);
 
@@ -767,7 +807,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id || getUserIdFromCookie();
 
     console.log("User ID:", userId);
 
@@ -813,7 +860,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id || getUserIdFromCookie();
 
     console.log("User ID:", userId);
 
@@ -859,7 +913,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id || getUserIdFromCookie();
 
     console.log("User ID:", userId);
 
@@ -905,7 +966,14 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     if (currentDeleteId == null) return;
 
     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-    const userId = session.user.id;
+    const getUserIdFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
+      return null; // Return null if userId is not found or tokenData is invalid
+    };
+    const userId = session?.user?.id;
 
     console.log("User ID:", userId);
 
