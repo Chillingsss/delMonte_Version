@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react"; // ✅ Import NextAuth session
 import { lineSpinner } from "ldrs";
 import {
   storeDataInCookie,
@@ -10,6 +11,7 @@ import {
 lineSpinner.register();
 
 export default function Callback() {
+  const { data: session, status } = useSession(); // ✅ Get session data
   const router = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const token = searchParams.get("token");
@@ -28,7 +30,6 @@ export default function Callback() {
       ? searchParams.get("cand_userLevel")
       : null;
   const adm_id = searchParams.get("adm_id") || null;
-
   const adm_userLevel =
     searchParams.get("adm_userLevel") !== "null"
       ? searchParams.get("adm_userLevel")
@@ -39,18 +40,21 @@ export default function Callback() {
       console.log(
         "Setting cookies and session storage, then redirecting to dashboard..."
       );
-      // Store the token in cookies
+
+      // Create a token object with user details
       const tokenData = {
         userId: cand_id || adm_id,
         timestamp: new Date().getTime(),
         userLevel: cand_userLevel || adm_userLevel,
       };
 
-
-      // Determine the user level and ID to store
-      const userLevel = cand_userLevel || adm_userLevel;
+      // ✅ Store in Cookies & Session Storage
+      storeDataInCookie("auth_token", tokenData, 3600);
+      document.cookie = `next-auth.session-token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`;
+      storeDataInSession("user", tokenData); // ✅ Now storing in session
 
       // Redirect based on user level
+      const userLevel = cand_userLevel || adm_userLevel;
       switch (userLevel) {
         case "1.0":
           router.replace("/candidatesDashboard");
@@ -63,7 +67,6 @@ export default function Callback() {
       }
     } else {
       console.log("No token received.");
-      // Optionally, redirect to an error page or login page
       router.push("/login");
     }
   }, [

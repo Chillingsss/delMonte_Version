@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ import { lineSpinner } from "ldrs";
 lineSpinner.register();
 
 export default function LandingArea() {
+  const { data: session, status } = useSession();
   const [job, setJob] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,22 +26,12 @@ export default function LandingArea() {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
-
   useEffect(() => {
-    // Retrieve the user level from session storage
-    const getUserLevelFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userLevel) {
-        return tokenData.userLevel;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
-    };
+    if (status === "loading") return; // Wait for session to load
+    if (!session?.user) return; // No user? Stay on landing page
 
-    const userLevel = getUserLevelFromCookie();
-    console.log("User Level:", userLevel);
-
-    // Redirect based on the user level
-    switch (userLevel) {
+    // Redirect based on user level
+    switch (session.user.userLevel) {
       case "100":
       case "100.0":
         router.replace("/admin/dashboard");
@@ -50,14 +42,14 @@ export default function LandingArea() {
       case "supervisor":
         router.replace("/supervisorDashboard");
         break;
-      case "1": // Handle both "1" and "1.0" cases
+      case "1":
       case "1.0":
         router.replace("/candidatesDashboard");
         break;
       default:
-        router.replace("/"); // Redirect to the home page or login page
+        router.replace("/"); // If no valid role, send to home
     }
-  }, [router]);
+  }, [session, status, router]);
 
   async function fetchJobs() {
     try {

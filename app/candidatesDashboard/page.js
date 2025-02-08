@@ -122,8 +122,14 @@ export default function DashboardCandidates() {
   const fetchProfiles = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User IDss:", userId);
       const jsonData = { cand_id: userId };
 
@@ -160,12 +166,25 @@ export default function DashboardCandidates() {
   });
 
   useEffect(() => {
-    if (session?.user?.userLevel) {
-      if (session.user.userLevel === "1.0") {
-        router.push("/candidatesDashboard");
-      } else if (session.user.userLevel === "100.0") {
-        router.push("/admin/dashboard");
-      }
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+    };
+
+    const userLevel = session?.user?.userLevel; // Prioritize session, fallback to cookie
+
+    console.log("nakuha ka:", userLevel);
+
+    if (!userLevel) {
+      console.log("No valid session or cookie found. Redirecting to login...");
+      router.push("/login"); // Redirect to login if both are missing
+      return;
+    }
+
+    if (userLevel === "1.0") {
+      router.push("/candidatesDashboard");
+    } else if (userLevel === "100.0") {
+      router.push("/admin/dashboard");
     }
   }, [session, router]);
 
@@ -186,14 +205,16 @@ export default function DashboardCandidates() {
   };
 
   const fetchJobs = useCallback(async () => {
-    if (!session?.user?.id) {
-      console.log("User session not available, skipping fetch.");
-      return;
-    }
-
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id;
 
       console.log("User ID:", userId);
 
@@ -227,7 +248,14 @@ export default function DashboardCandidates() {
   const fetchNotification = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -261,7 +289,14 @@ export default function DashboardCandidates() {
   const markNotificationsAsRead = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -399,24 +434,36 @@ export default function DashboardCandidates() {
   //   }
   // }, []);
 
-  // const handleLogout = () => {
-  //   // console.log('Executing logout');
-  //   removeCookie("auth_token");
-  //   removeCookie("name");
-  //   removeCookie("email");
-  //   removeSessionData("user_id");
-  //   removeSessionData("user_level");
+  const handleLogout = async () => {
+    try {
+      // Clear all cookies (including API-related ones)
+      document.cookie.split(";").forEach((cookie) => {
+        const [name] = cookie.split("=");
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+      });
 
-  //   // If you want to clear everything
-  //   clearAllCookies();
-  //   clearAllSessionData();
-  //   router.push("/");
-  // };
+      // Call signOut to clear session
+      await signOut({ redirect: false });
+
+      // Force a reload to clear state and session storage
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const fetchJobOffer = async (jobMId) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const data = {
@@ -492,8 +539,14 @@ export default function DashboardCandidates() {
   const fetchAppliedJobs = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -519,8 +572,14 @@ export default function DashboardCandidates() {
   const fetchReappliedJobs = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -546,7 +605,14 @@ export default function DashboardCandidates() {
   const fetchExamResult = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const userId = session.user.id;
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id;
       console.log("User ID:", userId);
 
       const formData = new FormData();
@@ -563,10 +629,20 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    fetchAppliedJobs();
-    fetchExamResult();
-    fetchReappliedJobs();
-  }, []);
+    if (status === "loading") return; // Don't run if session is still loading
+    if (status !== "authenticated") return; // Don't run if session is missing
+
+    setIsLoading(true);
+    setTimeout(async () => {
+      await fetchAppliedJobs();
+      await fetchReappliedJobs();
+      await fetchProfiles();
+      await fetchNotification();
+      await fetchJobs();
+      await fetchExamResult();
+      setIsLoading(false);
+    }, 3000);
+  }, [status]);
 
   const toggleUserDropdown = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -1150,7 +1226,7 @@ export default function DashboardCandidates() {
                 </button>
 
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => handleLogout()}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                     isDarkMode
                       ? "hover:bg-gray-700 text-red-400"
@@ -1636,7 +1712,7 @@ export default function DashboardCandidates() {
                   </button>
 
                   <button
-                    onClick={handleLogout}
+                    onClick={() => handleLogout()}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                       isDarkMode
                         ? "hover:bg-gray-700 text-red-400"

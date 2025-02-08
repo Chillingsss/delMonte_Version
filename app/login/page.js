@@ -74,15 +74,19 @@ export default function Login(user) {
   // }, []);
 
   useEffect(() => {
-    if (session?.user?.userLevel) {
-      setIsRedirecting(true);
-      setTimeout(() => {
-        if (session.user.userLevel === "1.0") {
-          router.push("/candidatesDashboard");
-        } else if (session.user.userLevel === "100.0") {
-          router.push("/admin/dashboard");
-        }
-      }, 2000);
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+    };
+
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
+
+    if (userLevel) {
+      if (userLevel === "1.0") {
+        router.push("/candidatesDashboard");
+      } else if (userLevel === "100.0") {
+        router.push("/admin/dashboard");
+      }
     }
   }, [session, router]);
 
@@ -146,10 +150,6 @@ export default function Login(user) {
       toast.error("Invalid credentials. Try again.");
     }
   };
-
-  useEffect(() => {
-    usernameRef.current.focus();
-  }, []);
 
   useEffect(() => {
     const lockoutStatus = getDataFromLocal("isLocked");
