@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import AdminDashboard from "./AdminDashboard";
 import AdminSidebar from "./AdminSidebar";
 import { CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import {
 } from "@/app/utils/storageUtils";
 
 export default function Page() {
+  const { data: session, status } = useSession();
   const [viewIndex, setViewIndex] = useState(0);
 
   const adminViews = [
@@ -46,45 +48,35 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
+    const authToken = getDataFromCookie("auth_token");
+
+    if (status === "unauthenticated" && !authToken) {
+      router.push("/");
+    }
+  }, [status, router]);
+
+  useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
-      if (tokenData && tokenData.userLevel) {
-        return tokenData.userLevel;
-      }
-      return null; // Return null if userId is not found or tokenData is invalid
+      return tokenData?.userLevel || null; // Return userId if found, otherwise null
     };
 
-    const userLevel = getUserLevelFromCookie();
-    console.log("User Level:", userLevel); // Debugging output
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
 
-    switch (userLevel) {
-      case "100":
-      case "100.0":
-        router.replace("/admin/dashboard");
-        break;
-      case "2":
-        router.replace("/superAdminDashboard");
-        break;
-      case "supervisor":
-        router.replace("/supervisorDashboard");
-        break;
-      case "1": // If stored as an integer, it will be "1" as a string
-      case "1.0": // This covers cases where it might be stored as "1.0"
-        router.replace("/candidatesDashboard");
-        break;
-      default:
-        router.replace("/");
+    console.log("nakuha ka:", userLevel);
+
+    if (!userLevel) {
+      console.log("No valid session or cookie found. Redirecting to login...");
+      router.push("/login"); // Redirect to login if both are missing
+      return;
     }
-  }, [router]);
 
-  // const userName = retrieveData("first_name");
-  // const userId = retrieveData("user_id");
-
-  // if (!userLevel) {
-  //   sessionStorage.clear();
-  //   router.push("/");
-  //   return;
-  // }
+    if (userLevel === "1.0") {
+      router.push("/candidatesDashboard");
+    } else if (userLevel === "100.0") {
+      router.push("/admin/dashboard");
+    }
+  }, [session, router]);
 
   const handleChangeView = (index) => {
     setViewIndex(index);

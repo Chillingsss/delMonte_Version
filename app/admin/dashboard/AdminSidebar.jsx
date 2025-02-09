@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { useSession, signOut } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +50,7 @@ import { Separator } from "@/components/ui/separator";
 import { PopoverClose } from "@radix-ui/react-popover";
 
 function AdminSidebar({ changeView, changeMasterFile }) {
+  const { data: session, status } = useSession();
   const [view, setView] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const sideTabs = [
@@ -105,14 +107,25 @@ function AdminSidebar({ changeView, changeMasterFile }) {
     console.log("index: ", index);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.clear();
     sessionStorage.clear();
-    document.cookie.split(";").forEach((cookie) => {
-      const cookieName = cookie.split("=")[0].trim();
-      document.cookie = `${cookieName}=;max-age=0;path=/;`;
-    });
-    window.location.href = "/";
+    try {
+      // Clear all cookies (including API-related ones)
+      document.cookie.split(";").forEach((cookie) => {
+        const [name] = cookie.split("=");
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+      });
+
+      // Call signOut to clear session
+      await signOut({ redirect: false });
+
+      // Force a reload to clear state and session storage
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (

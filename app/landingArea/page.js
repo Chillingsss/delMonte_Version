@@ -6,11 +6,9 @@ import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import JobDetailsModal from "./modal/jobDetails";
-import { getDataFromCookie, getDataFromSession } from "../utils/storageUtils";
+import { getDataFromCookie } from "../utils/storageUtils";
 import { Briefcase } from "lucide-react";
 import { lineSpinner } from "ldrs";
-
-lineSpinner.register();
 
 export default function LandingArea() {
   const { data: session, status } = useSession();
@@ -22,27 +20,31 @@ export default function LandingArea() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      lineSpinner.register();
+    }
+  }, []);
+
   const handleDetailsClick = (job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
+
   useEffect(() => {
     let userLevel = session?.user?.userLevel;
 
-    // If no session, check auth_token from cookies
     if (!userLevel) {
       const tokenData = getDataFromCookie("auth_token");
       userLevel = tokenData?.userLevel;
     }
 
-    if (!userLevel) return; // No user level? Do nothing
+    if (!userLevel) return;
 
     console.log("User level:", userLevel);
 
-    // Convert userLevel to a string to match object keys
     userLevel = String(userLevel);
 
-    // Routes mapping
     const routes = {
       100: "/admin/dashboard",
       "100.0": "/admin/dashboard",
@@ -52,7 +54,6 @@ export default function LandingArea() {
       "1.0": "/candidatesDashboard",
     };
 
-    // Ensure router.replace runs only if necessary
     if (routes[userLevel] && routes[userLevel] !== window.location.pathname) {
       router.replace(routes[userLevel]);
     }
@@ -60,31 +61,20 @@ export default function LandingArea() {
 
   async function fetchJobs() {
     try {
-      // console.log("Fetching jobs...");
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
       const formData = new FormData();
       formData.append("operation", "getActiveJobs");
       const response = await axios.post(url, formData);
 
-      // console.log("Response:", response);
-      // console.log("Response data:", response.data);
-
       if (Array.isArray(response.data)) {
-        // console.log("Setting jobs:", response.data);
         setJob(response.data);
       } else if (response.data.error) {
-        // console.error("Server error:", response.data.error);
         setError("Error fetching jobs: " + response.data.error);
       } else {
-        // console.error("Invalid data format:", response.data);
         setError("Unexpected data format received from server.");
       }
     } catch (error) {
-      // console.error(
-      //   "Error fetching jobs:",
-      //   error.response || error.message || error
-      // );
       setError("Error fetching jobs");
     } finally {
       setLoading(false);
@@ -93,7 +83,7 @@ export default function LandingArea() {
 
   useEffect(() => {
     fetchJobs();
-  }, [job]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f4f7fc]">

@@ -77,7 +77,7 @@ export const parseJwt = (token) => {
 export const storeDataInCookie = (key, value, expiryInSeconds) => {
   const encryptedValue = encryptData(value);
   const expires = new Date(Date.now() + expiryInSeconds * 1000).toUTCString();
-  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/;`;
+  document.cookie = `${key}=${encryptedValue}; expires=${expires}; path=/; SameSite=Lax; Secure;`;
 };
 
 /**
@@ -116,38 +116,6 @@ export const getDataFromSession = (key) => {
   const encryptedValue = sessionStorage.getItem(key);
   return encryptedValue ? decryptData(encryptedValue) : null;
 };
-
-// Function to sync session storage data to local storage
-const syncSessionStorageToLocalStorage = (key, value) => {
-  localStorage.setItem(`sessionSync_${key}`, value);
-};
-
-// Function to update session storage data from local storage
-const updateSessionStorageFromLocalStorage = (key, value) => {
-  sessionStorage.setItem(key, value);
-};
-
-// Listen for storage events to sync session data across tabs
-window.addEventListener("storage", (event) => {
-  if (event.key && event.key.startsWith("sessionSync_")) {
-    const sessionKey = event.key.replace("sessionSync_", "");
-    updateSessionStorageFromLocalStorage(sessionKey, event.newValue);
-  }
-});
-
-// Initialize session storage from local storage when the page loads
-const initializeSessionStorage = () => {
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("sessionSync_")) {
-      const sessionKey = key.replace("sessionSync_", "");
-      const value = localStorage.getItem(key);
-      sessionStorage.setItem(sessionKey, value);
-    }
-  });
-};
-
-// Call the initialization function when the script loads
-initializeSessionStorage();
 
 /**
  * Stores encrypted data in localStorage.
@@ -241,10 +209,11 @@ const resetInactivityTimer = () => {
   }, 12 * 60 * 1000); // 12 minutes in milliseconds
 };
 
-// Events to detect user activity
-["mousemove", "keydown", "click", "scroll"].forEach((event) => {
-  window.addEventListener(event, resetInactivityTimer);
-});
+if (typeof window !== "undefined") {
+  ["mousemove", "keydown", "click", "scroll"].forEach((event) => {
+    window.addEventListener(event, resetInactivityTimer);
+  });
+}
 
 // Initialize the timer
 resetInactivityTimer();

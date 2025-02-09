@@ -41,38 +41,6 @@ export default function Login(user) {
   const [failedAttempts, setFailedAttempts] = useState(0); // Track failed attempts
   const [isLocked, setIsLocked] = useState(false); // Track if the login is locked
 
-  // useEffect(() => {
-  //   const getUserLevelFromCookie = () => {
-  //     const tokenData = getDataFromCookie("auth_token");
-  //     if (tokenData && tokenData.userLevel) {
-  //       return tokenData.userLevel;
-  //     }
-  //     return null; // Return null if userId is not found or tokenData is invalid
-  //   };
-
-  //   const userLevel = getUserLevelFromCookie();
-  //   console.log("User Level:", userLevel);
-
-  //   switch (userLevel) {
-  //     case "100":
-  //     case "100.0":
-  //       router.replace("/admin/dashboard");
-  //       break;
-  //     case "2":
-  //       router.replace("/superAdminDashboard");
-  //       break;
-  //     case "supervisor":
-  //       router.replace("/supervisorDashboard");
-  //       break;
-  //     case "1": // If stored as an integer, it will be "1" as a string
-  //     case "1.0": // This covers cases where it might be stored as "1.0"
-  //       router.replace("/candidatesDashboard");
-  //       break;
-  //     default:
-  //       router.replace("/login");
-  //   }
-  // }, []);
-
   useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
@@ -95,8 +63,17 @@ export default function Login(user) {
     const ctx = canvas.getContext("2d");
     canvas.width = 150;
     canvas.height = 50;
+
     ctx.fillStyle = "#01472B";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < 30; i++) {
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.strokeStyle = "#0E5A35";
+      ctx.stroke();
+    }
 
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -108,7 +85,14 @@ export default function Login(user) {
     ctx.font = "bold 28px Arial";
     ctx.fillStyle = "#FFFFFF";
     for (let i = 0; i < text.length; i++) {
-      ctx.fillText(text[i], 20 + i * 25, 30 + Math.random() * 10);
+      const x = 20 + i * 25;
+      const y = 30 + Math.random() * 10;
+      const angle = (Math.random() - 0.5) * 0.4;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillText(text[i], 0, 0);
+      ctx.restore();
     }
 
     setCaptchaImage(canvas.toDataURL());
@@ -119,8 +103,79 @@ export default function Login(user) {
     generateCaptcha();
   }, [generateCaptcha]);
 
+  useEffect(() => {
+    // Check for existing lock status on component mount
+    const checkLockStatus = () => {
+      const lockoutStatus = getDataFromLocal("isLocked");
+      const lockoutTime = getDataFromLocal("lockoutTime");
+      const storedAttempts = getDataFromLocal("failedAttempts");
+
+      if (storedAttempts) {
+        setFailedAttempts(parseInt(storedAttempts));
+      }
+
+      if (lockoutStatus === "true" && lockoutTime) {
+        const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
+        if (timeElapsed < 300000) {
+          // 5 minutes in milliseconds
+          setIsLocked(true);
+          const remainingTime = 300000 - timeElapsed;
+          setTimeout(() => {
+            setIsLocked(false);
+            setFailedAttempts(0);
+            storeDataInLocal("isLocked", "false");
+            storeDataInLocal("lockoutTime", null);
+            storeDataInLocal("failedAttempts", "0");
+          }, remainingTime);
+        } else {
+          // Lock period has expired
+          setIsLocked(false);
+          setFailedAttempts(0);
+          storeDataInLocal("isLocked", "false");
+          storeDataInLocal("lockoutTime", null);
+          storeDataInLocal("failedAttempts", "0");
+        }
+      }
+    };
+
+    checkLockStatus();
+  }, []);
+
+  const handleLockout = () => {
+    setIsLocked(true);
+    storeDataInLocal("isLocked", "true");
+    storeDataInLocal("lockoutTime", new Date().getTime().toString());
+    setShowForgotPasswordModal(true);
+    toast.error("Too many failed attempts. You are locked out for 5 minutes.");
+
+    setTimeout(() => {
+      setIsLocked(false);
+      setFailedAttempts(0);
+      storeDataInLocal("isLocked", "false");
+      storeDataInLocal("lockoutTime", null);
+      storeDataInLocal("failedAttempts", "0");
+    }, 300000); // 5 minutes
+  };
+
+  const handleFailedAttempt = () => {
+    const newFailedAttempts = failedAttempts + 1;
+    setFailedAttempts(newFailedAttempts);
+    storeDataInLocal("failedAttempts", newFailedAttempts.toString());
+
+    if (newFailedAttempts >= 3) {
+      handleLockout();
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
+    if (isLocked) {
+      toast.error(
+        "Account is locked. Please try again later or reset your password."
+      );
+      return;
+    }
+
     if (!username.trim() || !password.trim()) {
       toast.error("Please enter both username and password.");
       return;
@@ -132,7 +187,16 @@ export default function Login(user) {
 
   const handleCaptchaValidation = async (e) => {
     e.preventDefault();
+
+    if (isLocked) {
+      toast.error(
+        "Account is locked. Please try again later or reset your password."
+      );
+      return;
+    }
+
     if (captchaInput !== captchaText) {
+      handleFailedAttempt();
       toast.error("Incorrect CAPTCHA. Try again.");
       generateCaptcha();
       setCaptchaInput("");
@@ -146,32 +210,29 @@ export default function Login(user) {
       password,
     });
     setLoading(false);
+
     if (result?.error) {
+      handleFailedAttempt();
       toast.error("Invalid credentials. Try again.");
+      generateCaptcha();
+      setCaptchaInput("");
+      setUsername("");
+      setPassword("");
+      setShowCaptcha(false);
+      setButtonText("Log In");
+    } else {
+      setIsRedirecting(true);
+      const userLevel = result?.user?.userLevel;
+
+      setTimeout(() => {
+        if (userLevel === "1.0") {
+          router.replace("/candidatesDashboard");
+        } else if (userLevel === "100.0") {
+          router.replace("/admin/dashboard");
+        }
+      }, 5000);
     }
   };
-
-  useEffect(() => {
-    const lockoutStatus = getDataFromLocal("isLocked");
-    const lockoutTime = getDataFromLocal("lockoutTime");
-
-    if (lockoutStatus === "true" && lockoutTime) {
-      const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
-      if (timeElapsed < 300000) {
-        // 5 minutes in milliseconds
-        setIsLocked(true);
-        const remainingTime = 300000 - timeElapsed;
-        setTimeout(() => {
-          setIsLocked(false);
-          storeDataInLocal("isLocked", "false");
-          storeDataInLocal("lockoutTime", null);
-        }, remainingTime);
-      } else {
-        storeDataInLocal("isLocked", "false");
-        storeDataInLocal("lockoutTime", null);
-      }
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#01472B] flex items-center justify-center px-4">
@@ -239,14 +300,20 @@ export default function Login(user) {
               </div>
               {showCaptcha && (
                 <div className="mb-4">
-                  <img src={captchaImage} alt="Captcha" className="mb-2" />
+                  <img src={captchaImage} alt="Captcha" />
                   <input
+                    ref={captchaInputRef}
                     type="text"
-                    placeholder="Enter CAPTCHA"
+                    placeholder="Enter captcha"
                     value={captchaInput}
                     onChange={(e) => setCaptchaInput(e.target.value)}
-                    className="w-full p-3 bg-[#0E5A35] text-white"
-                    ref={captchaInputRef}
+                    className={`w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-200 focus:outline-none focus:ring-2 ${
+                      captchaInput === captchaText
+                        ? "border-green-500 focus:ring-green-500"
+                        : "border-red-500 focus:ring-red-500"
+                    } slide-up text-white`}
+                    required
+                    autoFocus
                   />
                 </div>
               )}
@@ -260,13 +327,17 @@ export default function Login(user) {
             </form>
           ) : (
             <div className="text-white">
-              <p>Welcome, {session.user.name}!</p>
-              <button
-                onClick={() => signOut()}
-                className="mt-4 text-green-300 hover:underline"
-              >
-                Logout
-              </button>
+              <l-line-spinner
+                size="40"
+                stroke="3"
+                speed="1"
+                color="#ffffff"
+              ></l-line-spinner>
+              <p className="text-green-200">You are already logged in.</p>
+              <p className="mt-2">
+                You are logged in as{" "}
+                <span className="font-semibold">{session.user.email}</span>
+              </p>
             </div>
           )}
 
@@ -287,6 +358,23 @@ export default function Login(user) {
                 <FcGoogle className="mr-2" size={24} />
                 Login with Google
               </a>
+              <div className="mt-4 text-white flex flex-col items-start">
+                <p>
+                  Don't have an account?{" "}
+                  <Link
+                    href="/signup"
+                    className="ml-2 text-green-300 hover:underline slide-up"
+                  >
+                    Create account here
+                  </Link>
+                </p>
+                <button
+                  className="text-green-300 hover:underline slide-up mt-2"
+                  onClick={() => setShowForgotPasswordModal(true)}
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -304,9 +392,22 @@ export default function Login(user) {
       {/* Redirecting Loader */}
       {isRedirecting && (
         <div className="fixed inset-0 bg-[#01472B] bg-opacity-90 flex items-center justify-center z-50">
-          <p className="text-white text-xl font-semibold mt-4">
-            Redirecting...
-          </p>
+          <div className="flex flex-col items-center bg-[#0E5A35] p-8 rounded-xl shadow-2xl transform animate-fade-in">
+            <l-line-spinner
+              size="48"
+              stroke="3"
+              speed="1.2"
+              color="#ffffff"
+            ></l-line-spinner>
+            <div className="mt-6 text-center">
+              <p className="text-white text-xl font-semibold animate-pulse">
+                Redirecting to Dashboard...
+              </p>
+              <p className="text-green-200 text-sm mt-2">
+                Please wait while we prepare your workspace
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

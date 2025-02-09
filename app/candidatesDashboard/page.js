@@ -119,6 +119,15 @@ export default function DashboardCandidates() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null; // Return null if userId is not found or tokenData is invalid
+  };
+  const userId = session?.user?.id || getUserIdFromCookie();
+
   useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
@@ -131,7 +140,7 @@ export default function DashboardCandidates() {
 
     if (!userLevel) {
       console.log("No valid session or cookie found. Redirecting to login...");
-      router.push("/login"); // Redirect to login if both are missing
+      router.push("/"); // Redirect to login if both are missing
       return;
     }
 
@@ -141,6 +150,14 @@ export default function DashboardCandidates() {
       router.push("/admin/dashboard");
     }
   }, [session, router]);
+
+  useEffect(() => {
+    const authToken = getDataFromCookie("auth_token");
+
+    if (status === "unauthenticated" && !authToken) {
+      router.push("/");
+    }
+  }, [status, router]);
 
   const fetchProfiles = async () => {
     try {
@@ -773,18 +790,6 @@ export default function DashboardCandidates() {
       setIsLoading(false);
     }, 3000);
   };
-
-  useEffect(() => {
-    const authToken = getDataFromCookie("auth_token");
-
-    if (status === "unauthenticated" && !authToken) {
-      router.push("/");
-    }
-  }, [status, router]);
-
-  if (status === "loading") {
-    return <p>Loading...</p>;
-  }
 
   return (
     <div

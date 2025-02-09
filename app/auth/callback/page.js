@@ -50,7 +50,6 @@ export default function Callback() {
 
       // ✅ Store in Cookies & Session Storage
       storeDataInCookie("auth_token", tokenData, 3600);
-      document.cookie = `next-auth.session-token=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`;
       storeDataInSession("user", tokenData); // ✅ Now storing in session
 
       // Redirect based on user level
