@@ -41,8 +41,6 @@ export default function LandingArea() {
 
     if (!userLevel) return;
 
-    console.log("User level:", userLevel);
-
     userLevel = String(userLevel);
 
     const routes = {

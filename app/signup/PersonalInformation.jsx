@@ -46,77 +46,91 @@ import ShowAlert from "@/components/ui/show-alert";
 import { useRouter } from "next/navigation";
 import DatePicker from "../my_components/DatePicker";
 
-const formSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, {
-      message: "This field is required",
-    })
-    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
-  lastName: z
-    .string()
-    .min(1, {
-      message: "This field is required",
-    })
-    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
-  middleName: z
-    .string()
-    .min(1, {
-      message: "This field is required",
-    })
-    .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
-  email: z.string().email({
-    message: "Invalid email address",
-  }),
-  alternateEmail: z.string().email({
-    message: "Invalid email address",
-  }),
-  contact: z
-    .string()
-    .min(1, {
-      message: "This field is required",
-    })
-    .regex(/^\+?[0-9]\d{1,14}$/, {
-      message: "Invalid contact number format",
+const formSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
+    lastName: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
+    middleName: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .transform((value) => value.charAt(0).toUpperCase() + value.slice(1)),
+    email: z.string().email({
+      message: "Invalid email address",
     }),
-  alternateContact: z
-    .string()
-    .min(1, {
-      message: "This field is required",
-    })
-    .regex(/^\+?[0-9]\d{1,14}$/, {
-      message: "Invalid contact number format",
+    alternateEmail: z.string().email({
+      message: "Invalid email address",
     }),
-  presentAddress: z.string().min(1, {
-    message: "This field is required",
-  }),
-  permanentAddress: z.string().min(1, {
-    message: "This field is required",
-  }),
-  gender: z.string().min(1, {
-    message: "This field is required",
-  }),
-  dob: z
-    .string()
-    .min(1, { message: "This field is required" })
-    .refine(
-      (date) => {
-        const parsedEndDate = Date.parse(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return parsedEndDate <= today.getTime();
-      },
-      {
-        message: "Invalid date",
-      }
-    ),
-  password: z.string().min(5, {
-    message: "Password must be at least 5 characters",
-  }),
-  confirmPassword: z.string().min(5, {
-    message: "Password must be at least 5 characters",
-  }),
-});
+    contact: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .regex(/^\+?[0-9]\d{1,14}$/, {
+        message: "Invalid contact number format",
+      }),
+    alternateContact: z
+      .string()
+      .min(1, {
+        message: "This field is required",
+      })
+      .regex(/^\+?[0-9]\d{1,14}$/, {
+        message: "Invalid contact number format",
+      }),
+    presentAddress: z.string().min(1, {
+      message: "This field is required",
+    }),
+    permanentAddress: z.string().min(1, {
+      message: "This field is required",
+    }),
+    gender: z.string().min(1, {
+      message: "This field is required",
+    }),
+    dob: z
+      .string()
+      .min(1, { message: "This field is required" })
+      .refine(
+        (date) => {
+          const parsedEndDate = Date.parse(date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return parsedEndDate <= today.getTime();
+        },
+        {
+          message: "Invalid date",
+        }
+      ),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" })
+      .regex(/[@$!%*?&#]/, {
+        message:
+          "Password must contain at least one special character (@$!%*?&#)",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 const PersonalInformation = ({ handleSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -262,17 +276,26 @@ const PersonalInformation = ({ handleSubmit }) => {
                                 <FormLabel>{data.label}</FormLabel>
                                 <FormControl>
                                   <Input
+                                    {...field}
                                     type={
                                       data.value.match(/password/i)
                                         ? "password"
                                         : "text"
                                     }
                                     className="bg-[#0e4028] border-2 border-[#0b864a]"
-                                    placeholder={data.label}
-                                    {...field}
                                   />
                                 </FormControl>
                                 <FormMessage />
+                                <p className="text-sm text-gray-500">
+                                  {data.value === "email" &&
+                                    "Please enter a valid email address."}
+                                  {data.value === "password" &&
+                                    "Must be at least 8 characters, include one uppercase letter, one lowercase letter, one number, and one special character."}
+                                  {data.value === "confirmPassword" &&
+                                    "Must match the password field."}
+                                  {data.value === "contact" &&
+                                    "Enter a valid phone number with country code (e.g., +1234567890)."}
+                                </p>
                               </FormItem>
                             )}
                           />

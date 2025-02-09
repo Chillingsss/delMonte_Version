@@ -131,12 +131,10 @@ export default function DashboardCandidates() {
   useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+      return tokenData?.userLevel || null;
     };
 
-    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
-
-    console.log("nakuha ka:", userLevel);
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
 
     if (!userLevel) {
       console.log("No valid session or cookie found. Redirecting to login...");
@@ -829,25 +827,15 @@ export default function DashboardCandidates() {
             dropdownNotificationRefMobile.current = el;
           }}
         >
-          <div className="relative mr-2">
-            <div className="w-32">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <SearchIcon className="w-5 h-5 text-gray-400" />
+          <div className="relative mr-4 flex item-center">
+            <button
+              className={`text-[#93B1A6] ${isDarkMode ? "text-[#93B1A6]" : ""}`}
+              onClick={refreshTransactions}
+            >
+              <div className="">
+                <MdRefresh className="text-3xl " />
               </div>
-              <input
-                type="text"
-                name="search"
-                id="search"
-                className={`block w-full px-4 py-2 rounded-2xl focus:outline-none focus:border-green-500 pl-10 ${
-                  isDarkMode
-                    ? "bg-transparent text-gray-800"
-                    : "bg-transparent text-gray-300"
-                }`}
-                placeholder="Search active jobs"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            </button>
           </div>
 
           <div className="relative">
@@ -935,7 +923,7 @@ export default function DashboardCandidates() {
           {isNotificationDropdownOpenMobile && (
             <div
               // ref={dropdownNotificationRefMobile}
-              className={`absolute w-80 right-0 z-10 top-14 ${
+              className={`absolute w-64 right-0 z-10 top-14 ${
                 isDarkMode ? "bg-gray-800" : "bg-white"
               } rounded-lg shadow-2xl transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-2`}
             >
@@ -1765,14 +1753,24 @@ export default function DashboardCandidates() {
             </div>
           )}
 
-          <button
-            className={`text-[#188C54] ${isDarkMode ? "text-white" : ""}`}
-            onClick={refreshTransactions}
-          >
-            <div className="flex item-center">
-              <MdRefresh className="ml-2 text-2xl " />
+          <div className="relative w-40">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <SearchIcon className="w-5 h-5 text-gray-400" />
             </div>
-          </button>
+            <input
+              type="text"
+              name="search"
+              id="search"
+              className={`block w-full px-4 py-2 rounded-2xl border border-gray-400 focus:outline-none focus:border-green-500 pl-10 ${
+                isDarkMode
+                  ? "bg-transparent text-gray-300"
+                  : "bg-transparent text-gray-300"
+              }`}
+              placeholder="Search active jobs"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
         {/* Jobs Display */}
         {loading ? (

@@ -103,72 +103,9 @@ export default function Login(user) {
     generateCaptcha();
   }, [generateCaptcha]);
 
-  useEffect(() => {
-    // Check for existing lock status on component mount
-    const checkLockStatus = () => {
-      const lockoutStatus = getDataFromLocal("isLocked");
-      const lockoutTime = getDataFromLocal("lockoutTime");
-      const storedAttempts = getDataFromLocal("failedAttempts");
-
-      if (storedAttempts) {
-        setFailedAttempts(parseInt(storedAttempts));
-      }
-
-      if (lockoutStatus === "true" && lockoutTime) {
-        const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
-        if (timeElapsed < 300000) {
-          // 5 minutes in milliseconds
-          setIsLocked(true);
-          const remainingTime = 300000 - timeElapsed;
-          setTimeout(() => {
-            setIsLocked(false);
-            setFailedAttempts(0);
-            storeDataInLocal("isLocked", "false");
-            storeDataInLocal("lockoutTime", null);
-            storeDataInLocal("failedAttempts", "0");
-          }, remainingTime);
-        } else {
-          // Lock period has expired
-          setIsLocked(false);
-          setFailedAttempts(0);
-          storeDataInLocal("isLocked", "false");
-          storeDataInLocal("lockoutTime", null);
-          storeDataInLocal("failedAttempts", "0");
-        }
-      }
-    };
-
-    checkLockStatus();
-  }, []);
-
-  const handleLockout = () => {
-    setIsLocked(true);
-    storeDataInLocal("isLocked", "true");
-    storeDataInLocal("lockoutTime", new Date().getTime().toString());
-    setShowForgotPasswordModal(true);
-    toast.error("Too many failed attempts. You are locked out for 5 minutes.");
-
-    setTimeout(() => {
-      setIsLocked(false);
-      setFailedAttempts(0);
-      storeDataInLocal("isLocked", "false");
-      storeDataInLocal("lockoutTime", null);
-      storeDataInLocal("failedAttempts", "0");
-    }, 300000); // 5 minutes
-  };
-
-  const handleFailedAttempt = () => {
-    const newFailedAttempts = failedAttempts + 1;
-    setFailedAttempts(newFailedAttempts);
-    storeDataInLocal("failedAttempts", newFailedAttempts.toString());
-
-    if (newFailedAttempts >= 3) {
-      handleLockout();
-    }
-  };
-
   const handleLogin = (e) => {
     e.preventDefault();
+
     if (isLocked) {
       toast.error(
         "Account is locked. Please try again later or reset your password."
@@ -188,15 +125,7 @@ export default function Login(user) {
   const handleCaptchaValidation = async (e) => {
     e.preventDefault();
 
-    if (isLocked) {
-      toast.error(
-        "Account is locked. Please try again later or reset your password."
-      );
-      return;
-    }
-
     if (captchaInput !== captchaText) {
-      handleFailedAttempt();
       toast.error("Incorrect CAPTCHA. Try again.");
       generateCaptcha();
       setCaptchaInput("");
@@ -204,16 +133,16 @@ export default function Login(user) {
     }
 
     setLoading(true);
-    const result = await signIn("credentials", {
+    const response = await signIn("credentials", {
       redirect: false,
       username,
       password,
     });
     setLoading(false);
 
-    if (result?.error) {
-      handleFailedAttempt();
-      toast.error("Invalid credentials. Try again.");
+    if (response?.error) {
+      toast.error(response.error);
+
       generateCaptcha();
       setCaptchaInput("");
       setUsername("");
@@ -222,7 +151,7 @@ export default function Login(user) {
       setButtonText("Log In");
     } else {
       setIsRedirecting(true);
-      const userLevel = result?.user?.userLevel;
+      const userLevel = response?.user?.userLevel;
 
       setTimeout(() => {
         if (userLevel === "1.0") {
@@ -233,6 +162,89 @@ export default function Login(user) {
       }, 5000);
     }
   };
+
+  // const handleCaptchaValidation = async (e) => {
+  //   e.preventDefault();
+
+  //   if (isLocked) {
+  //     toast.error(
+  //       "Account is locked. Please try again later or reset your password."
+  //     );
+  //     return;
+  //   }
+
+  //   if (captchaInput !== captchaText) {
+  //     toast.error("Incorrect CAPTCHA. Try again.");
+  //     generateCaptcha();
+  //     setCaptchaInput("");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   const result = await signIn("credentials", {
+  //     redirect: false,
+  //     username,
+  //     password,
+  //   });
+  //   setLoading(false);
+
+  //   if (result?.error) {
+  //     setFailedAttempts((prev) => prev + 1);
+  //     toast.error("Invalid credentials. Please try again.");
+
+  //     if (failedAttempts + 1 >= 3) {
+  //       setIsLocked(true);
+  //       storeDataInLocal("isLocked", true);
+  //       storeDataInLocal("lockoutTime", new Date().getTime().toString());
+  //       toast.error(
+  //         "Too many failed attempts. You are locked out for 5 minutes."
+  //       );
+
+  //       setShowForgotPasswordModal(true);
+  //     }
+  //     generateCaptcha();
+  //     setCaptchaInput("");
+  //     setUsername("");
+  //     setPassword("");
+  //     setShowCaptcha(false);
+  //     setButtonText("Log In");
+  //   } else {
+  //     setIsRedirecting(true);
+  //     const userLevel = result?.user?.userLevel;
+
+  //     setTimeout(() => {
+  //       if (userLevel === "1.0") {
+  //         router.replace("/candidatesDashboard");
+  //       } else if (userLevel === "100.0") {
+  //         router.replace("/admin/dashboard");
+  //       }
+  //     }, 5000);
+  //   }
+  // };
+
+  useEffect(() => {
+    const lockoutStatus = getDataFromLocal("isLocked");
+    const lockoutTime = getDataFromLocal("lockoutTime");
+
+    if (lockoutStatus === true && lockoutTime) {
+      // <-- Fix: Compare as string
+      const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
+      if (timeElapsed < 300000) {
+        setIsLocked(true);
+        const remainingTime = 300000 - timeElapsed;
+        setTimeout(() => {
+          setIsLocked(false);
+          storeDataInLocal("isLocked", "false");
+          storeDataInLocal("lockoutTime", null);
+        }, remainingTime);
+      } else {
+        storeDataInLocal("isLocked", "false");
+        storeDataInLocal("lockoutTime", null);
+      }
+    } else {
+      setIsLocked(false); // Ensure it's explicitly set
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#01472B] flex items-center justify-center px-4">
@@ -258,7 +270,10 @@ export default function Login(user) {
 
         {/* Login Form */}
         <div className="flex flex-col justify-center w-full md:w-1/2 order-2 md:order-1">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 slide-up">
+          <h2
+            className="text-3xl md:text-4xl font-bold text-white mb-2 slide-up"
+            style={{ fontFamily: "Courier New, monospace" }}
+          >
             Del Monte
           </h2>
           <p className="text-green-200 mb-6 slide-up">Log In to your account</p>
