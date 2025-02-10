@@ -234,10 +234,12 @@ function SelectedApplicant({
                     Background check
                   </Button>
                 )}
-                {status === "Decision Pending" && isJobOffer === 0 && (
+                {/* && isJobOffer === 0 */}
+                {status === "Decision Pending" && (
                   <JobOffer
                     candId={candId}
                     changeStatus={handleJobOfferChangeStatus}
+                    email={data.candidateInformation?.cand_email}
                   />
                 )}
                 {status === "Failed Exam" && (

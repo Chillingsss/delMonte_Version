@@ -67,7 +67,7 @@ const JobOfferPage = ({ handleChangeStatus }) => {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
         candId: selectedId,
-        jobId: getDataFromCookie("jobId"),
+        jobId: getDataFromSession("jobId"),
       };
       const formData = new FormData();
       formData.append("operation", "deleteJobOffer");

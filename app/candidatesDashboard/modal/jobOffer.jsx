@@ -7,8 +7,6 @@ import {
   getDataFromSession,
 } from "@/app/utils/storageUtils";
 
-tailChase.register();
-
 const JobOfferModal = ({
   jobOfferDetails,
   onClose,
@@ -22,6 +20,12 @@ const JobOfferModal = ({
   const [responseType, setResponseType] = useState("");
 
   if (!jobOfferDetails) return null;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      tailChase.register();
+    }
+  }, []);
 
   const handleResponse = async (status) => {
     try {

@@ -143,13 +143,6 @@ const Signup = () => {
         <>
           <main className="bg-[#0e4028]">
             <div className="flex flex-col w-full justify-center items-center">
-              <Image
-                src="/assets/images/delmonteLogo.png"
-                alt="DelmonteLogo"
-                width={152}
-                height={152}
-                className="mt-3"
-              />
               <PersonalInformation handleSubmit={handleSubmit} />
             </div>
           </main>

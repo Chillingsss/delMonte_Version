@@ -19,9 +19,6 @@ import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast"; // Import from react-hot-toast
 import ViewProfile from "./viewProfile";
 
-// import { fetchAppliedJobs } from "../sideBar/sideBar.jsx";
-
-// import { fetchJobs } from "./candidatesDashboard/page.js";
 
 const JobDetailsModal = ({
   job,

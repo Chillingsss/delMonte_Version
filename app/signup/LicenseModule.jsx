@@ -7,8 +7,6 @@ import React, { useEffect, useState } from "react";
 import AddTrainingModal from "./modals/AddTrainingModal";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "../utils/storageUtils";
 import AddLicense from "./modals/AddLicense";

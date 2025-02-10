@@ -149,6 +149,7 @@ export const removeCookie = (key) => {
  * Removes all cookies.
  */
 export const clearAllCookies = () => {
+  if (typeof document === "undefined") return; // Prevent execution on the server
   document.cookie.split(";").forEach((cookie) => {
     const key = cookie.split("=")[0].trim();
     removeCookie(key);
@@ -196,24 +197,24 @@ export const clearAllLocalData = () => {
 let inactivityTimer;
 
 const clearAllData = () => {
+  if (typeof window === "undefined") return; // Ensure it runs in the browser
   clearAllCookies();
   clearAllLocalData();
   clearAllSessionData();
-  window.location.href = "/";
-};
-
-const resetInactivityTimer = () => {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    clearAllData();
-  }, 12 * 60 * 1000); // 12 minutes in milliseconds
+  window.location.href = "/"; // Redirect to login
 };
 
 if (typeof window !== "undefined") {
+  let inactivityTimer;
+
+  const resetInactivityTimer = () => {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(clearAllData, 12 * 60 * 1000); // 12 minutes
+  };
+
   ["mousemove", "keydown", "click", "scroll"].forEach((event) => {
     window.addEventListener(event, resetInactivityTimer);
   });
-}
 
-// Initialize the timer
-resetInactivityTimer();
+  resetInactivityTimer(); // Start timer only on the client
+}

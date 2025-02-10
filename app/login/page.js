@@ -19,8 +19,7 @@ import {
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { FcGoogle } from "react-icons/fc";
 import { lineSpinner } from "ldrs";
-
-lineSpinner.register();
+import { XCircle } from "lucide-react";
 
 export default function Login(user) {
   const { data: session } = useSession();
@@ -42,6 +41,12 @@ export default function Login(user) {
   const [isLocked, setIsLocked] = useState(false); // Track if the login is locked
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      lineSpinner.register();
+    }
+  }, []);
+
+  useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
       return tokenData?.userLevel || null; // Return userId if found, otherwise null
@@ -59,6 +64,8 @@ export default function Login(user) {
   }, [session, router]);
 
   const generateCaptcha = useCallback(() => {
+    if (typeof window === "undefined") return; // Prevents running on the server
+
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = 150;
@@ -103,13 +110,56 @@ export default function Login(user) {
     generateCaptcha();
   }, [generateCaptcha]);
 
+  const showErrorToast = (message) => {
+    toast(message, {
+      duration: 4000,
+      position: "bottom-left",
+      icon: <XCircle className="text-red-500 w-6 h-6" />,
+      style: {
+        background: "#013220", // Darker green for contrast
+        color: "#F8FAFC", // Light text for readability
+        borderRadius: "10px",
+        padding: "12px 16px",
+        fontSize: "14px",
+        fontWeight: "500",
+        border: "1px solid #DC2626", // Red border for error emphasis
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+      },
+    });
+  };
+
+  const sanitizeInput = (input) => {
+    return input.replace(/[^\w@.-]/gi, ""); // Remove unwanted characters
+  };
+
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Email regex validation
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
 
-    if (!username.trim() || !password.trim()) {
-      toast.error("Please enter both username and password.");
+    let sanitizedUsername = sanitizeInput(username.trim().toLowerCase());
+    let sanitizedPassword = sanitizeInput(password.trim());
+
+    if (!sanitizedUsername || !sanitizedPassword) {
+      showErrorToast("Please enter both username and password.");
       return;
     }
+
+    if (!isValidEmail(sanitizedUsername)) {
+      showErrorToast("Invalid email format.");
+      return;
+    }
+
+    if (sanitizedPassword.length < 6) {
+      showErrorToast("Password must be at least 6 characters long.");
+      return;
+    }
+
+    setUsername(sanitizedUsername);
+    setPassword(sanitizedPassword);
+
     generateCaptcha();
     setCaptchaInput("");
     setShowCaptcha(true);
@@ -119,7 +169,7 @@ export default function Login(user) {
     e.preventDefault();
 
     if (captchaInput !== captchaText) {
-      toast.error("Incorrect CAPTCHA. Try again.");
+      showErrorToast("Incorrect CAPTCHA. Try again.");
       generateCaptcha();
       setCaptchaInput("");
       return;
@@ -128,15 +178,14 @@ export default function Login(user) {
     setLoading(true);
     const response = await signIn("credentials", {
       redirect: false,
-      username,
-      password,
+      username: sanitizeInput(username.trim().toLowerCase()),
+      password: sanitizeInput(password.trim()),
     });
+
     setLoading(false);
 
     if (response?.error) {
       toast.error(response.error);
-
-      setShowForgotPasswordModal(true);
 
       generateCaptcha();
       setCaptchaInput("");
@@ -157,89 +206,6 @@ export default function Login(user) {
       }, 5000);
     }
   };
-
-  // const handleCaptchaValidation = async (e) => {
-  //   e.preventDefault();
-
-  //   if (isLocked) {
-  //     toast.error(
-  //       "Account is locked. Please try again later or reset your password."
-  //     );
-  //     return;
-  //   }
-
-  //   if (captchaInput !== captchaText) {
-  //     toast.error("Incorrect CAPTCHA. Try again.");
-  //     generateCaptcha();
-  //     setCaptchaInput("");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   const result = await signIn("credentials", {
-  //     redirect: false,
-  //     username,
-  //     password,
-  //   });
-  //   setLoading(false);
-
-  //   if (result?.error) {
-  //     setFailedAttempts((prev) => prev + 1);
-  //     toast.error("Invalid credentials. Please try again.");
-
-  //     if (failedAttempts + 1 >= 3) {
-  //       setIsLocked(true);
-  //       storeDataInLocal("isLocked", true);
-  //       storeDataInLocal("lockoutTime", new Date().getTime().toString());
-  //       toast.error(
-  //         "Too many failed attempts. You are locked out for 5 minutes."
-  //       );
-
-  //       setShowForgotPasswordModal(true);
-  //     }
-  //     generateCaptcha();
-  //     setCaptchaInput("");
-  //     setUsername("");
-  //     setPassword("");
-  //     setShowCaptcha(false);
-  //     setButtonText("Log In");
-  //   } else {
-  //     setIsRedirecting(true);
-  //     const userLevel = result?.user?.userLevel;
-
-  //     setTimeout(() => {
-  //       if (userLevel === "1.0") {
-  //         router.replace("/candidatesDashboard");
-  //       } else if (userLevel === "100.0") {
-  //         router.replace("/admin/dashboard");
-  //       }
-  //     }, 5000);
-  //   }
-  // };
-
-  useEffect(() => {
-    const lockoutStatus = getDataFromLocal("isLocked");
-    const lockoutTime = getDataFromLocal("lockoutTime");
-
-    if (lockoutStatus === true && lockoutTime) {
-      // <-- Fix: Compare as string
-      const timeElapsed = new Date().getTime() - parseInt(lockoutTime, 10);
-      if (timeElapsed < 300000) {
-        setIsLocked(true);
-        const remainingTime = 300000 - timeElapsed;
-        setTimeout(() => {
-          setIsLocked(false);
-          storeDataInLocal("isLocked", "false");
-          storeDataInLocal("lockoutTime", null);
-        }, remainingTime);
-      } else {
-        storeDataInLocal("isLocked", "false");
-        storeDataInLocal("lockoutTime", null);
-      }
-    } else {
-      setIsLocked(false); // Ensure it's explicitly set
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#01472B] flex items-center justify-center px-4">

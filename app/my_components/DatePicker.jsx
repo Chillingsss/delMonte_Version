@@ -1,12 +1,21 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { formatISO, format, addYears } from 'date-fns';
-import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
-import { CalendarIcon, ClockIcon } from 'lucide-react';
-import { formatDate } from '../signup/page';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { formatISO, format, addYears } from "date-fns";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { cn } from "@/lib/utils";
+import { CalendarIcon, ClockIcon } from "lucide-react";
+import { formatDate } from "../signup/page";
 
 const DatePicker = ({
   form,
@@ -15,7 +24,8 @@ const DatePicker = ({
   futureAllowed = true,
   pastAllowed = true,
   design,
-  withTime = false
+  withTime = false,
+  isRequired = false,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState("12:00");
@@ -68,7 +78,10 @@ const DatePicker = ({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel>
+            {label}
+            {isRequired && <span className="text-red-500"> *</span>}
+          </FormLabel>
           <div>
             <Popover open={showPicker} onOpenChange={setShowPicker}>
               <PopoverTrigger asChild>
@@ -82,9 +95,11 @@ const DatePicker = ({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {field.value ? (
-                    withTime
-                      ? format(new Date(field.value), "MMM dd, yyyy - h:mm a")
-                      : format(new Date(field.value), "MMM dd, yyyy")
+                    withTime ? (
+                      format(new Date(field.value), "MMM dd, yyyy - h:mm a")
+                    ) : (
+                      format(new Date(field.value), "MMM dd, yyyy")
+                    )
                   ) : (
                     <span>Pick a date</span>
                   )}
