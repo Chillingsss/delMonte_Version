@@ -15,7 +15,8 @@ const DatePicker = ({
   futureAllowed = true,
   pastAllowed = true,
   design,
-  withTime = false
+  withTime = false,
+  isRequired = false
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState("12:00");
@@ -68,7 +69,7 @@ const DatePicker = ({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel>{label}{isRequired && <span className="text-red-500"> *</span>}</FormLabel>
           <div>
             <Popover open={showPicker} onOpenChange={setShowPicker}>
               <PopoverTrigger asChild>
