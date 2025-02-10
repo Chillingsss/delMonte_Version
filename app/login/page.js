@@ -106,13 +106,6 @@ export default function Login(user) {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    if (isLocked) {
-      toast.error(
-        "Account is locked. Please try again later or reset your password."
-      );
-      return;
-    }
-
     if (!username.trim() || !password.trim()) {
       toast.error("Please enter both username and password.");
       return;
@@ -142,6 +135,8 @@ export default function Login(user) {
 
     if (response?.error) {
       toast.error(response.error);
+
+      setShowForgotPasswordModal(true);
 
       generateCaptcha();
       setCaptchaInput("");
