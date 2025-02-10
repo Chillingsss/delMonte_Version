@@ -42,7 +42,7 @@ const formSchema = z.object({
   }),
 });
 
-const JobOffer = ({ candId, changeStatus }) => {
+const JobOffer = ({ candId, changeStatus, email }) => {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,6 +65,7 @@ const JobOffer = ({ candId, changeStatus }) => {
       salary: data.joboffer_salary,
       document: data.joboffer_document,
       expiryDate: formattedDate,
+      candEmail: email,
     };
     console.log("jsonData: ", jsonData);
     try {
