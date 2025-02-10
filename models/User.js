@@ -4,6 +4,11 @@ const mysql = require("mysql2/promise");
 const moment = require("moment-timezone");
 const pool = require("./db"); // ✅ Correct way
 
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_USER:", process.env.DB_USER);
+console.log("DB_PASSWORD:", process.env.DB_PASSWORD ? "******" : "NOT SET");
+console.log("DB_NAME:", process.env.DB_NAME);
+
 module.exports = {
   async findOrCreate({
     provider,
