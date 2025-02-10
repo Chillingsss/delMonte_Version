@@ -19,7 +19,7 @@ import {
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { FcGoogle } from "react-icons/fc";
 import { lineSpinner } from "ldrs";
-import { XCircle } from "lucide-react";
+import { Eye, EyeOff, XCircle } from "lucide-react";
 
 export default function Login(user) {
   const { data: session } = useSession();
@@ -37,8 +37,7 @@ export default function Login(user) {
   const usernameRef = useRef(null);
   const captchaInputRef = useRef(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0); // Track failed attempts
-  const [isLocked, setIsLocked] = useState(false); // Track if the login is locked
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -114,7 +113,6 @@ export default function Login(user) {
     toast(message, {
       duration: 4000,
       position: "bottom-left",
-      icon: <XCircle className="text-red-500 w-6 h-6" />,
       style: {
         background: "#013220", // Darker green for contrast
         color: "#F8FAFC", // Light text for readability
@@ -129,31 +127,43 @@ export default function Login(user) {
   };
 
   const sanitizeInput = (input) => {
-    return input.replace(/[^\w@.-]/gi, ""); // Remove unwanted characters
+    return input.replace(/[^\w@.#$!%*?&-]/gi, ""); // Allow common special characters
   };
 
   const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Email regex validation
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Standard email regex
+  };
+
+  const isValidPassword = (password) => {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      password
+    );
+  };
+
+  const preventSQLInjection = (input) => {
+    return input.replace(/(--|;|')/g, ""); // Remove common SQL injection patterns
   };
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    let sanitizedUsername = sanitizeInput(username.trim().toLowerCase());
-    let sanitizedPassword = sanitizeInput(password.trim());
+    let sanitizedUsername = preventSQLInjection(
+      sanitizeInput(username.trim().toLowerCase())
+    );
+    let sanitizedPassword = preventSQLInjection(sanitizeInput(password.trim()));
 
     if (!sanitizedUsername || !sanitizedPassword) {
-      showErrorToast("Please enter both username and password.");
+      showErrorToast("⚠️ Please enter both username and password.");
       return;
     }
 
     if (!isValidEmail(sanitizedUsername)) {
-      showErrorToast("Invalid email format.");
+      showErrorToast("🚫 Email is not valid.");
       return;
     }
 
-    if (sanitizedPassword.length < 6) {
-      showErrorToast("Password must be at least 6 characters long.");
+    if (!isValidPassword(sanitizedPassword)) {
+      showErrorToast("🚫 Invalid input.");
       return;
     }
 
@@ -169,7 +179,7 @@ export default function Login(user) {
     e.preventDefault();
 
     if (captchaInput !== captchaText) {
-      showErrorToast("Incorrect CAPTCHA. Try again.");
+      showErrorToast("❌ Incorrect CAPTCHA. Try again.");
       generateCaptcha();
       setCaptchaInput("");
       return;
@@ -185,7 +195,7 @@ export default function Login(user) {
     setLoading(false);
 
     if (response?.error) {
-      toast.error(response.error);
+      showErrorToast(`🔒 ${response.error}`);
 
       generateCaptcha();
       setCaptchaInput("");
@@ -264,15 +274,24 @@ export default function Login(user) {
                 <label className="block text-green-200 mb-2" htmlFor="password">
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="********"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               {showCaptcha && (
                 <div className="mb-4">

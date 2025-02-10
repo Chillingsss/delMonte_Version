@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { Check, Eye, EyeOff, X } from "lucide-react";
 
 const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [email, setEmail] = useState("");
@@ -18,13 +18,28 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [requestLoading, setRequestLoading] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
   const [confirmPasswordValid, setConfirmPasswordValid] = useState(false);
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const modalRef = useRef(null);
 
-  const passwordRegex = /^(?=.*\d).{8,}$/;
-
   const validatePassword = (password) => {
-    return passwordRegex.test(password);
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      specialChar: /[@$!%*?&]/.test(password),
+    };
+    setPasswordChecks(checks);
+    return Object.values(checks).every(Boolean);
   };
 
   const handlePasswordChange = (e) => {
@@ -39,12 +54,47 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     setConfirmPasswordValid(value === newPassword);
   };
 
+  const showErrorToast = (message) => {
+    toast(message, {
+      duration: 4000,
+      position: "bottom-left",
+      style: {
+        background: "#013220", // Darker green for contrast
+        color: "#F8FAFC", // Light text for readability
+        borderRadius: "10px",
+        padding: "12px 16px",
+        fontSize: "14px",
+        fontWeight: "500",
+        border: "1px solid #DC2626", // Red border for error emphasis
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+      },
+    });
+  };
+
+  const showSuccessToast = (message) => {
+    toast(message, {
+      duration: 4000,
+      position: "bottom-left",
+      icon: <Check className="text-green-500 w-6 h-6" />,
+      style: {
+        background: "#065F46", // Dark green for success
+        color: "#F8FAFC", // Light text for readability
+        borderRadius: "10px",
+        padding: "12px 16px",
+        fontSize: "14px",
+        fontWeight: "500",
+        border: "1px solid #22C55E", // Green border for success emphasis
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+      },
+    });
+  };
+
   const requestPinCode = async () => {
     if (requestLoading) return;
     setRequestLoading(true);
 
     if (!email) {
-      toast.error("Please enter your email.");
+      showErrorToast("⚠️ Please enter your email.");
       setRequestLoading(false);
       return;
     }
@@ -62,11 +112,11 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setPinCode(data.pincode);
         setIsPinCodeSent(true);
         setCandId(data.cand_id);
-        toast.success("PIN code sent to your email.");
+        showSuccessToast("PIN code sent to your email.");
       } else if (data.error) {
-        toast.error(data.error);
+        showErrorToast(data.error);
       } else {
-        toast.error("Failed to send PIN code.");
+        showErrorToast("Failed to send PIN code.");
       }
     } catch (error) {
       console.error("Error requesting PIN code:", error);
@@ -80,17 +130,17 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     e.preventDefault();
 
     if (enteredPinCode !== pinCode) {
-      toast.error("Invalid PIN code.");
+      showErrorToast("Invalid PIN code.");
       return;
     }
 
     if (!passwordValid) {
-      toast.error("Password does not meet the criteria.");
+      showErrorToast("Password does not meet the criteria.");
       return;
     }
 
     if (!confirmPasswordValid) {
-      toast.error("Passwords do not match.");
+      showErrorToast("Passwords do not match.");
       return;
     }
 
@@ -113,7 +163,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       const data = response.data;
 
       if (data.success) {
-        toast.success("Password updated successfully.");
+        showSuccessToast("Password updated successfully.");
         setShowModal(false);
       } else if (data.error) {
         toast.error(data.error);
@@ -213,54 +263,96 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                 required
               />
             </div>
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label className="block text-gray-300 text-sm font-normal">
                 New Password:
               </label>
-              <input
-                type="password"
-                name="newPassword"
-                value={newPassword}
-                onChange={handlePasswordChange}
-                placeholder="Enter New Password"
-                className={`w-full p-3 rounded-lg bg-[#0E5A35]  placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white ${
-                  newPassword
-                    ? passwordValid
-                      ? "border-green-500"
-                      : "border-red-500"
-                    : ""
-                }`}
-                required
-              />
-              <p
-                className={`text-sm mt-1 ${
-                  passwordValid ? "text-green-500" : "text-red-500"
-                }`}
-              >
-                {passwordValid
-                  ? "Password is valid."
-                  : "Password must be at least 8 characters long and contain at least one number."}
-              </p>
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full p-3 rounded-lg bg-[#0E5A35] text-white pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              <ul className="text-sm mt-2">
+                <li
+                  className={
+                    passwordChecks.length ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {passwordChecks.length ? "✅" : "❌"} At least 8 characters
+                </li>
+                <li
+                  className={
+                    passwordChecks.uppercase ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {passwordChecks.uppercase ? "✅" : "❌"} One uppercase letter
+                </li>
+                <li
+                  className={
+                    passwordChecks.lowercase ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {passwordChecks.lowercase ? "✅" : "❌"} One lowercase letter
+                </li>
+                <li
+                  className={
+                    passwordChecks.number ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {passwordChecks.number ? "✅" : "❌"} One number
+                </li>
+                <li
+                  className={
+                    passwordChecks.specialChar
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }
+                >
+                  {passwordChecks.specialChar ? "✅" : "❌"} One special
+                  character (@$!%*?&)
+                </li>
+              </ul>
             </div>
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label className="block text-gray-300 text-sm font-normal">
                 Confirm New Password:
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={confirmPassword}
-                onChange={handleConfirmPasswordChange}
-                placeholder="Confirm New Password"
-                className={`w-full p-3 rounded-lg bg-[#0E5A35]  placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white ${
-                  confirmPassword
-                    ? confirmPasswordValid
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  className={`w-full p-3 rounded-lg bg-[#0E5A35] text-white pr-10 ${
+                    confirmPassword &&
+                    (confirmPasswordValid
                       ? "border-green-500"
-                      : "border-red-500"
-                    : ""
-                }`}
-                required
-              />
+                      : "border-red-500")
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="flex justify-between">
               <button
