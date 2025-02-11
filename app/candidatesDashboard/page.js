@@ -138,16 +138,19 @@ export default function DashboardCandidates() {
 
     if (!userLevel) {
       console.log("No valid session or cookie found. Redirecting to login...");
-      router.push("/"); // Redirect to login if both are missing
+      router.replace("/"); // Redirect to login if both are missing
       return;
     }
 
-    if (userLevel === "1.0") {
-      router.push("/candidatesDashboard");
-    } else if (userLevel === "100.0") {
-      router.push("/admin/dashboard");
+    if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
+      router.replace("/candidatesDashboard");
+    } else if (
+      userLevel === "100.0" &&
+      router.pathname !== "/admin/dashboard"
+    ) {
+      router.replace("/admin/dashboard");
     }
-  }, [session, router]);
+  }, []);
 
   useEffect(() => {
     const authToken = getDataFromCookie("auth_token");

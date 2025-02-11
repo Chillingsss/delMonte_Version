@@ -7,8 +7,9 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import JobDetailsModal from "./modal/jobDetails";
 import { getDataFromCookie } from "../utils/storageUtils";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Rotate3D } from "lucide-react";
 import { lineSpinner } from "ldrs";
+import Image from "next/image";
 
 export default function LandingArea() {
   const { data: session, status } = useSession();
@@ -32,16 +33,9 @@ export default function LandingArea() {
   };
 
   useEffect(() => {
-    let userLevel = session?.user?.userLevel;
-
-    if (!userLevel) {
-      const tokenData = getDataFromCookie("auth_token");
-      userLevel = tokenData?.userLevel;
-    }
-
+    let userLevel =
+      session?.user?.userLevel || getDataFromCookie("auth_token")?.userLevel;
     if (!userLevel) return;
-
-    userLevel = String(userLevel);
 
     const routes = {
       100: "/admin/dashboard",
@@ -52,8 +46,9 @@ export default function LandingArea() {
       "1.0": "/candidatesDashboard",
     };
 
-    if (routes[userLevel] && routes[userLevel] !== window.location.pathname) {
-      router.replace(routes[userLevel]);
+    const targetRoute = routes[String(userLevel)];
+    if (targetRoute && targetRoute !== window.location.pathname) {
+      router.replace(targetRoute);
     }
   }, [session, router]);
 
@@ -86,8 +81,10 @@ export default function LandingArea() {
   return (
     <div className="min-h-screen bg-[#f4f7fc]">
       <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-32 bg-[#116b40] slide-up">
-        <img
-          src="/assets/images/delMontes.png"
+        <Image
+          src="/assets/images/delmontes.png"
+          width={100}
+          height={100}
           alt="Del Monte Logo"
           className="h-10 sm:h-10 md:h-[120px] w-auto"
         />

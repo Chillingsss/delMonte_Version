@@ -58,23 +58,24 @@ export default function Page() {
   useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+      return tokenData?.userLevel || null;
     };
 
-    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
-
-    console.log("nakuha ka:", userLevel);
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
 
     if (!userLevel) {
       console.log("No valid session or cookie found. Redirecting to login...");
-      router.push("/login"); // Redirect to login if both are missing
+      router.replace("/"); // Redirect to login if both are missing
       return;
     }
 
-    if (userLevel === "1.0") {
-      router.push("/candidatesDashboard");
-    } else if (userLevel === "100.0") {
-      router.push("/admin/dashboard");
+    if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
+      router.replace("/candidatesDashboard");
+    } else if (
+      userLevel === "100.0" &&
+      router.pathname !== "/admin/dashboard"
+    ) {
+      router.replace("/admin/dashboard");
     }
   }, [session, router]);
 

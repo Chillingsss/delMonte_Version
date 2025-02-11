@@ -4,11 +4,6 @@ const mysql = require("mysql2/promise");
 const moment = require("moment-timezone");
 const pool = require("./db"); // ✅ Correct way
 
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD ? "******" : "NOT SET");
-console.log("DB_NAME:", process.env.DB_NAME);
-
 module.exports = {
   async findOrCreate({
     provider,
@@ -38,13 +33,13 @@ module.exports = {
     let candidateData;
 
     if (adminRows.length > 0) {
-      // Email exists in tbladmin, get the admin details
+      // Email exists sa tbladmin, get the admin details
       adminData = {
         adm_id: adminRows[0].adm_id,
         adm_userLevel: adminRows[0].adm_userLevel,
       };
     } else {
-      // Step 2: Check if the email exists in the tblcandidates table
+      // Step 2: Check if naay email ga exist sa tblcandidates
       const [candidateRows] = await pool.execute(
         `SELECT
             a.cand_id,
@@ -105,10 +100,6 @@ module.exports = {
       }
     }
 
-    console.log("Candidate Data:", candidateData);
-
-    console.log("Admin Data:", adminData);
-
     // Step 3: Insert or update the user in the users table
     const [userResult] = await pool.execute(
       `INSERT INTO users (provider, provider_user_id, email, first_name, last_name, cand_userId, admin_id, created_at, last_login)
@@ -132,15 +123,6 @@ module.exports = {
         adminData ? adminData.adm_id : null,
       ]
     );
-
-    console.log("Returning User Data:", {
-      adm_id: adminData ? adminData.adm_id : null,
-      adm_userLevel: adminData ? adminData.adm_userLevel : null,
-      cand_id: candidateData ? candidateData.cand_id : null,
-      cand_userLevel: candidateData ? candidateData.cand_userLevel : null,
-      firstname: candidateData ? candidateData.cand_firstname : null,
-      lastname: candidateData ? candidateData.cand_lastname : null,
-    });
 
     return {
       id: userResult.insertId || userResult.updateId,
