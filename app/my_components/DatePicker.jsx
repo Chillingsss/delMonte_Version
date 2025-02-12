@@ -83,7 +83,7 @@ const DatePicker = ({
             {isRequired && <span className="text-red-500"> *</span>}
           </FormLabel>
           <div>
-            <Popover open={showPicker} onOpenChange={setShowPicker}>
+            <Popover>
               <PopoverTrigger asChild>
                 <Button
                   onClick={() => setShowPicker(!showPicker)}

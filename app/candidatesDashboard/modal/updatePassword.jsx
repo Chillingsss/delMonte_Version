@@ -30,7 +30,14 @@ const UpdatePassword = ({
   const [isPinCodeSent, setIsPinCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  const [requiresPassword, setRequiresPassword] = useState(true); // New state to track if password is required
+  const [requiresPassword, setRequiresPassword] = useState(true);
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
@@ -80,6 +87,12 @@ const UpdatePassword = ({
     };
   }, []);
 
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setPasswordValid(validatePassword(value));
+  };
+
   useEffect(() => {
     // Check if the user has a password set
     const checkPasswordExists = async () => {
@@ -115,11 +128,16 @@ const UpdatePassword = ({
     checkPasswordExists();
   }, []);
 
-  // Password validation function
   const validatePassword = (password) => {
-    const hasNumber = /\d/;
-    const isValid = password.length >= 8 && hasNumber.test(password);
-    setPasswordValid(isValid);
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      specialChar: /[@$!%*?&]/.test(password),
+    };
+    setPasswordChecks(checks);
+    return Object.values(checks).every(Boolean);
   };
 
   // Check if passwords match
@@ -202,10 +220,8 @@ const UpdatePassword = ({
       return;
     }
 
-    if (password && !passwordValid) {
-      toast.error(
-        "Password must be at least 8 characters long and contain a number."
-      );
+    if (!passwordValid) {
+      toast.error("Password does not meet the criteria.");
       return;
     }
 
@@ -324,24 +340,58 @@ const UpdatePassword = ({
                   type="password"
                   name="password"
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    validatePassword(e.target.value);
-                  }}
+                  onChange={handlePasswordChange}
                   placeholder="Enter New Password"
                   className={`w-full p-2 border rounded-lg mt-1 ${
                     isDarkMode ? "bg-gray-700" : "bg-white"
                   } ${passwordValid ? "border-green-500" : "border-red-500"}`}
                 />
-                <p
-                  className={`text-sm mt-1 ${
-                    passwordValid ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {passwordValid
-                    ? "Password is valid."
-                    : "Password must be at least 8 characters long and contain at least one number."}
-                </p>
+                <ul className="text-sm mt-2">
+                  <li
+                    className={
+                      passwordChecks.length ? "text-green-500" : "text-red-500"
+                    }
+                  >
+                    {passwordChecks.length ? "✅" : "❌"} At least 8 characters
+                  </li>
+                  <li
+                    className={
+                      passwordChecks.uppercase
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }
+                  >
+                    {passwordChecks.uppercase ? "✅" : "❌"} One uppercase
+                    letter
+                  </li>
+                  <li
+                    className={
+                      passwordChecks.lowercase
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }
+                  >
+                    {passwordChecks.lowercase ? "✅" : "❌"} One lowercase
+                    letter
+                  </li>
+                  <li
+                    className={
+                      passwordChecks.number ? "text-green-500" : "text-red-500"
+                    }
+                  >
+                    {passwordChecks.number ? "✅" : "❌"} One number
+                  </li>
+                  <li
+                    className={
+                      passwordChecks.specialChar
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }
+                  >
+                    {passwordChecks.specialChar ? "✅" : "❌"} One special
+                    character (@$!%*?&)
+                  </li>
+                </ul>
               </div>
               <div className="mb-4">
                 <label

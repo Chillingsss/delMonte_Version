@@ -31,7 +31,8 @@ const UpdateEmail = ({
   const [isNewEmailPinCodeSent, setIsNewEmailPinCodeSent] = useState(false); // New email OTP sent
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  const [isPinCodeVerified, setIsPinCodeVerified] = useState(false); // PIN code verified
+  const [isPinCodeVerified, setIsPinCodeVerified] = useState(false);
+  const [requiresPassword, setRequiresPassword] = useState(true);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
@@ -81,6 +82,41 @@ const UpdateEmail = ({
     };
   }, []);
 
+  useEffect(() => {
+    // Check if the user has a password set
+    const checkPasswordExists = async () => {
+      try {
+        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+        const getUserIdFromCookie = () => {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
+          return null; // Return null if userId is not found or tokenData is invalid
+        };
+
+        // Example usage
+        const userId = session?.user?.id || getUserIdFromCookie();
+        console.log("User ID:", userId);
+
+        const formData = new FormData();
+        formData.append("operation", "checkPasswordExists");
+        formData.append("json", JSON.stringify({ userId }));
+
+        const response = await axios.post(url, formData);
+        const data = response.data;
+
+        if (data.passwordExists === false) {
+          setRequiresPassword(false); // No password set in the database
+        }
+      } catch (error) {
+        console.error("Error checking password existence:", error);
+      }
+    };
+
+    checkPasswordExists();
+  }, []);
+
   // Request OTP to be sent to current email after verifying current password
   const requestPinCodeToCurrentEmail = async () => {
     if (!currentPassword) {
@@ -96,18 +132,18 @@ const UpdateEmail = ({
         if (tokenData && tokenData.userId) {
           return tokenData.userId;
         }
-        return null; // Return null if userId is not found or tokenData is invalid
+        return null;
       };
-      const userId = session?.user?.id || getUserIdFromCookie();
+      const cand_id = session?.user?.id || getUserIdFromCookie();
 
-      console.log("User ID:", userId);
+      console.log("User ID:", cand_id);
 
       // Verify the current password
       const verifyPasswordFormData = new FormData();
       verifyPasswordFormData.append("operation", "verifyCurrentPassword");
       verifyPasswordFormData.append(
         "json",
-        JSON.stringify({ userId, currentPassword })
+        JSON.stringify({ cand_id, currentPassword })
       );
 
       const verifyPasswordResponse = await axios.post(
@@ -115,6 +151,8 @@ const UpdateEmail = ({
         verifyPasswordFormData
       );
       const verifyPasswordData = verifyPasswordResponse.data;
+
+      console.log("Verify password data:", verifyPasswordData);
 
       if (!verifyPasswordData.success) {
         toast.error("Current password is incorrect.");
@@ -271,40 +309,47 @@ const UpdateEmail = ({
             Update Email
           </h3>
 
-          {/* Step 1: Enter current password */}
-          {!isPinCodeSent && (
-            <>
-              <div className="mb-4">
-                <label
-                  className={`block text-${
-                    isDarkMode ? "gray-300" : "gray-600"
-                  } text-sm font-normal`}
-                >
-                  Current Password:
-                </label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter Current Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${
-                    isDarkMode ? "bg-gray-600" : "bg-white"
+          {requiresPassword === null ? (
+            <p>Loading...</p>
+          ) : requiresPassword ? (
+            !isPinCodeSent && (
+              <>
+                <div className="mb-4">
+                  <label
+                    className={`block text-${
+                      isDarkMode ? "gray-300" : "gray-600"
+                    } text-sm font-normal`}
+                  >
+                    Current Password:
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter Current Password"
+                    className={`w-full p-2 border rounded-lg mt-1 ${
+                      isDarkMode ? "bg-gray-600" : "bg-white"
+                    }`}
+                    required
+                  />
+                </div>
+                <button
+                  onClick={requestPinCodeToCurrentEmail}
+                  className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${
+                    isDarkMode ? "bg-blue-600" : ""
                   }`}
-                  required
-                />
-              </div>
-              <button
-                onClick={requestPinCodeToCurrentEmail}
-                className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${
-                  isDarkMode ? "bg-blue-600" : ""
-                }`}
-                disabled={requestLoading || loading}
-              >
-                {requestLoading
-                  ? "Sending OTP..."
-                  : "Send OTP to Current Email"}
-              </button>
-            </>
+                  disabled={requestLoading || loading}
+                >
+                  {requestLoading
+                    ? "Sending OTP..."
+                    : "Send OTP to Current Email"}
+                </button>
+              </>
+            )
+          ) : (
+            <p className="text-red-500">
+              Update your password first before updating email.
+            </p>
           )}
 
           {/* Step 2: Enter and verify OTP from current email */}

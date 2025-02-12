@@ -21,7 +21,7 @@ console.log("DB_NAME:", process.env.DB_NAME);
 
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 10 * 60 * 1000; // 10 minutes
-const JWT_SECRET = process.env.NEXT_PUBLIC_SECRET_KEY;
+const JWT_SECRET = process.env.NEXTAUTH_SECRET;
 
 const generateToken = (userId, userLevel) => {
   return jwt.sign({ userId, userLevel }, JWT_SECRET, { expiresIn: "1h" });
