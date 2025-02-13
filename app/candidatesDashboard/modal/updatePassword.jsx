@@ -9,7 +9,7 @@ import {
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 
 const UpdatePassword = ({
   showModal,
@@ -38,6 +38,7 @@ const UpdatePassword = ({
     number: false,
     specialChar: false,
   });
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
@@ -293,25 +294,36 @@ const UpdatePassword = ({
         </h3>
         <form onSubmit={handleSubmit}>
           {requiresPassword && (
-            <div className="mb-4">
-              <label
-                className={`block ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                } text-sm font-normal`}
-              >
-                Current Password:
-              </label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter Current Password"
-                className={`w-full p-2 border rounded-lg mt-1 ${
-                  isDarkMode ? "bg-gray-600" : "bg-white"
-                }`}
-                required
-              />
+            <div className="mb-4 relative">
+              <div className="relative">
+                <label
+                  className={`block ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  } text-sm font-normal`}
+                >
+                  Current Password:
+                </label>
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  name="currentPassword"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter Current Password"
+                  className={`w-full p-2 border rounded-lg mt-1 ${
+                    isDarkMode ? "bg-gray-600" : "bg-white"
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  className={`absolute right-3 top-1/2 transform ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
           )}
           <div className="mb-4">
@@ -329,23 +341,35 @@ const UpdatePassword = ({
           {isPinCodeSent && (
             <>
               <div className="mb-4">
-                <label
-                  className={`block ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } text-sm font-normal`}
-                >
-                  New Password:
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  placeholder="Enter New Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${
-                    isDarkMode ? "bg-gray-700" : "bg-white"
-                  } ${passwordValid ? "border-green-500" : "border-red-500"}`}
-                />
+                <div className="relative">
+                  <label
+                    className={`block ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    } text-sm font-normal`}
+                  >
+                    New Password:
+                  </label>
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    name="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter New Password"
+                    className={`w-full p-2 border rounded-lg mt-1 ${
+                      isDarkMode ? "bg-gray-700" : "bg-white"
+                    } ${passwordValid ? "border-green-500" : "border-red-500"}`}
+                  />
+                  <button
+                    type="button"
+                    className={`absolute right-3 top-1/2 transform ${
+                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+
                 <ul className="text-sm mt-2">
                   <li
                     className={

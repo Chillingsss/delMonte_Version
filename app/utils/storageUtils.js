@@ -209,7 +209,7 @@ if (typeof window !== "undefined") {
 
   const resetInactivityTimer = () => {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(clearAllData, 12 * 60 * 1000); // 12 minutes
+    inactivityTimer = setTimeout(clearAllData, 2 * 60 * 1000); // 12 minutes
   };
 
   ["mousemove", "keydown", "click", "scroll"].forEach((event) => {

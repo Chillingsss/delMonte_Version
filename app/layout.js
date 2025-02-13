@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import SessionProviderWrapper from "@/SessionProviderWrapper";
+import ClientWrapper from "./ClientWrapper"; // ✅ Import the new client wrapper
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,18 +18,20 @@ export default function RootLayout({ children }) {
       <head />
       <body>
         <SessionProviderWrapper>
-          {" "}
-          {/* ✅ Wrap entire app */}
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            <div className="dark:bg-[#0e4028] h-screen">
-              <Toaster position="top-center" richColors duration={2000} />
-              {children} {/* ✅ Now inside SessionProviderWrapper */}
-            </div>
+            <ClientWrapper>
+              {" "}
+              {/* ✅ Wrap inside ClientWrapper */}
+              <div className="dark:bg-[#0e4028] h-screen">
+                <Toaster position="top-center" richColors duration={2000} />
+                {children}
+              </div>
+            </ClientWrapper>
           </ThemeProvider>
         </SessionProviderWrapper>
       </body>

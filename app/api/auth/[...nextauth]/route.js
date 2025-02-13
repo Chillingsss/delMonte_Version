@@ -60,6 +60,12 @@ const handler = NextAuth({
       return session;
     },
   },
+  session: {
+    strategy: "jwt",
+    maxAge: 2 * 60, // ⏳ Automatically expires in 2 minutes
+    updateAge: 0, // ⛔ Prevents automatic extension on activity
+  },
+
   pages: {
     signIn: "/login",
   },
@@ -68,8 +74,8 @@ const handler = NextAuth({
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Secure only in production
-        sameSite: "strict", // Prevent CSRF
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
         path: "/",
       },
     },
