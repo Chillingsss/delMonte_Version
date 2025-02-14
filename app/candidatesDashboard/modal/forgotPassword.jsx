@@ -14,6 +14,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPinCodeSent, setIsPinCodeSent] = useState(false);
   const [candId, setCandId] = useState(null);
+  const [admId, setAdmId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
@@ -107,11 +108,13 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
 
       const response = await axios.post(url, formData);
       const data = response.data;
+      console.log("Data:", data);
 
       if (data.pincode) {
         setPinCode(data.pincode);
         setIsPinCodeSent(true);
-        setCandId(data.cand_id);
+        setCandId(data.candId);
+        setAdmId(data.admId);
         showSuccessToast("PIN code sent to your email.");
       } else if (data.error) {
         showErrorToast(data.error);
@@ -155,12 +158,21 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         "json",
         JSON.stringify({
           cand_id: candId,
+          adm_id: admId,
           password: newPassword,
         })
       );
 
+      console.log("Sending data:", {
+        cand_id: candId,
+        adm_id: admId,
+        password: newPassword,
+      });
+
       const response = await axios.post(url, formData);
       const data = response.data;
+
+      console.log("data change:", data);
 
       if (data.success) {
         showSuccessToast("Password updated successfully.");

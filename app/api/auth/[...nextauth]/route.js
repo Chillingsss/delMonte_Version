@@ -62,8 +62,8 @@ const handler = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: 2 * 60, // ⏳ Automatically expires in 2 minutes
-    updateAge: 0, // ⛔ Prevents automatic extension on activity
+    maxAge: 12 * 60,
+    updateAge: 0,
   },
 
   pages: {
