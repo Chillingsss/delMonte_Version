@@ -1736,27 +1736,9 @@ export default function DashboardCandidates() {
           {/* Your main content goes here */}
         </div>
 
-        <div className="md:hidden mb-10 flex items-center justify-between">
-          <h1
-            className={`text-2xl md:text-4xl font-semibold slide-up ${
-              isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
-            }`}
-          >
-            Active Jobs
-          </h1>
-
-          {isLoading && (
-            <div className="fixed z-70 flex items-center justify-center h-screen w-screen">
-              <l-line-spinner
-                size="40"
-                stroke="3"
-                speed="1"
-                color={isDarkMode ? "#188C54" : "#000000"}
-              ></l-line-spinner>
-            </div>
-          )}
-
-          <div className="relative w-40">
+        <div className="md:hidden mb-10 flex flex-col items-start gap-2">
+          {/* Search Input */}
+          <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <SearchIcon className="w-5 h-5 text-gray-400" />
             </div>
@@ -1774,7 +1756,30 @@ export default function DashboardCandidates() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          {/* Active Jobs Title */}
+          <h1
+            className={`text-2xl md:text-4xl font-semibold slide-up ${
+              isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
+            }`}
+          >
+            Active Jobs
+          </h1>
+
+          {/* Loading Spinner */}
+          {/* Loading Spinner */}
+          {isLoading && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[100]">
+              <l-line-spinner
+                size="40"
+                stroke="3"
+                speed="1"
+                color={isDarkMode ? "#188C54" : "#ffffff"}
+              ></l-line-spinner>
+            </div>
+          )}
         </div>
+
         {/* Jobs Display */}
         {loading ? (
           <div className="flex items-center justify-center h-64 flex-col">

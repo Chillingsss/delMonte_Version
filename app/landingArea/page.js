@@ -86,17 +86,17 @@ export default function LandingArea() {
           width={100}
           height={100}
           alt="Del Monte Logo"
-          className="h-10 sm:h-10 md:h-[120px] w-auto"
+          className="h-16 sm:h-40 md:h-[120px] w-auto"
         />
 
-        <div className="flex justify-center items-center h-full">
+        {/* <div className="flex justify-center items-center h-full">
           <h1 className="text-xs sm:text-sm md:text-base lg:text-xl xl:text-2xl font-semibold">
             Explore Exciting Careers at Del Monte
           </h1>
-        </div>
+        </div> */}
 
         <Link href="/login">
-          <button className="bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm md:text-base rounded-md">
+          <button className="bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md">
             Log In
           </button>
         </Link>
