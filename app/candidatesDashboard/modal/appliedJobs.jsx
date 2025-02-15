@@ -26,22 +26,21 @@ import ExamModal from "../exam/exam";
 import JobOfferModal from "../modal/jobOffer";
 import CancelJobModal from "../modal/cancelJobApplied";
 
-const Sidebar = ({
+const AppliedJobs = ({
   isDarkMode,
   isMenuOpen,
   setIsMenuOpen,
-  appliedJobs,
   examResults,
   fetchAppliedJobs,
   fetchExamResult,
   fetchJobs,
   fetchNotification,
   fetchProfiles,
+  appliedJob,
 }) => {
-  console.log("appliedJobs", )
+  console.log("appliedJobs", appliedJob);
   const { data: session, status } = useSession();
   const router = useRouter();
-  const sidebarRef = useRef(null);
   const dropdownUsernameRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -49,7 +48,7 @@ const Sidebar = ({
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // const [appliedJobs, setAppliedJobs] = useState([]);
+  //   const [appliedJobs, setAppliedJobs] = useState([]);
 
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
   const [selectedJobMId, setSelectedJobMId] = useState(null);
@@ -104,61 +103,43 @@ const Sidebar = ({
     };
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsMenuOpen(false);
-      }
-    }
+  //   async function fetchAppliedJobs() {
+  //     try {
+  //       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+  //       const personalInfoId = retrieveData("user_id");
+  //       // console.log("cand ID:", personalInfoId);
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen]);
+  //       if (!personalInfoId) {
+  //         // console.error("No cand_id found in localStorage.");
+  //         return;
+  //       }
 
-  // async function fetchAppliedJobs() {
-  //   try {
-  //     const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+  //       const formData = new FormData();
+  //       formData.append("operation", "getAppliedJobs");
+  //       formData.append("json", JSON.stringify({ cand_id: personalInfoId }));
 
-  //     const personalInfoId = retrieveData("user_id");
-  //     // console.log("cand ID:", personalInfoId);
+  //       const response = await axios.post(url, formData);
 
-  //     if (!personalInfoId) {
-  //       // console.error("No cand_id found in localStorage.");
-  //       return;
+  //       if (response.data.error) {
+  //         console.error(response.data.error);
+  //       } else {
+  //         setAppliedJobs(response.data);
+  //         // console.log("Applied jobs:", response.data);
+  //         // const passingpoints = response.data.passing_points;
+  //         // localStorage.setItem("passing", passingpoints);
+  //         // localStorage.setItem("app_id", response.data[0].app_id);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching applied jobs:", error);
+  //     } finally {
+  //       setLoading(false);
   //     }
-
-  //     const formData = new FormData();
-  //     formData.append("operation", "getAppliedJobs");
-  //     formData.append("json", JSON.stringify({ cand_id: personalInfoId }));
-
-  //     const response = await axios.post(url, formData);
-
-  //     if (response.data.error) {
-  //       console.error(response.data.error);
-  //     } else {
-  //       setAppliedJobs(response.data);
-  //       // console.log("Applied jobs:", response.data);
-  //       // const passingpoints = response.data.passing_points;
-  //       // localStorage.setItem("passing", passingpoints);
-  //       // localStorage.setItem("app_id", response.data[0].app_id);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching applied jobs:", error);
-  //   } finally {
-  //     setLoading(false);
   //   }
-  // }
 
-  // useEffect(() => {
-  //   fetchAppliedJobs();
-  // }, []);
+  //   useEffect(() => {
+  //     fetchAppliedJobs();
+  //   }, []);
 
   // const fetchExamResult = async () => {
   //   try {
@@ -380,15 +361,12 @@ const Sidebar = ({
       fetchProfiles();
     }
   };
-
   return (
     <>
       <div
-        ref={sidebarRef}
-        className={`fixed top-0 left-0 h-full p-5 rounded-r-lg flex flex-col transform transition-transform duration-300 ease-in-out z-50
-      ${isMenuOpen ? "translate-x-0 w-60" : "-translate-x-full w-72"}
-      ${isDarkMode ? "bg-[#0A6338]" : "bg-[#0A6338]"}
-      md:w-72 md:translate-x-0`}
+        className={`fixed inset-0 ${
+          isDarkMode ? "bg-gray-900/95" : "bg-gray-100/95"
+        } backdrop-blur-sm flex justify-center items-center z-50`}
       >
         <div
           className="relative inline-block text-left"
@@ -404,7 +382,6 @@ const Sidebar = ({
               className="h-[100px] md:h-[130px] w-auto"
             />
           </div>
-
         </div>
 
         <div className="mt-3">
@@ -424,8 +401,8 @@ const Sidebar = ({
                   : ""
               }`}
             >
-              {appliedJobs.length > 0 ? (
-                appliedJobs
+              {appliedJob.length > 0 ? (
+                appliedJob
                   .filter((job) => job.status_name.toLowerCase() !== "reapply")
                   .map((job, index) => (
                     <div
@@ -463,12 +440,12 @@ const Sidebar = ({
                         <span className="flex flex-col">
                           <span className="font-medium">{job.jobM_title}</span>
                           {/* <span
-                            className={`text-sm ${
-                              isDarkMode ? "text-gray-800" : "text-gray-300"
-                            }`}
-                          >
-                            {job.appS_date}
-                          </span> */}
+                        className={`text-sm ${
+                          isDarkMode ? "text-gray-800" : "text-gray-300"
+                        }`}
+                      >
+                        {job.appS_date}
+                      </span> */}
                         </span>
                         <span className="flex items-center">
                           {getStatusIcon(job.status_name)}
@@ -504,7 +481,7 @@ const Sidebar = ({
             </div>
           </div>
 
-          <div className="mt-6 h-60">
+          {/* <div className="mt-6 h-60">
             {examResults.length > 0 && (
               <div className="mt-6 h-60 relative">
                 <div className="sticky top-0">
@@ -556,7 +533,7 @@ const Sidebar = ({
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
       {isExamModalOpen && (
@@ -604,8 +581,7 @@ const Sidebar = ({
         />
       )}
     </>
-    // </div>
   );
 };
 
-export default Sidebar;
+export default AppliedJobs;

@@ -47,6 +47,7 @@ import {
 import { SearchIcon, XCircleIcon, Briefcase, User } from "lucide-react";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { lineSpinner } from "ldrs";
+import AppliedJobs from "./modal/appliedJobs";
 
 lineSpinner.register();
 
@@ -118,6 +119,7 @@ export default function DashboardCandidates() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isAppliedJobsModalOpen, setIsAppliedJobsModalOpen] = useState(false);
 
   const getUserIdFromCookie = () => {
     const tokenData = getDataFromCookie("auth_token");
@@ -220,6 +222,14 @@ export default function DashboardCandidates() {
     setIsProfileModalOpen(false);
 
     setSelectedCandidateId(null);
+  };
+
+  const handleViewAppliedJobs = () => {
+    setIsAppliedJobsModalOpen(true);
+  };
+
+  const handleCloseViewAppliedJobs = () => {
+    setIsAppliedJobsModalOpen(false);
   };
 
   const fetchJobs = useCallback(async () => {
@@ -1268,7 +1278,7 @@ export default function DashboardCandidates() {
         } overflow-y-auto scrollbar-custom md:mt-0 md:ml-72 mt-16`}
       >
         <div
-          className={`justify-between items-center mb-8 fixed top-0 left-0 right-0 z-20 ${
+          className={`justify-between items-center fixed top-0 left-0 right-0 z-20 ${
             isDarkMode ? "bg-[#101010]" : "bg-[#F4F7FC]"
           } px-5 py-5 hidden md:flex`}
         >
@@ -1730,13 +1740,25 @@ export default function DashboardCandidates() {
           </div>
         </div>
         {/* Add margin to the top of the content to prevent jumping */}
-        <div className="mt-20 hidden md:flex">
+        <div className="mt-16 hidden md:flex">
           {" "}
           {/* Adjust this value based on the height of your header */}
           {/* Your main content goes here */}
         </div>
 
-        <div className="md:hidden mb-10 flex flex-col items-start gap-2">
+        <div className="md:hidden mb-9 flex flex-col items-start gap-3">
+          <div>
+            <button
+              onClick={handleViewAppliedJobs}
+              className={`px-2 py-1 rounded-full bg-transparent text-xs border-b-2 ${
+                isDarkMode
+                  ? "text-gray-300 border-green-500"
+                  : "text-gray-600 border-green-700"
+              }`}
+            >
+              Applied Jobs
+            </button>
+          </div>
           {/* Search Input */}
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -1749,7 +1771,7 @@ export default function DashboardCandidates() {
               className={`block w-full px-4 py-2 rounded-2xl border border-gray-400 focus:outline-none focus:border-green-500 pl-10 ${
                 isDarkMode
                   ? "bg-transparent text-gray-300"
-                  : "bg-transparent text-gray-300"
+                  : "bg-transparent text-gray-700"
               }`}
               placeholder="Search active jobs"
               value={searchQuery}
@@ -1759,7 +1781,7 @@ export default function DashboardCandidates() {
 
           {/* Active Jobs Title */}
           <h1
-            className={`text-2xl md:text-4xl font-semibold slide-up ${
+            className={`text-2xl md:text-4xl font-semibold slide-up mt-1 ${
               isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
             }`}
           >
@@ -1940,10 +1962,10 @@ export default function DashboardCandidates() {
 
                   <button
                     onClick={() => handleDetailsClick(job)}
-                    className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 ${
+                    className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 shadow-md ${
                       isDarkMode
-                        ? "bg-[#188C54] hover:bg-green-600 text-white"
-                        : "bg-[#188C54] hover:bg-green-600 text-white"
+                        ? "bg-transparent hover:bg-green-600 text-gray-300 hover:text-gray-300 border-b-gray-300 border-b-2"
+                        : "bg-transparent hover:bg-green-600 text-gray-700 hover:text-gray-100 border-b-gray-300 border-b-2"
                     }`}
                   >
                     View Details
@@ -1976,6 +1998,24 @@ export default function DashboardCandidates() {
           profile={profile}
         />
       )}
+
+      {isAppliedJobsModalOpen && (
+        <AppliedJobs
+          isOpen={isAppliedJobsModalOpen}
+          onClose={handleCloseViewAppliedJobs}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          appliedJob={appliedJobs}
+          examResults={examResults}
+          fetchExamResult={fetchExamResult}
+          fetchAppliedJobs={fetchAppliedJobs}
+          fetchJobs={fetchJobs}
+          fetchNotification={fetchNotification}
+          fetchProfiles={fetchProfiles}
+          openExamModal={openExamModal}
+        />
+      )}
+
       {isExamModalOpen && (
         <ExamModal jobMId={selectedJobMId} onClose={closeExamModal} />
       )}
