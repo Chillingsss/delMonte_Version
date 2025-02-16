@@ -1198,12 +1198,12 @@ export default function DashboardCandidates() {
       {/* Main Content */}
       <div
         className={`flex-1 p-8 ${
-          isDarkMode ? "bg-[#101010] text-white" : "bg-[#F4F7FC] text-gray-900"
+          isDarkMode ? "bg-[#101010] text-white" : "bg-[#f2f4f7] text-gray-900"
         } overflow-y-auto scrollbar-custom md:mt-0 md:ml-72 mt-16`}
       >
         <div
           className={`justify-between items-center fixed top-0 left-0 right-0 z-20 ${
-            isDarkMode ? "bg-[#101010]" : "bg-[#F4F7FC]"
+            isDarkMode ? "bg-[#101010]/85" : "bg-[#f2f4f7]"
           } px-5 py-5 hidden md:flex`}
         >
           <div className="flex items-center relative">

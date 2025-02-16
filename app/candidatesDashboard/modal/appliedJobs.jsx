@@ -355,7 +355,7 @@ const AppliedJobs = ({
                                 isDarkMode ? "text-gray-400" : "text-gray-500"
                               }`}
                             >
-                              Applied on: {job.appS_date}
+                              Updated on: {job.appS_date}
                             </span>
                           </div>
 

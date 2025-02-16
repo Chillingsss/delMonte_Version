@@ -384,29 +384,24 @@ const Sidebar = ({
     <>
       <div
         ref={sidebarRef}
-        className={`fixed top-0 left-0 h-full p-5 rounded-r-lg flex flex-col transform transition-transform duration-300 ease-in-out z-50
+        className={`fixed top-0 left-0 h-full rounded-r-lg flex flex-col transform transition-transform duration-300 ease-in-out z-50
       ${isMenuOpen ? "translate-x-0 w-60" : "-translate-x-full w-72"}
       ${isDarkMode ? "bg-[#0A6338]" : "bg-[#0A6338]"}
       md:w-72 md:translate-x-0`}
       >
         <div
-          className="relative inline-block text-left"
-          // ref={dropdownUsernameRef}
+          onClick={refreshTransaction}
+          className="flex justify-center items-center cursor-pointer"
         >
-          <div
-            onClick={refreshTransaction}
-            className="flex justify-center items-center mt-2 cursor-pointer"
-          >
-            <img
-              src="/assets/images/delmontes.png"
-              alt="Del Monte Logo"
-              className="h-[100px] md:h-[130px] w-auto"
-            />
-          </div>
+          <img
+            src="/assets/images/delmontes.png"
+            alt="Del Monte Logo"
+            className="h-[100px] md:h-[130px] w-auto"
+          />
         </div>
 
-        <div className="mt-3">
-          <div className="mt-20">
+        <div className="p-5">
+          <div className="mt-16">
             <h3
               className={`text-lg font-semibold ${
                 isDarkMode ? "text-[#43CD8A]" : "text-[#43CD8A]"
@@ -502,9 +497,9 @@ const Sidebar = ({
             </div>
           </div>
 
-          <div className="mt-6 h-60">
+          <div className="mt-6 h-72">
             {examResults.length > 0 && (
-              <div className="mt-6 h-60 relative">
+              <div className="mt-6 h-72 relative">
                 <div className="sticky top-0">
                   <h3 className="text-xl font-semibold text-[#43CD8A]">
                     Exam Results
