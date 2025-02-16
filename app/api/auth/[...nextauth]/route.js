@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+const TWELVE_MINUTES = 12 * 60;
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -50,33 +52,38 @@ const handler = NextAuth({
         token.email = user.email;
         token.userLevel = user.userLevel;
       }
+
       return token;
     },
+
     async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.name = token.name;
-      session.user.email = token.email;
-      session.user.userLevel = token.userLevel;
+      if (token) {
+        session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.userLevel = token.userLevel;
+      }
+
       return session;
     },
   },
   session: {
     strategy: "jwt",
-    maxAge: 12 * 60,
-    updateAge: 0,
+    maxAge: TWELVE_MINUTES,
   },
-
-  pages: {
-    signIn: "/login",
+  jwt: {
+    maxAge: TWELVE_MINUTES,
   },
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name: "next-auth.session-token",
       options: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
         path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: TWELVE_MINUTES,
+        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
       },
     },
   },

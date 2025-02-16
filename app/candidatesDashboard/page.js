@@ -44,7 +44,14 @@ import {
   UserGroupIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { SearchIcon, XCircleIcon, Briefcase, User } from "lucide-react";
+import {
+  SearchIcon,
+  XCircleIcon,
+  Briefcase,
+  User,
+  X,
+  Search,
+} from "lucide-react";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { lineSpinner } from "ldrs";
 import AppliedJobs from "./modal/appliedJobs";
@@ -158,7 +165,7 @@ export default function DashboardCandidates() {
     const authToken = getDataFromCookie("auth_token");
 
     if (status === "unauthenticated" && !authToken) {
-      router.push("/");
+      router.replace("/");
     }
   }, [status, router]);
 
@@ -351,11 +358,6 @@ export default function DashboardCandidates() {
     return prefersDark;
   };
 
-  const getInitialThemeOption = () => {
-    const savedThemeOption = localStorage.getItem("themeOption");
-    return savedThemeOption ? savedThemeOption : "system";
-  };
-
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
@@ -394,73 +396,6 @@ export default function DashboardCandidates() {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
-
-  // const first_name = secureLocalStorage.getItem("first_name");
-  // const updatedFirstName = first_name.toUpperCase();
-  // secureLocalStorage.setItem("first_name", updatedFirstName);
-  // const userId = getDataFromSession("user_id");
-
-  // useEffect(() => {
-  //   try {
-  //     console.log('Checking authentication...');
-  //     const token = retrieveDataFromCookie("auth_token");
-  //     console.log('Retrieved token:', token);
-
-  //     if (!token) {
-  //       console.log('No token found, logging out');
-  //       handleLogout();
-  //       return;
-  //     }
-
-  //     // Decode and verify token
-  //     const decodedToken = JSON.parse(atob(token));
-  //     console.log('Decoded token:', decodedToken);
-
-  //     // Verify token expiration
-  //     const tokenAge = new Date().getTime() - decodedToken.timestamp;
-  //     if (tokenAge > 86400000) { // 24 hours
-  //       console.log('Token expired');
-  //       handleLogout();
-  //       return;
-  //     }
-
-  //     // Verify user type and level
-  //     const storedUserId = retrieveData("user_id");
-  //     const storedUserLevel = retrieveData("user_level");
-
-  //     if (decodedToken.userId !== storedUserId ||
-  //         decodedToken.userLevel !== storedUserLevel) {
-  //       console.log('User data mismatch', {
-  //         tokenUserId: decodedToken.userId,
-  //         storedUserId,
-  //         tokenLevel: decodedToken.userLevel,
-  //         storedLevel: storedUserLevel
-  //       });
-  //       handleLogout();
-  //       return;
-  //     }
-
-  //     // If we're on the wrong dashboard, redirect
-  //     if (decodedToken.type !== 'candidate') {
-  //       console.log('Wrong dashboard type:', decodedToken.type);
-  //       switch (decodedToken.type) {
-  //         case 'admin':
-  //           router.push("/admin/dashboard");
-  //           break;
-  //         case 'supervisor':
-  //           router.push("/supervisorDashboard");
-  //           break;
-  //       }
-  //       return;
-  //     }
-
-  //     console.log('Authentication successful');
-
-  //   } catch (error) {
-  //     console.error('Authentication error:', error);
-  //     handleLogout();
-  //   }
-  // }, []);
 
   const handleLogout = async () => {
     try {
@@ -657,24 +592,13 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    if (status === "loading") return; // Wait for session to load
-
-    // Check if user exists from session or auth_token in cookies
-    const user = session?.user || getDataFromCookie("auth_token");
-
-    if (!user) return; // No session and no auth_token? Do nothing
-
-    setIsLoading(true);
-    setTimeout(async () => {
-      await fetchAppliedJobs();
-      await fetchReappliedJobs();
-      await fetchProfiles();
-      await fetchNotification();
-      await fetchJobs();
-      await fetchExamResult();
-      setIsLoading(false);
-    }, 3000);
-  }, [status]);
+    fetchAppliedJobs();
+    fetchReappliedJobs();
+    fetchProfiles();
+    fetchNotification();
+    fetchJobs();
+    fetchExamResult();
+  }, []);
 
   const toggleUserDropdown = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -799,7 +723,7 @@ export default function DashboardCandidates() {
       await fetchNotification();
       await fetchJobs();
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
   };
 
   return (
@@ -1750,6 +1674,7 @@ export default function DashboardCandidates() {
           <div>
             <button
               onClick={handleViewAppliedJobs}
+              b
               className={`px-2 py-1 rounded-full bg-transparent text-xs border-b-2 ${
                 isDarkMode
                   ? "text-gray-300 border-green-500"
@@ -1762,13 +1687,13 @@ export default function DashboardCandidates() {
           {/* Search Input */}
           <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <SearchIcon className="w-5 h-5 text-gray-400" />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"
               name="search"
               id="search"
-              className={`block w-full px-4 py-2 rounded-2xl border border-gray-400 focus:outline-none focus:border-green-500 pl-10 ${
+              className={`block w-full px-4 py-2 rounded-2xl border border-gray-400 focus:outline-none focus:border-green-500 pl-10 pr-10 ${
                 isDarkMode
                   ? "bg-transparent text-gray-300"
                   : "bg-transparent text-gray-700"
@@ -1777,6 +1702,18 @@ export default function DashboardCandidates() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className={`absolute inset-y-0 right-0 flex items-center pr-3 ${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-gray-200"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <X className="w-5 h-5 transition-colors duration-150" />
+              </button>
+            )}
           </div>
 
           {/* Active Jobs Title */}

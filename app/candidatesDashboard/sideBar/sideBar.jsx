@@ -38,7 +38,6 @@ const Sidebar = ({
   fetchNotification,
   fetchProfiles,
 }) => {
-  console.log("appliedJobs", )
   const { data: session, status } = useSession();
   const router = useRouter();
   const sidebarRef = useRef(null);
@@ -404,7 +403,6 @@ const Sidebar = ({
               className="h-[100px] md:h-[130px] w-auto"
             />
           </div>
-
         </div>
 
         <div className="mt-3">

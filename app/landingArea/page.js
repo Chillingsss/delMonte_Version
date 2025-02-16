@@ -86,7 +86,7 @@ export default function LandingArea() {
           width={100}
           height={100}
           alt="Del Monte Logo"
-          className="h-16 sm:h-40 md:h-[120px] w-auto"
+          className="h-16 sm:h-30 md:h-40 w-auto"
         />
 
         {/* <div className="flex justify-center items-center h-full">
