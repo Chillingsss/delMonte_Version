@@ -8,11 +8,6 @@ import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import {
   storeDataInSession,
-  storeData,
-  removeCookie,
-  removeSessionData,
-  clearAllCookies,
-  clearAllSessionData,
   getDataFromCookie,
   getDataFromSession,
 } from "../utils/storageUtils";
@@ -470,7 +465,7 @@ export default function DashboardCandidates() {
     setIsExamModalOpen(true);
     setSelectedJobPassingPoints(jobPassingPoints);
     // storeData("jobMId", jobMId);
-    storeData("app_id", jobAppId);
+    storeDataInSession("app_id", jobAppId);
     // storeData("pass_percentage", jobPassingPoints);
   };
 
@@ -932,7 +927,6 @@ export default function DashboardCandidates() {
                         key={index}
                         onClick={() => {
                           if (result.status_name.toLowerCase() === "exam") {
-                            // Ensure examResults is an array before using find
                             const examId = Array.isArray(examResults)
                               ? examResults.find(
                                   (exam) => exam.jobM_id === result.jobM_id
@@ -1203,12 +1197,12 @@ export default function DashboardCandidates() {
       >
         <div
           className={`justify-between items-center fixed top-0 left-0 right-0 z-20 ${
-            isDarkMode ? "bg-[#101010]/85" : "bg-[#f2f4f7]"
+            isDarkMode ? "bg-[#101010]" : "bg-[#f2f4f7]"
           } px-5 py-5 hidden md:flex`}
         >
           <div className="flex items-center relative">
             <h1
-              className={`text-2xl md:text-4xl font-semibold slide-up ml-72  ${
+              className={`text-2xl md:text-4xl font-semibold slide-up ml-72 ${
                 isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
               }`}
             >
