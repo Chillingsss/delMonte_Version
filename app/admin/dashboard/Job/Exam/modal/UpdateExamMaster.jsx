@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Edit2 } from 'lucide-react'
-import axios from 'axios'
-import { toast } from 'sonner'
-import Spinner from '@/components/ui/spinner'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Edit2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import Spinner from "@/components/ui/spinner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Form,
   FormControl,
@@ -15,27 +17,40 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Exam name is required" }),
   duration: z.number().min(1, { message: "Duration must be greater than 0" }),
-  passingPercent: z.number().min(1, { message: "Passing percentage must be greater than 0" }),
-})
+  passingPercent: z
+    .number()
+    .min(1, { message: "Passing percentage must be greater than 0" }),
+});
 
-const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGeneralExam = false }) => {
+const UpdateExamMaster = ({
+  examMasterData,
+  getExamDetails,
+  passingPercent,
+  isGeneralExam = false,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
+      name: "",
       duration: 0,
       passingPercent: 0,
     },
-  })
+  });
 
   useEffect(() => {
     console.log("examMasterData: ", examMasterData);
@@ -44,12 +59,16 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
         name: examMasterData.exam_name,
         duration: examMasterData.exam_duration,
         passingPercent: passingPercent,
-      })
+      });
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const handleUpdateExamMaster = async (values) => {
-    if (values.name === examMasterData.exam_name && values.duration === examMasterData.exam_duration && values.passingPercent === examMasterData.passing_percent) {
+    if (
+      values.name === examMasterData.exam_name &&
+      values.duration === examMasterData.exam_duration &&
+      values.passingPercent === examMasterData.passing_percent
+    ) {
       // setIsOpen(false);
       toast.info("No changes made");
       return;
@@ -66,7 +85,7 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
         name: values.name,
         duration: values.duration,
         passingPercent: values.passingPercent,
-        jobId: examMasterData.exam_jobMId
+        jobId: examMasterData.exam_jobMId,
       };
 
       console.log("examData: ", examData);
@@ -94,15 +113,20 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div>
-          <button><Edit2 className='cursor-pointer w-5 h-5 md:mr-2' /></button>
+          <button>
+            <Edit2 className="cursor-pointer w-5 h-5 md:mr-2" />
+          </button>
         </div>
       </DialogTrigger>
-      <DialogContent className='overflow-y-auto'>
+      <DialogContent className="overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Update exam master</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleUpdateExamMaster)} className='flex flex-col gap-2'>
+          <form
+            onSubmit={form.handleSubmit(handleUpdateExamMaster)}
+            className="flex flex-col gap-2"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -125,7 +149,13 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
                     <FormItem>
                       <FormLabel>Exam Duration (minutes)</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -138,7 +168,13 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
                     <FormItem>
                       <FormLabel>Passing Percentage</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -146,15 +182,24 @@ const UpdateExamMaster = ({ examMasterData, getExamDetails, passingPercent, isGe
                 />
               </>
             )}
-            <div className='flex justify-end gap-2'>
-              <Button type="button" onClick={() => setIsOpen(false)} variant="outline">Close</Button>
-              <Button type="submit" disabled={isLoading}>{isLoading && <Spinner />} {isLoading ? "Updating..." : "Update Exam"}</Button>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                variant="outline"
+              >
+                Close
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Spinner />}{" "}
+                {isLoading ? "Updating..." : "Update Exam"}
+              </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default UpdateExamMaster
+export default UpdateExamMaster;
