@@ -12,7 +12,7 @@ const nextConfig = {
           },
           {
             key: "Access-Control-Allow-Origin",
-            value: "*", // Change this to your frontend domain in production
+            value: "*",
           },
           {
             key: "Access-Control-Allow-Methods",
