@@ -1,5 +1,5 @@
 "use client";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription } from "@/components/ui/card";
 import ShowAlert from "@/components/ui/show-alert";

@@ -1,9 +1,5 @@
 import DataTable from "@/app/my_components/DataTable";
-import {
-  getDataFromCookie,
-  getDataFromSession,
-  retrieveData,
-} from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import Spinner from "@/components/ui/spinner";
 import axios from "axios";
 import React, { useEffect, useState } from "react";

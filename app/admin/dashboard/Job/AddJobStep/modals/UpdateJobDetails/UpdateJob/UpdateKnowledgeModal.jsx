@@ -26,8 +26,6 @@ import { Input } from "@/components/ui/input";
 import ComboBox from "@/app/my_components/combo-box";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 

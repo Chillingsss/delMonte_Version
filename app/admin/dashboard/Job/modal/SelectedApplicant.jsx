@@ -1,6 +1,6 @@
 "use client";
 import { formatDate } from "@/app/signup/page";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import {
   Accordion,
   AccordionContent,

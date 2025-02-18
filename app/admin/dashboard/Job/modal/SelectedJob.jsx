@@ -1,8 +1,5 @@
 import {
   getDataFromSession,
-  removeData,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Card } from "@/components/ui/card";

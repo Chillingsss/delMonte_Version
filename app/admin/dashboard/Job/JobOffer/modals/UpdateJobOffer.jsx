@@ -26,7 +26,7 @@ import Spinner from "@/components/ui/spinner";
 import axios from "axios";
 import DatePicker from "@/app/my_components/DatePicker";
 import { Textarea } from "@/components/ui/textarea";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { Edit2 } from "lucide-react";
 
 const UpdateJobOffer = ({ candidate, getJobOfferCandidates, disabled }) => {

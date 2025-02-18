@@ -16,8 +16,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Button } from "@/components/ui/button";

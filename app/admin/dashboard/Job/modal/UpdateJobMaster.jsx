@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Edit } from "lucide-react";
 import Spinner from "@/components/ui/spinner";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import axios from "axios";
 
 const UpdateJobMaster = ({ title, description, getSelectedJobs }) => {

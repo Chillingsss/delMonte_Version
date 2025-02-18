@@ -25,7 +25,7 @@ import UpdateInterviewPassingPercentage from "./UpdateInterview/UpdateInterviewP
 import AddInterviewCriteria from "./AddInterview/AddInterviewCriteria";
 import UpdateInterviewCriteria from "./UpdateInterview/UpdateInterviewCriteria";
 import Spinner from "@/components/ui/spinner";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 function ViewInterviewCriteria() {

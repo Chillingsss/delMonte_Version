@@ -1,8 +1,6 @@
 "use client";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -93,10 +91,7 @@ function AddDutiesMaster({ previousStep, nextStep }) {
     } else {
       setDatas([]);
     }
-    console.log(
-      "dutiessss",
-      getDataFromSession("duties")
-    );
+    console.log("dutiessss", getDataFromSession("duties"));
   }, []);
 
   return (

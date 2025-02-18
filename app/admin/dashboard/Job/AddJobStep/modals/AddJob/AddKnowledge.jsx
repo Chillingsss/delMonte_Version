@@ -25,8 +25,6 @@ import { Input } from "@/components/ui/input";
 import ComboBox from "@/app/my_components/combo-box";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import AddKnowledgeMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddKnowledgeMaster";
@@ -40,7 +38,9 @@ function AddKnowledge({
   isUpdate = false,
 }) {
   const [openState, setOpenState] = useState(false);
-  const [knowledgeData, setKnowledgeData] = useState(getDataFromSession("knowledgeList"));
+  const [knowledgeData, setKnowledgeData] = useState(
+    getDataFromSession("knowledgeList")
+  );
   const formSchema = z.object({
     knowledgeId: z.number().min(1, {
       message: "This field is required",
@@ -96,8 +96,7 @@ function AddKnowledge({
   const onSubmit = (values) => {
     console.log("continue..");
     try {
-      const selectedKnowledge =
-        getDataFromSession("jobKnowledge") || [];
+      const selectedKnowledge = getDataFromSession("jobKnowledge") || [];
       console.log("selectedKnowledge:", selectedKnowledge);
       let isValid = true;
       selectedKnowledge.forEach((element) => {

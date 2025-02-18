@@ -9,8 +9,6 @@ import axios from "axios";
 import { toast } from "sonner";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Separator } from "@/components/ui/separator";

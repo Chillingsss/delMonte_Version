@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 import Spinner from "@/components/ui/spinner";
 import DataTable from "@/app/my_components/DataTable";

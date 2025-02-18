@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ViewInterviewCriteria from "./modals/ViewInterviewCriteria";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import axios from "axios";
 import { toast } from "sonner";
 import Spinner from "@/components/ui/spinner";

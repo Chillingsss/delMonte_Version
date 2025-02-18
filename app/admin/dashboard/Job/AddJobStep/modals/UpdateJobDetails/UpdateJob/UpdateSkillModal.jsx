@@ -26,8 +26,6 @@ import ComboBox from "@/app/my_components/combo-box";
 import { Input } from "@/components/ui/input";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 
@@ -60,7 +58,7 @@ function UpdateSkillModal({ open, onHide, skill, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedSkill = retrieveData("jobSkill") || [];
+      const selectedSkill = getDataFromSession("jobSkill") || [];
       let isValid = true;
       const filteredSelectedData = selectedSkill.filter((element) => {
         return element.skill !== updateData.skill;

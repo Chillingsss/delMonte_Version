@@ -1,8 +1,6 @@
 "use client";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Button } from "@/components/ui/button";
@@ -114,7 +112,6 @@ function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
     }
     console.log("datas ni knowledge:", data);
     console.log("knowledge ni knowledge:", knowledgeList);
-
   }, [data, knowledgeList]);
 
   return (

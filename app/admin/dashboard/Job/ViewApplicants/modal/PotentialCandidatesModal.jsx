@@ -1,5 +1,5 @@
 import DataTable from "@/app/my_components/DataTable";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

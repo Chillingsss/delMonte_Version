@@ -1,8 +1,8 @@
 "use client";
 import {
   getDataFromSession,
-  retrieveData,
   storeData,
+  storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ function AddJobExperience({ previousStep, handleSubmit }) {
     if (status === 1) {
       const filteredDatas = datas.filter((_, index) => index !== indexToRemove);
       setDatas(filteredDatas);
-      storeData("jobExperience", JSON.stringify(filteredDatas));
+      storeDataInSession("jobExperience", JSON.stringify(filteredDatas));
     }
     setShowAlert(false);
   };
@@ -51,7 +51,7 @@ function AddJobExperience({ previousStep, handleSubmit }) {
   const handleCloseModal = (status) => {
     if (status !== 0) {
       setDatas([...datas, status]);
-      storeData("jobExperience", JSON.stringify([...datas, status]));
+      storeDataInSession("jobExperience", JSON.stringify([...datas, status]));
     } else {
       setDatas(datas);
     }

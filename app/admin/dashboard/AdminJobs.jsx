@@ -16,11 +16,7 @@ import {
 } from "lucide-react";
 import Spinner from "@/components/ui/spinner";
 import AddJob from "./AddJob";
-import {
-  getDataFromSession,
-  removeData,
-  retrieveData,
-} from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,

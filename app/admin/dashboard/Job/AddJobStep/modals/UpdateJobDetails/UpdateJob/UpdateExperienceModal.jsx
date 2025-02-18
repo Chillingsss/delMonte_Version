@@ -25,8 +25,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 

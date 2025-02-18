@@ -1,8 +1,6 @@
 "use client";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Alert, AlertTitle } from "@/components/ui/alert";

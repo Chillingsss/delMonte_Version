@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import AdminDashboard from "./AdminDashboard";
 import AdminSidebar from "./AdminSidebar";
 import { CardTitle } from "@/components/ui/card";
@@ -18,11 +18,7 @@ import GeneralExam from "./Masterfiles/GeneralExam";
 import InterviewCategoryMaster from "./Masterfiles/InterviewCategoryMaster";
 import InterviewCriteriaMaster from "./Masterfiles/InterviewCriteriaMaster";
 import { useRouter } from "next/navigation";
-import {
-  getDataFromCookie,
-  getDataFromSession,
-  retrieveData,
-} from "@/app/utils/storageUtils";
+import { getDataFromCookie } from "@/app/utils/storageUtils";
 
 export default function Page() {
   const { data: session, status } = useSession();

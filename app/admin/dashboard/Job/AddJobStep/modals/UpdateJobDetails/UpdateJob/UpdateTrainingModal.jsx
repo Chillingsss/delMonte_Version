@@ -26,8 +26,7 @@ import ComboBox from "@/app/my_components/combo-box";
 import { Input } from "@/components/ui/input";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
+  storeDataInSession,
 } from "@/app/utils/storageUtils";
 
 function UpdateTrainingModal({ open, onHide, training, updateData }) {
@@ -78,7 +77,7 @@ function UpdateTrainingModal({ open, onHide, training, updateData }) {
           toast.error("Total points cannot exceed 100");
           return;
         }
-        storeData("jobTotalPoints", newTotalPoints);
+        storeDataInSession("jobTotalPoints", newTotalPoints);
         onHide(values);
         form.reset();
       }

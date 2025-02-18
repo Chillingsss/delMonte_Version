@@ -16,8 +16,6 @@ import axios from "axios";
 import Spinner from "@/components/ui/spinner";
 import {
   getDataFromSession,
-  retrieveData,
-  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import UpdateEducation from "./UpdateEducationBackground";

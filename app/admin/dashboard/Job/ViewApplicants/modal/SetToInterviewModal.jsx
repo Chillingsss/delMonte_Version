@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { date, z } from "zod";
 import { useForm } from "react-hook-form";
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import axios from "axios";
 import Spinner from "@/components/ui/spinner";
 

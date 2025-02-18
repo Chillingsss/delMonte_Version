@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sheet";
 import Spinner from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 function ViewExam() {
