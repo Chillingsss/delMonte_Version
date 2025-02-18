@@ -274,7 +274,7 @@ export default function DashboardCandidates() {
   useEffect(() => {
     fetchJobs();
     fetchProfiles();
-  }, []);
+  }, [fetchJobs, fetchProfiles]);
 
   const fetchNotification = async () => {
     try {

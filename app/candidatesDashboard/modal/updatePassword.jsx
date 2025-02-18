@@ -127,7 +127,7 @@ const UpdatePassword = ({
     };
 
     checkPasswordExists();
-  }, []);
+  }, [checkPasswordExists]);
 
   const validatePassword = (password) => {
     const checks = {

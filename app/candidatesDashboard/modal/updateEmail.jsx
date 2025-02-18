@@ -115,7 +115,7 @@ const UpdateEmail = ({
     };
 
     checkPasswordExists();
-  }, []);
+  }, [checkPasswordExists]);
 
   // Request OTP to be sent to current email after verifying current password
   const requestPinCodeToCurrentEmail = async () => {

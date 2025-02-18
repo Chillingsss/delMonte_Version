@@ -376,7 +376,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     fetchKnowledge();
     fetchLicense();
     fetchLicenseType();
-  }, []);
+  }, [fetchCourses, fetchInstitutions, fetchCourseTypes, fetchCourseCategorys]);
 
   async function fetchProfile() {
     try {
@@ -3518,7 +3518,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [handleClickOutside]);
 
   useEffect(() => {
     // Cleanup function for object URLs

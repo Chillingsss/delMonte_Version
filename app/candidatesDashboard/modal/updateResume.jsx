@@ -112,7 +112,7 @@ const UpdateResume = ({
 
   useEffect(() => {
     fetchProfileKeywords();
-  }, []);
+  }, [fetchProfileKeywords]);
 
   const fetchProfileKeywords = async () => {
     setLoading(true);

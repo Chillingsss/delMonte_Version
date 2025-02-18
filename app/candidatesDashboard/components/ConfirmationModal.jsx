@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 
 const ConfirmationModal = ({ isOpen, onRequestClose, onConfirm, message }) => {
-  if (!isOpen) return null;
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  if (!isOpen) return null; // Moved after useState
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");

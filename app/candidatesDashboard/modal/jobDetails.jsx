@@ -19,7 +19,6 @@ import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast"; // Import from react-hot-toast
 import ViewProfile from "./viewProfile";
 
-
 const JobDetailsModal = ({
   job,
   onClosedd,
@@ -74,8 +73,7 @@ const JobDetailsModal = ({
 
   useEffect(() => {
     fetchProfile();
-    // fetchAppliedJobs();
-  }, []);
+  }, [fetchProfile]);
 
   // useEffect(() => {
   //   function handleClickOutside(event) {
