@@ -1210,7 +1210,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                   }
                 >
                   {profile.candidateInformation?.cand_profPic ? (
-                    <Image
+                    <img
                       src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                       alt="Profile"
                       className="w-full h-full object-cover"
@@ -1245,7 +1245,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                     }}
                   >
                     <div className="relative max-w-6xl max-h-[90vh] p-2">
-                      <Image
+                      <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                         alt="Profile"
                         className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
@@ -1698,7 +1698,9 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                   {(editData.candidateInformation?.cand_profPic ||
                     profile.candidateInformation?.cand_profPic) && (
                     <div className="relative w-32 h-32 mb-4">
-                      <Image
+                      <img
+                        width={70}
+                        height={70}
                         src={
                           editData.candidateInformation?.cand_profPic instanceof
                           File
@@ -2996,7 +2998,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                           >
                             Training Image:
                           </label>
-                          <Image
+                          <img
                             src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${train.training_image}`}
                             alt={train.perT_name}
                             className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
@@ -3434,7 +3436,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                           >
                             Resume Image:
                           </label>
-                          <Image
+                          <img
                             src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_image}`}
                             alt={res.canres_name}
                             className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
@@ -3666,7 +3668,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
           }}
         >
           <div className="relative max-w-6xl max-h-[90vh] p-2">
-            <Image
+            <img
               src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${selectedTrainingImage}`}
               alt="Training"
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
@@ -3756,7 +3758,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
           }}
         >
           <div className="relative max-w-6xl max-h-[90vh] p-2">
-            <Image
+            <img
               src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${selectedResumeImage}`}
               alt="Resume"
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"

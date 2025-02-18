@@ -746,6 +746,8 @@ export default function DashboardCandidates() {
             )}{" "}
           </button>
           <Image
+            width={70}
+            height={70}
             src="/assets/images/delMontes.png"
             alt="Del Monte Logo"
             className="h-10 w-auto ml-2"
@@ -808,7 +810,7 @@ export default function DashboardCandidates() {
                   }`}
                 >
                   {profile.candidateInformation?.cand_profPic ? (
-                    <Image
+                    <img
                       src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                       alt="Profile"
                       className="w-full h-full object-cover"
@@ -1000,7 +1002,7 @@ export default function DashboardCandidates() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-                                <Image
+                                <img
                                   src="/assets/images/delMontes.png"
                                   alt="Del Monte Logo"
                                   className="h-8 w-auto object-contain"
@@ -1076,7 +1078,7 @@ export default function DashboardCandidates() {
                     }`}
                   >
                     {profile.candidateInformation?.cand_profPic ? (
-                      <Image
+                      <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                         alt="Profile"
                         className="w-full h-full object-cover"
@@ -1293,7 +1295,7 @@ export default function DashboardCandidates() {
                     }`}
                   >
                     {profile.candidateInformation?.cand_profPic ? (
-                      <Image
+                      <img
                         src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                         alt="Profile"
                         className="w-full h-full object-cover"
@@ -1490,7 +1492,7 @@ export default function DashboardCandidates() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-                                  <Image
+                                  <img
                                     src="/assets/images/delMontes.png"
                                     alt="Del Monte Logo"
                                     className="h-8 w-auto object-contain"
@@ -1564,7 +1566,7 @@ export default function DashboardCandidates() {
                       }`}
                     >
                       {profile.candidateInformation?.cand_profPic ? (
-                        <Image
+                        <img
                           src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
                           alt="Profile"
                           className="w-full h-full object-cover"
