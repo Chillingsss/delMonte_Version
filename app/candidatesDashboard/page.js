@@ -274,7 +274,7 @@ export default function DashboardCandidates() {
   useEffect(() => {
     fetchJobs();
     fetchProfiles();
-  }, [fetchJobs, fetchProfiles]);
+  }, []);
 
   const fetchNotification = async () => {
     try {
@@ -732,7 +732,7 @@ export default function DashboardCandidates() {
         className={`md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-[#0A6338] dark:bg-[#0A6338]`}
       >
         <div className="flex items-center">
-          <button
+          {/* <button
             className="text-white focus:outline-none"
             onClick={(e) => {
               e.stopPropagation();
@@ -744,7 +744,7 @@ export default function DashboardCandidates() {
             ) : (
               <HiOutlineMenuAlt2 className="w-8 h-8" />
             )}{" "}
-          </button>
+          </button> */}
           <Image
             width={70}
             height={70}

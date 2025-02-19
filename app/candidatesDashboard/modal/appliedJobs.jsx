@@ -26,6 +26,14 @@ import ExamModal from "../exam/exam";
 import JobOfferModal from "../modal/jobOffer";
 import CancelJobModal from "../modal/cancelJobApplied";
 import { X } from "lucide-react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 const AppliedJobs = ({
   isDarkMode,
