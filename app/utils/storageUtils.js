@@ -5,7 +5,11 @@ if (BASE_SECRET_KEY) {
   console.log("Secret key found in environment variables!");
 }
 
-const BROWSER_KEY = CryptoJS.SHA256(navigator.userAgent).toString(); // Unique per browser
+let BROWSER_KEY = "";
+
+if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+  BROWSER_KEY = CryptoJS.SHA256(navigator.userAgent).toString();
+}
 
 // Generate dynamic secret key (changes per browser and per session)
 const getDynamicKey = () =>
