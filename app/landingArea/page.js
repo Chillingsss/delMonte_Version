@@ -121,7 +121,18 @@ export default function LandingArea() {
             </div>
           </div>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <div className="flex items-center justify-center h-64 flex-col">
+            <div className="text-center">
+              <l-line-spinner
+                size="40"
+                speed="1.75"
+                color="black"
+              ></l-line-spinner>
+              <p className="text-green-700 mt-2">
+                Please wait while we load available jobs
+              </p>
+            </div>
+          </div>
         ) : job.length === 0 ? (
           <p className="text-center text-gray-500">No jobs available</p>
         ) : (
