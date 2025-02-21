@@ -1,4 +1,5 @@
 "use client";
+// export const dynamic = "force-dynamic";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -25,15 +26,15 @@ import {
   faUser as faUserRegular,
   faBell as faBellRegular,
 } from "@fortawesome/free-regular-svg-icons";
-import Sidebar from "./sideBar/sideBar";
-import JobDetailsModal from "./modal/jobDetails";
-import ViewProfile from "./modal/viewProfile";
-import ExamModal from "./exam/exam";
-import { HiOutlineMenuAlt2 } from "react-icons/hi";
-import { MdClose, MdRefresh } from "react-icons/md";
-import { FaBell } from "react-icons/fa";
-import JobOfferModal from "./modal/jobOffer";
-import CancelJobModal from "./modal/cancelJobApplied";
+import dynamic from 'next/dynamic';
+
+const Sidebar = dynamic(() => import("./sideBar/sideBar"), { ssr: false });
+const JobDetailsModal = dynamic(() => import("./modal/jobDetails"), { ssr: false });
+const ViewProfile = dynamic(() => import("./modal/viewProfile"), { ssr: false });
+const ExamModal = dynamic(() => import("./exam/exam"), { ssr: false });
+const JobOfferModal = dynamic(() => import("./modal/jobOffer"), { ssr: false });
+const CancelJobModal = dynamic(() => import("./modal/cancelJobApplied"), { ssr: false });
+const AppliedJobs = dynamic(() => import("./modal/appliedJobs"), { ssr: false });
 import {
   CalendarIcon,
   UserGroupIcon,
@@ -49,10 +50,8 @@ import {
 } from "lucide-react";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { lineSpinner } from "ldrs";
-import AppliedJobs from "./modal/appliedJobs";
 import Image from "next/image";
-
-lineSpinner.register();
+import { MdRefresh } from "react-icons/md";
 
 export default function DashboardCandidates() {
   const { data: session, status } = useSession();
@@ -68,7 +67,6 @@ export default function DashboardCandidates() {
   const router = useRouter();
   const [userName, setUserName] = useState("");
   const [appliedJobs, setAppliedJobs] = useState([]);
-  const [appliedJobsLoading, setAppliedJobsLoading] = useState(true);
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
@@ -124,10 +122,18 @@ export default function DashboardCandidates() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAppliedJobsModalOpen, setIsAppliedJobsModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      lineSpinner.register();
+    }
+  }, [])
+
   const getUserIdFromCookie = () => {
-    const tokenData = getDataFromCookie("auth_token");
-    if (tokenData && tokenData.userId) {
-      return tokenData.userId;
+    if (typeof window !== "undefined") {
+      const tokenData = getDataFromCookie("auth_token");
+      if (tokenData && tokenData.userId) {
+        return tokenData.userId;
+      }
     }
     return null; // Return null if userId is not found or tokenData is invalid
   };
@@ -135,8 +141,11 @@ export default function DashboardCandidates() {
 
   useEffect(() => {
     const getUserLevelFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null;
+      if (typeof window !== "undefined") {
+        const tokenData = getDataFromCookie("auth_token");
+        return tokenData?.userLevel || null;
+      }
+      return null;
     };
 
     const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
@@ -158,39 +167,12 @@ export default function DashboardCandidates() {
   }, []);
 
   useEffect(() => {
-    const authToken = getDataFromCookie("auth_token");
+    const authToken = typeof window !== "undefined" ? getDataFromCookie("auth_token") : null;
 
     if (status === "unauthenticated" && !authToken) {
       router.replace("/");
     }
   }, [status, router]);
-
-  const fetchProfiles = async () => {
-    try {
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-      const userId = session?.user?.id || getUserIdFromCookie();
-      console.log("User IDss:", userId);
-      const jsonData = { cand_id: userId };
-
-      const formData = new FormData();
-      formData.append("operation", "getCandidateProfile");
-      formData.append("json", JSON.stringify(jsonData));
-
-      const response = await axios.post(url, formData);
-      console.log("res", response.data);
-      setProfile(response.data);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const filteredJobs = jobs.filter((job) => {
@@ -235,54 +217,92 @@ export default function DashboardCandidates() {
     setIsAppliedJobsModalOpen(false);
   };
 
-  const fetchJobs = useCallback(async () => {
+const fetchProfiles = async () => {
     try {
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-      const userId = session?.user?.id || getUserIdFromCookie();
+        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+        
+        const getUserIdFromCookie = () => {
+          if (typeof window !== 'undefined') { // Check if running in the browser
+              const tokenData = getDataFromCookie("auth_token");
+              if (tokenData && tokenData.userId) {
+                  return tokenData.userId;
+              }
+          }
+          return null; // Return null if userId is not found or tokenData is invalid
+        };
 
-      console.log("User ID:", userId);
+        const userId = session?.user?.id || getUserIdFromCookie();
+        console.log("User IDss:", userId);
+        const jsonData = { cand_id: userId };
 
-      const formData = new FormData();
-      formData.append("operation", "getActiveJob");
-      formData.append("json", JSON.stringify({ cand_id: userId }));
+        const formData = new FormData();
+        formData.append("operation", "getCandidateProfile");
+        formData.append("json", JSON.stringify(jsonData));
 
-      const response = await axios.post(url, formData);
-
-      if (Array.isArray(response.data)) {
-        console.log("Setting jobs:", response.data);
-        setJobs(response.data);
-      } else {
-        console.error("Invalid data format:", response.data);
-        setError("Unexpected data format received from server.");
-      }
+        const response = await axios.post(url, formData);
+        console.log("res", response.data);
+        setProfile(response.data);
+        setLoading(false);
     } catch (error) {
-      console.error(
-        "Error fetching jobs:",
-        error.response?.data || error.message || error
-      );
-      setError("Error fetching jobs");
+        setLoading(false);
     }
-  }, [session]); // Added session as a dependency
+};
+
+const fetchJobs = useCallback(async () => {
+    try {
+        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+
+        const getUserIdFromCookie = () => {
+            if (typeof window !== 'undefined') { // Check if running in the browser
+                const tokenData = getDataFromCookie("auth_token");
+                if (tokenData && tokenData.userId) {
+                    return tokenData.userId;
+                }
+            }
+            return null; // Return null if userId is not found or tokenData is invalid
+        };
+
+        const userId = session?.user?.id || getUserIdFromCookie();
+        console.log("User ID:", userId);
+
+        const formData = new FormData();
+        formData.append("operation", "getActiveJob");
+        formData.append("json", JSON.stringify({ cand_id: userId }));
+
+        const response = await axios.post(url, formData);
+
+        if (Array.isArray(response.data)) {
+            console.log("Setting jobs:", response.data);
+            setJobs(response.data);
+        } else {
+            console.error("Invalid data format:", response.data);
+            setError("Unexpected data format received from server.");
+        }
+    } catch (error) {
+        console.error(
+            "Error fetching jobs:",
+            error.response?.data || error.message || error
+        );
+        setError("Error fetching jobs");
+    }
+}, [session]); // Added session as a dependency
 
   useEffect(() => {
-    fetchJobs();
-    fetchProfiles();
+    if (typeof window !== 'undefined') {
+      fetchJobs();
+      fetchProfiles();
+    }
   }, []);
 
   const fetchNotification = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -314,16 +334,20 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    fetchNotification();
+    if (typeof window !== 'undefined') {
+      fetchNotification();
+    }
   }, []);
 
   const markNotificationsAsRead = async () => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -343,38 +367,41 @@ export default function DashboardCandidates() {
   };
 
   const getInitialTheme = () => {
-    const savedTheme = localStorage.getItem("appearance");
-    if (savedTheme && savedTheme !== "system") {
-      return savedTheme === "dark";
+    if (typeof window !== "undefined") { // Check if running in the browser
+        const savedTheme = localStorage.getItem("appearance");
+        if (savedTheme && savedTheme !== "system") {
+            return savedTheme === "dark";
+        }
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        return prefersDark;
     }
-
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    return prefersDark;
-  };
+    return false; // Default to light mode if not in the browser
+};
 
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
-    const theme = isDarkMode ? "dark" : "light";
-    localStorage.setItem("appearance", theme);
-    document.body.className = theme;
-    // console.log("Setting theme:", theme);
+    if (typeof window !== "undefined") { // Check if running in the browser
+        const theme = isDarkMode ? "dark" : "light";
+        localStorage.setItem("appearance", theme);
+        document.body.className = theme;
+    }
   }, [isDarkMode]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    if (typeof window !== "undefined") { // Check if running in the browser
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const handleSystemThemeChange = (e) => {
-      setIsDarkMode(e.matches);
-    };
+      const handleSystemThemeChange = (e) => {
+        setIsDarkMode(e.matches);
+      };
 
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
 
-    return () => {
-      mediaQuery.removeEventListener("change", handleSystemThemeChange);
-    };
+      return () => {
+        mediaQuery.removeEventListener("change", handleSystemThemeChange);
+      };
+    }
   }, []);
 
   // Toggle function to switch themes manually
@@ -416,9 +443,11 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -499,9 +528,11 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -532,9 +563,11 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -565,9 +598,11 @@ export default function DashboardCandidates() {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
+        if (typeof window !== "undefined") {
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
         }
         return null; // Return null if userId is not found or tokenData is invalid
       };
@@ -588,12 +623,14 @@ export default function DashboardCandidates() {
   };
 
   useEffect(() => {
-    fetchAppliedJobs();
-    fetchReappliedJobs();
-    fetchProfiles();
-    fetchNotification();
-    fetchJobs();
-    fetchExamResult();
+    if (typeof window !== "undefined") {
+      fetchAppliedJobs();
+      fetchReappliedJobs();
+      fetchProfiles();
+      fetchNotification();
+      fetchJobs();
+      fetchExamResult();
+    }
   }, []);
 
   const toggleUserDropdown = () => {
@@ -1222,7 +1259,7 @@ export default function DashboardCandidates() {
             </button>
           </div>
 
-          {isLoading && (
+          {/* {isLoading && (
             <div className="fixed z-70 flex items-center justify-center h-screen w-screen">
               <l-line-spinner
                 size="40"
@@ -1231,7 +1268,7 @@ export default function DashboardCandidates() {
                 color={isDarkMode ? "#188C54" : "#000000"}
               ></l-line-spinner>
             </div>
-          )}
+          )} */}
 
           <div
             className="flex items-center relative"

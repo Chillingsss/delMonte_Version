@@ -5,18 +5,13 @@ import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import Link from "next/link";
 import { hourglass } from "ldrs";
-
-hourglass.register();
-
 import {
   getDataFromSession,
   getDataFromCookie,
 } from "@/app/utils/storageUtils";
-// import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { revalidatePath } from "next/cache";
 import { useRouter } from "next/navigation";
-import { Toaster, toast } from "react-hot-toast"; // Import from react-hot-toast
+import { Toaster, toast } from "react-hot-toast";
 import ViewProfile from "./viewProfile";
 
 const JobDetailsModal = ({
@@ -40,6 +35,13 @@ const JobDetailsModal = ({
   // const [AppliedJobs, setAppliedJobs] = useState([]);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    // ✅ Ensure `lineSpinner.register()` runs only in the client
+    if (typeof window !== "undefined") {
+      hourglass.register();
+    }
+  }, []);
 
   async function fetchProfile() {
     try {
