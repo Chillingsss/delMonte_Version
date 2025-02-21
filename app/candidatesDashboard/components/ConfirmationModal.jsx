@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 const ConfirmationModal = ({ isOpen, onRequestClose, onConfirm, message }) => {
-  if (!isOpen) return null;
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -46,6 +45,8 @@ const ConfirmationModal = ({ isOpen, onRequestClose, onConfirm, message }) => {
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
     };
   }, []);
+
+  if (!isOpen) return null; // Move conditional return AFTER useEffect
 
   return (
     <div

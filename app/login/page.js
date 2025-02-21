@@ -355,7 +355,7 @@ export default function Login(user) {
               </a>
               <div className="mt-4 text-white flex flex-col items-start">
                 <p>
-                  Don't have an account?{" "}
+                  Do not have an account?{" "}
                   <Link
                     href="/signup"
                     className="ml-2 text-green-300 hover:underline slide-up"

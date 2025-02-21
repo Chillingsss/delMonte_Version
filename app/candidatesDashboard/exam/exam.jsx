@@ -763,7 +763,7 @@ const ExamModal = ({
                 </div>
 
                 <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                  Time's Up!
+                  Times Up!
                 </h3>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-8">

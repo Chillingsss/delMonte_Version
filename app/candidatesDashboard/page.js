@@ -1047,7 +1047,7 @@ export default function DashboardCandidates() {
                         No notifications yet
                       </p>
                       <p className="text-sm text-gray-400">
-                        We'll notify you when something arrives
+                        We will notify you when something arrives
                       </p>
                     </div>
                   )}
@@ -1537,7 +1537,7 @@ export default function DashboardCandidates() {
                           No notifications yet
                         </p>
                         <p className="text-sm text-gray-400">
-                          We'll notify you when something arrives
+                          We will notify you when something arrives
                         </p>
                       </div>
                     )}

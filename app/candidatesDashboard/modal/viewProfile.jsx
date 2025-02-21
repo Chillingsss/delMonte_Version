@@ -3502,34 +3502,38 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const dropdown = document.getElementById("upload-options");
-      if (
-        dropdown &&
-        !dropdown.contains(event.target) &&
-        !event.target.closest("button")
-      ) {
-        dropdown.classList.add("hidden");
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     const dropdown = document.getElementById("upload-options");
+  //     if (
+  //       dropdown &&
+  //       !dropdown.contains(event.target) &&
+  //       !event.target.closest("button")
+  //     ) {
+  //       dropdown.classList.add("hidden");
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    // Cleanup function for object URLs
-    return () => {
-      if (editData.candidateInformation?.cand_profPic instanceof File) {
-        URL.revokeObjectURL(
-          URL.createObjectURL(editData.candidateInformation.cand_profPic)
-        );
-      }
-    };
-  }, [editData.candidateInformation?.cand_profPic]);
+  // useEffect(() => {
+  //   let objectUrl = null; // Ensure it always exists
+
+  //   const candidatePic = editData.candidateInformation?.cand_profPic ?? null;
+  //   if (candidatePic instanceof File) {
+  //     objectUrl = URL.createObjectURL(candidatePic);
+  //   }
+
+  //   return () => {
+  //     if (objectUrl) {
+  //       URL.revokeObjectURL(objectUrl);
+  //     }
+  //   };
+  // }, [editData.candidateInformation?.cand_profPic]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">

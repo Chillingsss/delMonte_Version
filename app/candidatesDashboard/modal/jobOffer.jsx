@@ -19,13 +19,13 @@ const JobOfferModal = ({
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [responseType, setResponseType] = useState("");
 
-  if (!jobOfferDetails) return null;
-
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      tailChase.register();
-    }
+    if (typeof window === "undefined") return; // ✅ Safe check inside effect
+
+    tailChase.register();
   }, []);
+
+  if (!jobOfferDetails) return null;
 
   const handleResponse = async (status) => {
     try {
