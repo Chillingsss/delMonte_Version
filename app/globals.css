@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  background-color: #eae9e7;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -291,4 +295,3 @@
   max-height: 300px;
   overflow-y: auto;
 }
-

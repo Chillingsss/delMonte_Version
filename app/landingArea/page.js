@@ -80,13 +80,13 @@ export default function LandingArea() {
 
   return (
     <div className="min-h-screen bg-[#EAE9E7]">
-      <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-32 bg-[#004F39] slide-up">
+      <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-28 bg-[#004F39] slide-up">
         <Image
           src="/assets/images/delmontes.png"
           width={70}
           height={70}
           alt="Del Monte Logo"
-          className="h-16 sm:h-30 md:h-32 w-auto"
+          className="h-16 sm:h-30 md:h-28 w-auto"
         />
 
         {/* <div className="flex justify-center items-center h-full">

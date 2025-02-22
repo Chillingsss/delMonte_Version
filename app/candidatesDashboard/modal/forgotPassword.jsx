@@ -219,7 +219,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         <button
           type="button"
           onClick={() => setShowModal(false)}
-          className="absolute top-4 right-4 text-gray-800" // Positioned in the top right corner
+          className="absolute top-4 right-4 text-gray-800"
         >
           <X size={24} />{" "}
           {/* Use the X icon from Lucid React with a specified size */}
