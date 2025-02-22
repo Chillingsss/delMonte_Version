@@ -159,18 +159,18 @@ export default function LandingArea() {
           width={70}
           height={70}
           alt="Del Monte Logo"
-          className="h-20 w-auto"
+          className="h-16 w-auto sm:h-20"
         />
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={scrollToJobs}
-            className="text-white hover:text-[#EAE9E7] transition-colors px-4 py-2 text-lg"
+            className="text-white hover:text-[#EAE9E7] transition-colors px-3 sm:px-4 py-2 text-base sm:text-lg"
           >
             Jobs
           </button>
           <Link href="/login">
-            <button className="bg-[#EAE9E7] text-[#004F39] px-4 py-2 rounded-md font-bold hover:bg-white transition-colors">
+            <button className="bg-[#EAE9E7] text-[#004F39] px-3 sm:px-4 py-2 rounded-md font-bold hover:bg-white transition-colors text-sm sm:text-base">
               Log In
             </button>
           </Link>
