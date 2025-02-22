@@ -52,7 +52,7 @@ export default function LandingArea() {
     const handleUserActivity = () => {
       setIsNavbarVisible(true);
       clearTimeout(hideTimeout);
-      hideTimeout = setTimeout(() => setIsNavbarVisible(false), 3000);
+      hideTimeout = setTimeout(() => setIsNavbarVisible(false), 5000);
     };
 
     window.addEventListener("mousemove", handleUserActivity);
@@ -163,7 +163,10 @@ export default function LandingArea() {
         />
 
         <div className="flex items-center gap-4">
-          <button className="text-white hover:text-[#EAE9E7] transition-colors px-4 py-2">
+          <button
+            onClick={scrollToJobs}
+            className="text-white hover:text-[#EAE9E7] transition-colors px-4 py-2"
+          >
             Jobs
           </button>
           <Link href="/login">
