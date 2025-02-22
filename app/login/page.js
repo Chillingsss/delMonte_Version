@@ -221,7 +221,7 @@ export default function Login(user) {
     <div className="min-h-screen bg-[#EAE9E7] flex items-center justify-center px-4">
       <div className="bg-[#EAE9E7] p-8 rounded-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
         {/* Logo Section */}
-        <div className="flex items-center justify-center w-full md:w-1/2 mb-8 md:mb-0 md:pl-8 order-1 md:order-2">
+        <div className="flex items-center justify-center w-full md:w-1/2 mb-6 md:mb-0 md:pl-8 order-1 md:order-2">
           <Image
             src="/assets/images/logoDelmonte.jpg"
             alt="Del Monte"
@@ -234,7 +234,7 @@ export default function Login(user) {
             alt="Del Monte"
             width={100}
             height={100}
-            className="rounded-3xl object-cover block md:hidden mb-6 top-0 h-auto w-auto"
+            className="rounded-3xl object-cover block md:hidden top-0 h-auto w-auto"
             priority
           />
         </div>
