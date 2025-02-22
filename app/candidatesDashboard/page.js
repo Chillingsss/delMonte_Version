@@ -26,15 +26,23 @@ import {
   faUser as faUserRegular,
   faBell as faBellRegular,
 } from "@fortawesome/free-regular-svg-icons";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 const Sidebar = dynamic(() => import("./sideBar/sideBar"), { ssr: false });
-const JobDetailsModal = dynamic(() => import("./modal/jobDetails"), { ssr: false });
-const ViewProfile = dynamic(() => import("./modal/viewProfile"), { ssr: false });
+const JobDetailsModal = dynamic(() => import("./modal/jobDetails"), {
+  ssr: false,
+});
+const ViewProfile = dynamic(() => import("./modal/viewProfile"), {
+  ssr: false,
+});
 const ExamModal = dynamic(() => import("./exam/exam"), { ssr: false });
 const JobOfferModal = dynamic(() => import("./modal/jobOffer"), { ssr: false });
-const CancelJobModal = dynamic(() => import("./modal/cancelJobApplied"), { ssr: false });
-const AppliedJobs = dynamic(() => import("./modal/appliedJobs"), { ssr: false });
+const CancelJobModal = dynamic(() => import("./modal/cancelJobApplied"), {
+  ssr: false,
+});
+const AppliedJobs = dynamic(() => import("./modal/appliedJobs"), {
+  ssr: false,
+});
 import {
   CalendarIcon,
   UserGroupIcon,
@@ -126,7 +134,7 @@ export default function DashboardCandidates() {
     if (typeof window !== "undefined") {
       lineSpinner.register();
     }
-  }, [])
+  }, []);
 
   const getUserIdFromCookie = () => {
     if (typeof window !== "undefined") {
@@ -167,7 +175,8 @@ export default function DashboardCandidates() {
   }, []);
 
   useEffect(() => {
-    const authToken = typeof window !== "undefined" ? getDataFromCookie("auth_token") : null;
+    const authToken =
+      typeof window !== "undefined" ? getDataFromCookie("auth_token") : null;
 
     if (status === "unauthenticated" && !authToken) {
       router.replace("/");
@@ -217,78 +226,80 @@ export default function DashboardCandidates() {
     setIsAppliedJobsModalOpen(false);
   };
 
-const fetchProfiles = async () => {
+  const fetchProfiles = async () => {
     try {
-        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-        
-        const getUserIdFromCookie = () => {
-          if (typeof window !== 'undefined') { // Check if running in the browser
-              const tokenData = getDataFromCookie("auth_token");
-              if (tokenData && tokenData.userId) {
-                  return tokenData.userId;
-              }
+      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+
+      const getUserIdFromCookie = () => {
+        if (typeof window !== "undefined") {
+          // Check if running in the browser
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
           }
-          return null; // Return null if userId is not found or tokenData is invalid
-        };
-
-        const userId = session?.user?.id || getUserIdFromCookie();
-        console.log("User IDss:", userId);
-        const jsonData = { cand_id: userId };
-
-        const formData = new FormData();
-        formData.append("operation", "getCandidateProfile");
-        formData.append("json", JSON.stringify(jsonData));
-
-        const response = await axios.post(url, formData);
-        console.log("res", response.data);
-        setProfile(response.data);
-        setLoading(false);
-    } catch (error) {
-        setLoading(false);
-    }
-};
-
-const fetchJobs = useCallback(async () => {
-    try {
-        const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-        const getUserIdFromCookie = () => {
-            if (typeof window !== 'undefined') { // Check if running in the browser
-                const tokenData = getDataFromCookie("auth_token");
-                if (tokenData && tokenData.userId) {
-                    return tokenData.userId;
-                }
-            }
-            return null; // Return null if userId is not found or tokenData is invalid
-        };
-
-        const userId = session?.user?.id || getUserIdFromCookie();
-        console.log("User ID:", userId);
-
-        const formData = new FormData();
-        formData.append("operation", "getActiveJob");
-        formData.append("json", JSON.stringify({ cand_id: userId }));
-
-        const response = await axios.post(url, formData);
-
-        if (Array.isArray(response.data)) {
-            console.log("Setting jobs:", response.data);
-            setJobs(response.data);
-        } else {
-            console.error("Invalid data format:", response.data);
-            setError("Unexpected data format received from server.");
         }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      const userId = session?.user?.id || getUserIdFromCookie();
+      console.log("User IDss:", userId);
+      const jsonData = { cand_id: userId };
+
+      const formData = new FormData();
+      formData.append("operation", "getCandidateProfile");
+      formData.append("json", JSON.stringify(jsonData));
+
+      const response = await axios.post(url, formData);
+      console.log("res", response.data);
+      setProfile(response.data);
+      setLoading(false);
     } catch (error) {
-        console.error(
-            "Error fetching jobs:",
-            error.response?.data || error.message || error
-        );
-        setError("Error fetching jobs");
+      setLoading(false);
     }
-}, [session]); // Added session as a dependency
+  };
+
+  const fetchJobs = useCallback(async () => {
+    try {
+      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+
+      const getUserIdFromCookie = () => {
+        if (typeof window !== "undefined") {
+          // Check if running in the browser
+          const tokenData = getDataFromCookie("auth_token");
+          if (tokenData && tokenData.userId) {
+            return tokenData.userId;
+          }
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+
+      const userId = session?.user?.id || getUserIdFromCookie();
+      console.log("User ID:", userId);
+
+      const formData = new FormData();
+      formData.append("operation", "getActiveJob");
+      formData.append("json", JSON.stringify({ cand_id: userId }));
+
+      const response = await axios.post(url, formData);
+
+      if (Array.isArray(response.data)) {
+        console.log("Setting jobs:", response.data);
+        setJobs(response.data);
+      } else {
+        console.error("Invalid data format:", response.data);
+        setError("Unexpected data format received from server.");
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching jobs:",
+        error.response?.data || error.message || error
+      );
+      setError("Error fetching jobs");
+    }
+  }, [session]); // Added session as a dependency
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       fetchJobs();
       fetchProfiles();
     }
@@ -334,7 +345,7 @@ const fetchJobs = useCallback(async () => {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       fetchNotification();
     }
   }, []);
@@ -367,29 +378,34 @@ const fetchJobs = useCallback(async () => {
   };
 
   const getInitialTheme = () => {
-    if (typeof window !== "undefined") { // Check if running in the browser
-        const savedTheme = localStorage.getItem("appearance");
-        if (savedTheme && savedTheme !== "system") {
-            return savedTheme === "dark";
-        }
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        return prefersDark;
+    if (typeof window !== "undefined") {
+      // Check if running in the browser
+      const savedTheme = localStorage.getItem("appearance");
+      if (savedTheme && savedTheme !== "system") {
+        return savedTheme === "dark";
+      }
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      return prefersDark;
     }
     return false; // Default to light mode if not in the browser
-};
+  };
 
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   useEffect(() => {
-    if (typeof window !== "undefined") { // Check if running in the browser
-        const theme = isDarkMode ? "dark" : "light";
-        localStorage.setItem("appearance", theme);
-        document.body.className = theme;
+    if (typeof window !== "undefined") {
+      // Check if running in the browser
+      const theme = isDarkMode ? "dark" : "light";
+      localStorage.setItem("appearance", theme);
+      document.body.className = theme;
     }
   }, [isDarkMode]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") { // Check if running in the browser
+    if (typeof window !== "undefined") {
+      // Check if running in the browser
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
       const handleSystemThemeChange = (e) => {
@@ -762,11 +778,11 @@ const fetchJobs = useCallback(async () => {
   return (
     <div
       className={`flex min-h-screen flex-col md:flex-row ${
-        isDarkMode ? "bg-[#1C1919] text-white" : "bg-[#d8d8d8] text-gray-900"
+        isDarkMode ? "bg-[#1C1919] text-white" : "bg-[#EAE9E7] text-gray-900"
       }`}
     >
       <div
-        className={`md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-[#0A6338] dark:bg-[#0A6338]`}
+        className={`md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-[#004F39] dark:bg-[#004F39]`}
       >
         <div className="flex items-center">
           {/* <button
@@ -833,11 +849,11 @@ const fetchJobs = useCallback(async () => {
           <div className="relative">
             <button
               onClick={toggleUserDropdownMobile}
-              className={`rounded-full transition-all duration-200 ${
+              className={`rounded-full transition-all duration-200 shadow-xl ${
                 isDarkMode
                   ? "bg-gray-800 hover:bg-gray-700"
-                  : "bg-gray-300 hover:bg-gray-400"
-              } border ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}
+                  : "bg-white hover:bg-gray-400"
+              }`}
             >
               {/* Profile Image/Initials and Dropdown Arrow */}
               <div className="flex items-center">
@@ -1031,7 +1047,7 @@ const fetchJobs = useCallback(async () => {
                             ${
                               isDarkMode
                                 ? "bg-[#101010] text-green-200"
-                                : "bg-[#0A6338] text-white"
+                                : "bg-[#004F39] text-white"
                             } hover:shadow-lg`}
                       >
                         <div className="p-4 space-y-3 shadow-sm hover:shadow-md">
@@ -1232,12 +1248,12 @@ const fetchJobs = useCallback(async () => {
       {/* Main Content */}
       <div
         className={`flex-1 p-8 ${
-          isDarkMode ? "bg-[#101010] text-white" : "bg-[#f2f4f7] text-gray-900"
+          isDarkMode ? "bg-[#101010] text-white" : "bg-[#EAE9E7] text-gray-900"
         } overflow-y-auto scrollbar-custom md:mt-0 md:ml-72 mt-16`}
       >
         <div
           className={`justify-between items-center fixed top-0 left-0 right-0 z-20 ${
-            isDarkMode ? "bg-[#101010]" : "bg-[#f2f4f7]"
+            isDarkMode ? "bg-[#101010]" : "bg-[#EAE9E7]"
           } px-5 py-5 hidden md:flex`}
         >
           <div className="flex items-center relative">
@@ -1318,11 +1334,11 @@ const fetchJobs = useCallback(async () => {
             <div className="relative">
               <button
                 onClick={toggleUserDropdown}
-                className={`rounded-full transition-all duration-200 hidden md:flex ${
+                className={`rounded-full transition-all duration-200 hidden md:flex shadow-xl ${
                   isDarkMode
                     ? "bg-gray-800 hover:bg-gray-700"
-                    : "bg-gray-300 hover:bg-gray-400"
-                } border ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}
+                    : "bg-white hover:bg-gray-400"
+                }`}
               >
                 {/* Profile Image/Initials and Dropdown Arrow */}
                 <div className="flex items-center">
@@ -1753,7 +1769,7 @@ const fetchJobs = useCallback(async () => {
           {/* Active Jobs Title */}
           <h1
             className={`text-2xl md:text-4xl font-semibold slide-up mt-1 ${
-              isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
+              isDarkMode ? "text-[#004F39]" : "text-[#004F39]"
             }`}
           >
             Active Jobs
@@ -1811,7 +1827,7 @@ const fetchJobs = useCallback(async () => {
               >
                 <div
                   className={`p-4 h-20 flex items-center justify-start ${
-                    isDarkMode ? "bg-[#188C54]" : "bg-[#188C54]"
+                    isDarkMode ? "bg-[#004F39]" : "bg-[#004F39]"
                   }`}
                 >
                   <Briefcase className="w-6 h-6 text-white mr-2" />
@@ -1935,8 +1951,8 @@ const fetchJobs = useCallback(async () => {
                     onClick={() => handleDetailsClick(job)}
                     className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 shadow-md ${
                       isDarkMode
-                        ? "bg-transparent hover:bg-green-600 text-gray-300 hover:text-gray-300 border-b-gray-300 border-b-2"
-                        : "bg-transparent hover:bg-green-600 text-gray-700 hover:text-gray-100 border-b-gray-300 border-b-2"
+                        ? "bg-transparent hover:bg-[#004F39] text-gray-300 hover:text-gray-300 border-b-gray-300 border-b-2"
+                        : "bg-transparent hover:bg-[#004F39] text-gray-700 hover:text-gray-100 border-b-gray-300 border-b-2"
                     }`}
                   >
                     View Details

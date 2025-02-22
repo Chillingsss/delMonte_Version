@@ -3554,7 +3554,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                   ? "block fixed inset-0 z-20 transition-transform transform"
                   : "hidden"
               } md:block w-full md:w-1/3 p-4 md:rounded-l-lg ${
-                isDarkMode ? "bg-gray-700" : "bg-[#0A6338]"
+                isDarkMode ? "bg-[#004F39]" : "bg-[#004F39]"
               } text-white`}
             >
               <div className="flex items-center justify-between mb-10">

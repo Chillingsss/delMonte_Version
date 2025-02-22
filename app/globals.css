@@ -91,7 +91,7 @@ body {
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: #27b36f;
+  background: #1E7D57;
   border-radius: 10px;
   margin-left: 4px;
   /* Adjust as needed */

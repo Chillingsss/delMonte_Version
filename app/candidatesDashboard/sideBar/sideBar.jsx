@@ -386,7 +386,7 @@ const Sidebar = ({
         ref={sidebarRef}
         className={`fixed top-0 left-0 h-full rounded-r-lg flex flex-col transform transition-transform duration-300 ease-in-out z-50
       ${isMenuOpen ? "translate-x-0 w-60" : "-translate-x-full w-72"}
-      ${isDarkMode ? "bg-[#0A6338]" : "bg-[#0A6338]"}
+      ${isDarkMode ? "bg-[#004F39]" : "bg-[#004F39]"}
       md:w-72 md:translate-x-0`}
       >
         <div
@@ -426,7 +426,7 @@ const Sidebar = ({
                       className={`mb-4 p-4 rounded-lg shadow-md flex flex-col items-start text-[15px] cursor-pointer transition-all duration-300 ${
                         isDarkMode
                           ? "bg-gray-800 text-green-200 hover:bg-green-700"
-                          : "bg-[#059e54] text-white hover:bg-green-600"
+                          : "bg-[#1E7D57] text-white hover:bg-green-600"
                       }`}
                       onClick={() => {
                         if (job.status_name.toLowerCase() === "exam") {
@@ -512,7 +512,7 @@ const Sidebar = ({
                       className={`mb-4 p-4 rounded-lg shadow-md ${
                         isDarkMode
                           ? "bg-gray-800 text-green-200"
-                          : "bg-[#059e54] text-white"
+                          : "bg-[#1E7D57] text-white"
                       }`}
                     >
                       <h4 className="text-lg font-medium">

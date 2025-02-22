@@ -159,13 +159,13 @@ export default function LandingArea() {
           width={70}
           height={70}
           alt="Del Monte Logo"
-          className="h-16 w-auto"
+          className="h-20 w-auto"
         />
 
         <div className="flex items-center gap-4">
           <button
             onClick={scrollToJobs}
-            className="text-white hover:text-[#EAE9E7] transition-colors px-4 py-2"
+            className="text-white hover:text-[#EAE9E7] transition-colors px-4 py-2 text-lg"
           >
             Jobs
           </button>
@@ -274,7 +274,7 @@ export default function LandingArea() {
                 key={job.jobM_id}
                 className="rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl bg-white"
               >
-                <div className="p-4 h-20 flex items-center justify-start bg-[#0A6338]">
+                <div className="p-4 h-20 flex items-center justify-start bg-[#004F39]">
                   <Briefcase className="w-6 h-6 text-white mr-2" />
                   <h3 className="text-xl font-semibold text-white truncate">
                     {job.jobM_title}
