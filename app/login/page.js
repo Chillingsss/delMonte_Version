@@ -347,7 +347,7 @@ export default function Login(user) {
                 <div className="flex-grow border-t border-gray-300"></div>
               </div>
               <a
-                href="https://delmonte-careers.vercel.app/api/auth/callback/google"
+                href="http://localhost:3001/api/auth/google"
                 className="flex items-center justify-center text-gray-500 text-base slide-up mt-4 cursor-pointer font-semibold py-3 rounded-lg w-full transition-colors duration-300 bg-transparent hover:bg-green-200 hover:text-gray-800 shadow-md"
               >
                 <IoLogoGoogle className="mr-2 text-[#004F39]" size={24} />
