@@ -79,8 +79,8 @@ export default function LandingArea() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fc]">
-      <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-32 bg-[#116b40] slide-up">
+    <div className="min-h-screen bg-[#EAE9E7]">
+      <div className="p-4 flex justify-between items-center text-center text-white fixed top-0 left-0 z-10 w-full h-20 sm:h-24 md:h-32 bg-[#004F39] slide-up">
         <Image
           src="/assets/images/delmontes.png"
           width={70}
@@ -96,14 +96,14 @@ export default function LandingArea() {
         </div> */}
 
         <Link href="/login">
-          <button className="bg-green-500 text-white px-2 py-1 sm:px-3 sm:py-2 rounded-md">
+          <button className="bg-[#EAE9E7] text-[#004F39] px-2 py-1 sm:px-3 sm:py-2 rounded-md font-bold">
             Log In
           </button>
         </Link>
       </div>
 
       <div className="p-8 mt-[calc(4rem+8px)] sm:mt-[calc(5rem+8px)] md:mt-[calc(6rem+8px)] lg:mt-[calc(7rem+8px)] overflow-y-auto">
-        <h2 className="text-3xl font-semibold text-[#188C54] mb-6">
+        <h2 className="text-3xl font-semibold text-[#004F39] mb-6">
           Active Jobs
         </h2>
 
@@ -142,7 +142,7 @@ export default function LandingArea() {
                 key={job.jobM_id}
                 className="rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl bg-white"
               >
-                <div className="p-4 h-20 flex items-center justify-start bg-[#188C54]">
+                <div className="p-4 h-20 flex items-center justify-start bg-[#0A6338]">
                   <Briefcase className="w-6 h-6 text-white mr-2" />
 
                   <h3 className="text-xl font-semibold text-white truncate">
@@ -189,7 +189,7 @@ export default function LandingArea() {
 
                   <button
                     onClick={() => handleDetailsClick(job)}
-                    className="w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 bg-transparent hover:bg-green-600 text-gray-700 hover:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                    className="w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 bg-transparent hover:bg-[#004F39] text-gray-700 hover:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
                   >
                     View Details
                   </button>

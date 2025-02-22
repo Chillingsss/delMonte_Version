@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 const JobDetailsModal = ({ job, onCloses }) => {
   const modalRef = useRef(null);
@@ -98,8 +99,19 @@ const JobDetailsModal = ({ job, onCloses }) => {
         className="relative p-6 rounded-lg max-w-4xl w-full bg-white text-black"
       >
         {/* Fixed title at the top inside the modal */}
-        <div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200 text-[#0A6338] text-center">
-          <h2 className="text-xl font-bold mb-4">{job.jobM_title}</h2>
+        <div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4">
+            <div className="w-8" /> {/* Spacer to help center the title */}
+            <h2 className="text-xl font-bold text-[#0A6338] flex-1 text-center">
+              {job.jobM_title}
+            </h2>
+            <button
+              onClick={onCloses}
+              className="text-[#004F39] transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div
@@ -212,10 +224,10 @@ const JobDetailsModal = ({ job, onCloses }) => {
         </div>
 
         {/* Fixed buttons at the bottom inside the modal */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex justify-between">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex justify-end">
           <Link href="/login">
             <button
-              className="px-4 py-2 rounded-md bg-[#188C54] text-white relative transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+              className="px-4 py-2 rounded-md bg-[#004F39] text-white relative transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
               style={{
                 boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
               }}
@@ -223,16 +235,6 @@ const JobDetailsModal = ({ job, onCloses }) => {
               Apply
             </button>
           </Link>
-
-          <button
-            onClick={onCloses}
-            className="px-4 py-2 rounded-md bg-gray-500 text-white relative transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
-            style={{
-              boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
-            }}
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

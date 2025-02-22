@@ -17,7 +17,7 @@ import {
   storeDataInLocal,
 } from "../utils/storageUtils";
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
-import { FcGoogle } from "react-icons/fc";
+import { IoLogoGoogle } from "react-icons/io";
 import { lineSpinner } from "ldrs";
 import { Eye, EyeOff, XCircle } from "lucide-react";
 
@@ -70,7 +70,7 @@ export default function Login(user) {
     canvas.width = 150;
     canvas.height = 50;
 
-    ctx.fillStyle = "#01472B";
+    ctx.fillStyle = "#EAE9E7";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < 30; i++) {
@@ -89,7 +89,7 @@ export default function Login(user) {
     }
 
     ctx.font = "bold 28px Arial";
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = "#151513";
     for (let i = 0; i < text.length; i++) {
       const x = 20 + i * 25;
       const y = 30 + Math.random() * 10;
@@ -114,7 +114,7 @@ export default function Login(user) {
       duration: 4000,
       position: "bottom-left",
       style: {
-        background: "#013220", // Darker green for contrast
+        background: "#004F39", // Darker green for contrast
         color: "#F8FAFC", // Light text for readability
         borderRadius: "10px",
         padding: "12px 16px",
@@ -158,12 +158,12 @@ export default function Login(user) {
     }
 
     if (!isValidEmail(sanitizedUsername)) {
-      showErrorToast("🚫 Email is not valid.");
+      showErrorToast("🔒 Invalid Credentials.");
       return;
     }
 
     if (!isValidPassword(sanitizedPassword)) {
-      showErrorToast("🚫 Invalid input.");
+      showErrorToast("🔒 Invalid Credentials.");
       return;
     }
 
@@ -218,8 +218,8 @@ export default function Login(user) {
   };
 
   return (
-    <div className="min-h-screen bg-[#01472B] flex items-center justify-center px-4">
-      <div className="bg-[#01472B] p-8 rounded-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
+    <div className="min-h-screen bg-[#EAE9E7] flex items-center justify-center px-4">
+      <div className="bg-[#EAE9E7] p-8 rounded-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
         {/* Logo Section */}
         <div className="flex items-center justify-center w-full md:w-1/2 mb-8 md:mb-0 md:pl-8 order-1 md:order-2">
           <Image
@@ -227,7 +227,7 @@ export default function Login(user) {
             alt="Del Monte"
             width={500}
             height={500}
-            className="rounded-3xl object-cover hidden md:block"
+            className="rounded-2xl object-cover hidden md:block shadow-2xl" // Largest default shadow
           />
           <Image
             src="/assets/images/delmontes.png"
@@ -242,12 +242,12 @@ export default function Login(user) {
         {/* Login Form */}
         <div className="flex flex-col justify-center w-full md:w-1/2 order-2 md:order-1">
           <h2
-            className="text-3xl md:text-4xl font-bold text-white mb-2 slide-up"
+            className="text-3xl md:text-4xl font-bold text-[#004F39] mb-2 slide-up"
             style={{ fontFamily: "Courier New, monospace" }}
           >
             Del Monte
           </h2>
-          <p className="text-green-200 mb-6 slide-up">Log In to your account</p>
+          <p className="text-gray-500 mb-6 slide-up">Log In to your account</p>
 
           {/* Show login form if user is NOT logged in */}
           {!session ? (
@@ -255,8 +255,8 @@ export default function Login(user) {
               onSubmit={showCaptcha ? handleCaptchaValidation : handleLogin}
             >
               <div className="mb-4">
-                <label className="block text-green-200 mb-2" htmlFor="username">
-                  Username
+                <label className="block text-gray-500 mb-2" htmlFor="username">
+                  Email
                 </label>
                 <input
                   id="username"
@@ -264,14 +264,14 @@ export default function Login(user) {
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
+                  className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                   required
                   autoFocus
                   ref={usernameRef}
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-green-200 mb-2" htmlFor="password">
+                <label className="block text-gray-500 mb-2" htmlFor="password">
                   Password
                 </label>
                 <div className="relative">
@@ -281,12 +281,12 @@ export default function Login(user) {
                     placeholder="********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
+                    className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                     required
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                     onClick={() => setShowNewPassword(!showNewPassword)}
                   >
                     {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -302,11 +302,11 @@ export default function Login(user) {
                     placeholder="Enter captcha"
                     value={captchaInput}
                     onChange={(e) => setCaptchaInput(e.target.value)}
-                    className={`w-full p-3 rounded-lg bg-[#0E5A35] placeholder-gray-200 focus:outline-none focus:ring-2 ${
+                    className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
                       captchaInput === captchaText
                         ? "border-green-500 focus:ring-green-500"
                         : "border-red-500 focus:ring-red-500"
-                    } slide-up text-white`}
+                    } slide-up`}
                     required
                     autoFocus
                   />
@@ -314,7 +314,7 @@ export default function Login(user) {
               )}
               <button
                 type="submit"
-                className="w-full bg-[#0B864A] hover:bg-green-500 text-green-100 py-3 rounded-lg transition duration-200 slide-up"
+                className="w-full bg-[#004F39] hover:bg-green-800 text-green-100 py-3 rounded-lg transition duration-200 slide-up"
                 disabled={loading}
               >
                 {loading ? "Logging in..." : buttonText}
@@ -348,23 +348,23 @@ export default function Login(user) {
               </div>
               <a
                 href="http://localhost:3001/api/auth/google"
-                className="flex items-center justify-center text-gray-100 text-base slide-up mt-4 cursor-pointer font-semibold py-3 rounded-lg w-full transition-colors duration-300 bg-transparent hover:bg-green-200 hover:text-gray-800 shadow-md"
+                className="flex items-center justify-center text-gray-500 text-base slide-up mt-4 cursor-pointer font-semibold py-3 rounded-lg w-full transition-colors duration-300 bg-transparent hover:bg-green-200 hover:text-gray-800 shadow-md"
               >
-                <FcGoogle className="mr-2" size={24} />
+                <IoLogoGoogle className="mr-2 text-[#004F39]" size={24} />
                 Login with Google
               </a>
-              <div className="mt-4 text-white flex flex-col items-start">
+              <div className="mt-4 text-gray-500 flex flex-col items-start">
                 <p>
                   Do not have an account?{" "}
                   <Link
                     href="/signup"
-                    className="ml-2 text-green-300 hover:underline slide-up"
+                    className="ml-2 text-[#004F39] hover:underline slide-up"
                   >
                     Create account here
                   </Link>
                 </p>
                 <button
-                  className="text-green-300 hover:underline slide-up mt-2"
+                  className="text-[#004F39] hover:underline slide-up mt-2"
                   onClick={() => setShowForgotPasswordModal(true)}
                 >
                   Forgot Password?

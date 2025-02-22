@@ -214,22 +214,22 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     >
       <div
         ref={modalRef}
-        className="modal-content bg-[#01472B] p-5 rounded-lg shadow-lg w-96 relative" // Added relative positioning
+        className="modal-content bg-[#EAE9E7] p-5 rounded-lg shadow-lg w-96 relative" // Added relative positioning
       >
         <button
           type="button"
           onClick={() => setShowModal(false)}
-          className="absolute top-4 right-4 text-gray-300" // Positioned in the top right corner
+          className="absolute top-4 right-4 text-gray-800" // Positioned in the top right corner
         >
           <X size={24} />{" "}
           {/* Use the X icon from Lucid React with a specified size */}
         </button>
-        <h3 className="text-xl font-semibold text-gray-100 mb-4">
+        <h3 className="text-xl font-semibold text-[#151513] mb-4">
           Reset Your Password
         </h3>
         {!isPinCodeSent ? (
           <div className="mb-4">
-            <label className="block text-gray-300 text-sm font-normal mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Email:
             </label>
             <input
@@ -238,14 +238,14 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full p-3 rounded-lg bg-[#0E5A35]  placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
+              className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
               required
             />
             <div className="flex justify-between mt-6">
               <button
                 type="button"
                 onClick={requestPinCode}
-                className="p-2 rounded-lg bg-[#0B864A] text-white"
+                className="p-2 rounded-lg bg-[#004F39] text-white"
                 disabled={requestLoading}
               >
                 {requestLoading ? "Sending..." : "SEND OTP"}
