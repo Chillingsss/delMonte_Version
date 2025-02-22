@@ -1301,10 +1301,12 @@ export default function DashboardCandidates() {
                 type="text"
                 name="search"
                 id="search"
-                className={`block w-full px-4 py-2 border-2 rounded-2xl focus:outline-none focus:border-green-500 pl-10 ${
+                className={`block w-full px-4 py-2 border-2 rounded-2xl focus:outline-none border-${
+                  isDarkMode ? "green-500" : "gray-300"
+                } pl-10 ${
                   isDarkMode
-                    ? "bg-gray-800 text-gray-200"
-                    : "bg-white text-gray-800"
+                    ? "bg-transparent text-gray-200"
+                    : "bg-transparent text-gray-800"
                 }`}
                 placeholder="Search active jobs"
                 value={searchQuery}

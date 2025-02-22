@@ -141,7 +141,15 @@ export default function Login(user) {
   };
 
   const preventSQLInjection = (input) => {
-    return input.replace(/(--|;|')/g, ""); // Remove common SQL injection patterns
+    if (typeof input !== "string") return input; // Ensure input is a string
+
+    return input
+      .replace(/(--|#|\/\*|\*\/|;|=)/g, "")
+      .replace(
+        /\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|UNION|GRANT|EXEC|MERGE|TRUNCATE|CALL|REPLACE|CREATE|SHOW)\b/gi,
+        ""
+      )
+      .replace(/['"\\]/g, "");
   };
 
   const handleLogin = (e) => {
@@ -242,7 +250,7 @@ export default function Login(user) {
         {/* Login Form */}
         <div className="flex flex-col justify-center w-full md:w-1/2 order-2 md:order-1">
           <h2
-            className="text-3xl md:text-4xl font-bold text-[#004F39] mb-2 slide-up"
+            className="text-2xl md:text-4xl font-bold text-[#004F39] mb-2 slide-up"
             style={{ fontFamily: "Courier New, monospace" }}
           >
             Del Monte
