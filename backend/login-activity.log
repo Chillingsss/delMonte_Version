@@ -1,0 +1,20 @@
+{"level":"info","message":"Server running on port 3002","timestamp":"2025-02-23 10:22:14"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-23 10:22:34","username":"ralp.pelino11@gmail.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-23 10:22:34","userId":24,"userLevel":"1.0"}
+{"level":"info","message":"Updated failed attempts","timestamp":"2025-02-23 10:23:08","username":"ralp.pelino11@gmail.com"}
+{"level":"warn","message":"Failed login attempt","timestamp":"2025-02-23 10:23:08","username":"ralp.pelino11@gmail.com"}
+{"level":"info","message":"Updated failed attempts","timestamp":"2025-02-23 10:23:25","username":"ralp.pelino11@gmail.com"}
+{"level":"warn","message":"Failed login attempt","timestamp":"2025-02-23 10:23:25","username":"ralp.pelino11@gmail.com"}
+{"level":"info","message":"Updated failed attempts","timestamp":"2025-02-23 10:23:41","username":"ralp.pelino11@gmail.com"}
+{"level":"warn","message":"Failed login attempt","timestamp":"2025-02-23 10:23:41","username":"ralp.pelino11@gmail.com"}
+{"level":"info","message":"Updated failed attempts","timestamp":"2025-02-23 10:23:51","username":"ralp.pelino11@gmail.com"}
+{"level":"warn","message":"Failed login attempt","timestamp":"2025-02-23 10:23:51","username":"ralp.pelino11@gmail.com"}
+{"ip":"::1","level":"warn","message":"Rate limit exceeded","timestamp":"2025-02-23 10:23:58"}
+{"ip":"::1","level":"warn","message":"Rate limit exceeded","timestamp":"2025-02-23 10:24:56"}
+{"ip":"::1","level":"warn","message":"Rate limit exceeded","timestamp":"2025-02-23 10:27:24"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-23 10:28:03","username":"rape.gallegos.coc@phinmaed.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-23 10:28:03","userId":11,"userLevel":"1.0"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-23 10:30:36","username":"ralphjangallegos@gmail.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-23 10:30:36","userId":1,"userLevel":"100.0"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-23 10:32:01","username":"rape.gallegos.coc@phinmaed.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-23 10:32:01","userId":11,"userLevel":"1.0"}

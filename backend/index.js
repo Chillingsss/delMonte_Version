@@ -6,55 +6,51 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const pool = require("./db"); // Database connection
+const helmet = require("helmet");
+const winston = require("winston");
+const { check, validationResult } = require("express-validator");
+const crypto = require("crypto");
+const pool = require("./db");
 const rateLimit = require("express-rate-limit");
-
+const moment = require("moment-timezone");
 const app = express();
 const port = 3002;
-
-app.use(bodyParser.json());
-app.use(cors());
-
-// Log important environment variables (Mask sensitive ones)
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD ? "******" : "NOT SET");
-console.log("DB_NAME:", process.env.DB_NAME);
-
-const MAX_ATTEMPTS = 5;
-const LOCK_TIME = 10 * 60 * 1000; // 10 minutes lock
 const JWT_SECRET = process.env.NEXTAUTH_SECRET;
+const MAX_ATTEMPTS = 5;
+const LOCK_TIME = 10 * 60 * 1000; // 10 minutes
 
-// Generate JWT Token
-const generateToken = (userId, userLevel) => {
-  return jwt.sign({ userId, userLevel }, JWT_SECRET, { expiresIn: "1h" });
-};
+// Winston Logger
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: () => moment().tz("Asia/Manila").format("YYYY-MM-DD HH:mm:ss"),
+    }),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: "error.log", level: "error" }),
+    new winston.transports.File({ filename: "login-activity.log" }),
+  ],
+});
 
-// Check failed login attempts
-const checkFailedAttempts = async (username) => {
-  const sql = `SELECT failed_attempts, lock_until FROM tblfailedlogins WHERE email = ?`;
-  const [results] = await pool.query(sql, [username]);
-  return results.length > 0 ? results[0] : null;
-};
+// Middleware
+app.use(helmet());
+app.use(bodyParser.json({ limit: "10kb" }));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
-// Update failed login attempts
-const updateFailedAttempts = async (username, reset = false) => {
-  if (reset) {
-    await pool.query(`DELETE FROM tblfailedlogins WHERE email = ?`, [username]);
-  } else {
-    await pool.query(
-      `INSERT INTO tblfailedlogins (email, failed_attempts, lock_until)
-       VALUES (?, 1, NULL)
-       ON DUPLICATE KEY UPDATE
-       failed_attempts = failed_attempts + 1,
-       lock_until = IF(failed_attempts + 1 >= ?, NOW() + INTERVAL 10 MINUTE, NULL)`,
-      [username, MAX_ATTEMPTS]
-    );
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Delay for security
-  }
-};
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) =>
+    !req.secure ? res.redirect(`https://${req.headers.host}${req.url}`) : next()
+  );
+}
 
-// User tables
+// User Table Config
 const tables = [
   {
     name: "tbladmin",
@@ -62,7 +58,6 @@ const tables = [
     passCol: "adm_password",
     idCol: "adm_id",
     nameCol: "adm_name",
-    userLevelCols: "userL_level",
     userLevelCol: "adm_userLevel",
   },
   {
@@ -71,86 +66,151 @@ const tables = [
     passCol: "cand_password",
     idCol: "cand_id",
     nameCol: "cand_firstname",
-    userLevelCols: "userL_level",
     userLevelCol: "cand_userLevel",
   },
 ];
 
-// Fetch user data
+// Generate JWT Token
+const generateToken = (userId, userLevel) => {
+  return jwt.sign(
+    {
+      userId,
+      userLevel,
+      iat: Date.now(),
+      jti: crypto.randomBytes(32).toString("hex"),
+    },
+    JWT_SECRET,
+    {
+      expiresIn: "1h",
+      algorithm: "HS256",
+      audience: process.env.JWT_AUDIENCE || "your-app",
+      issuer: process.env.JWT_ISSUER || "your-company",
+    }
+  );
+};
+
+// Check Failed Attempts
+const checkFailedAttempts = async (username) => {
+  const [results] = await pool.query(
+    "SELECT failed_attempts, lock_until FROM tblfailedlogins WHERE email = ?",
+    [username]
+  );
+  return results.length > 0 ? results[0] : null;
+};
+
+// Update Failed Attempts
+const updateFailedAttempts = async (username, reset = false) => {
+  if (reset) {
+    await pool.query("DELETE FROM tblfailedlogins WHERE email = ?", [username]);
+    logger.info("Reset failed attempts", { username });
+  } else {
+    await pool.query(
+      `INSERT INTO tblfailedlogins (email, failed_attempts, lock_until) VALUES (?, 1, NULL)
+       ON DUPLICATE KEY UPDATE failed_attempts = failed_attempts + 1, lock_until = IF(failed_attempts + 1 >= ?, NOW() + INTERVAL 10 MINUTE, NULL)`,
+      [username, MAX_ATTEMPTS]
+    );
+    logger.info("Updated failed attempts", { username });
+  }
+};
+
+// Check User
 const checkUser = async (table, username) => {
-  const sql = `SELECT a.${table.idCol}, a.${table.nameCol}, a.${table.emailCol}, a.${table.passCol}, b.${table.userLevelCols}
-               FROM ${table.name} a
-               INNER JOIN tbluserlevel b ON a.${table.userLevelCol} = b.userL_id
-               WHERE BINARY a.${table.emailCol} = ?`;
+  const sql = `SELECT a.${table.idCol} AS id, a.${table.nameCol} AS name, a.${table.emailCol} AS email, a.${table.passCol} AS password, b.userL_level AS userLevel
+               FROM ${table.name} a INNER JOIN tbluserlevel b ON a.${table.userLevelCol} = b.userL_id WHERE BINARY a.${table.emailCol} = ?`;
   const [results] = await pool.query(sql, [username]);
   return results.length > 0 ? results[0] : null;
 };
 
-// Rate limit login attempts (5 per 5 minutes)
+// Rate Limiting
 const loginLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 5, // Limit per IP
-  message: { error: "Too many login attempts. Try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 5 * 60 * 1000,
+  max: 5,
+  handler: (req, res) => {
+    logger.warn("Rate limit exceeded", { ip: req.ip });
+    res
+      .status(429)
+      .json({ error: "Too many login attempts. Try again later." });
+  },
 });
 
-// Login API
-app.post("/login", loginLimiter, async (req, res) => {
-  const { username, password } = req.body;
-  const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
+// Login Endpoint
+app.post(
+  "/login",
+  [
+    loginLimiter,
+    check("username").isEmail().normalizeEmail({
+      gmail_remove_dots: false,
+    }),
+    check("password").trim().escape(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
 
-  try {
-    // Check if user is locked out
-    const failedLoginData = await checkFailedAttempts(username);
-    if (
-      failedLoginData &&
-      failedLoginData.lock_until &&
-      new Date(failedLoginData.lock_until) > new Date()
-    ) {
-      const remainingTime = Math.ceil(
-        (new Date(failedLoginData.lock_until) - new Date()) / 60000
-      );
-      return res.status(403).json({
-        error: `Too many failed attempts. Try again in ${remainingTime} minutes.`,
-      });
-    }
+    const { username, password } = req.body;
+    const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
 
-    let userFound = false;
-    for (const table of tables) {
-      const user = await checkUser(table, username);
-      if (user) {
-        userFound = true;
-        let storedHash = user[table.passCol];
+    try {
+      // Check Lockout
+      const failedLoginData = await checkFailedAttempts(username);
+      if (
+        failedLoginData?.lock_until &&
+        new Date(failedLoginData.lock_until) > new Date()
+      ) {
+        return res.status(403).json({
+          error: `Too many failed attempts. Try again in ${Math.ceil(
+            (new Date(failedLoginData.lock_until) - new Date()) / 60000
+          )} minutes.`,
+        });
+      }
 
-        // Convert bcrypt $2y$ to $2b$
-        if (storedHash.startsWith("$2y$"))
-          storedHash = "$2b$" + storedHash.slice(4);
+      // Search User in All Tables
+      for (const table of tables) {
+        const user = await checkUser(table, username);
+        if (!user) continue;
+
+        let storedHash = user.password.startsWith("$2y$")
+          ? "$2b$" + user.password.slice(4)
+          : user.password;
 
         if (await bcrypt.compare(password.trim(), storedHash)) {
           await updateFailedAttempts(username, true);
+          const token = generateToken(user.id, user.userLevel);
+
+          logger.info("Successful login", {
+            userId: user.id,
+            userLevel: user.userLevel,
+          });
           return res.json({
             user: {
-              id: user[table.idCol],
-              name: user[table.nameCol],
+              id: user.id,
+              name: user.name,
               email: username,
-              userLevel: user[table.userLevelCols],
+              userLevel: user.userLevel,
             },
-            token: generateToken(user[table.idCol], user[table.userLevelCols]),
+            token,
           });
         }
       }
+
+      // Prevent Enumeration
+      await bcrypt.compare(password.trim(), fakeHash);
+      await updateFailedAttempts(username);
+      logger.warn("Failed login attempt", { username });
+      res.status(401).json({ error: "Invalid credentials" });
+    } catch (error) {
+      logger.error("Login error", { error });
+      res.status(500).json({ error: "Server error" });
     }
-
-    // Fake bcrypt compare to prevent enumeration attacks
-    if (!userFound) await bcrypt.compare(password.trim(), fakeHash);
-
-    await updateFailedAttempts(username);
-    res.status(401).json({ error: "Invalid credentials" });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ error: "Server error" });
   }
+);
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  logger.error("Unhandled error", { error: err });
+  res.status(500).json({ error: "An unexpected error occurred" });
 });
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+// Start Server
+app.listen(port, () => logger.info(`Server running on port ${port}`));
