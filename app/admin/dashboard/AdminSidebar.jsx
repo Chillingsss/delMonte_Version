@@ -50,7 +50,7 @@ import { Separator } from "@/components/ui/separator";
 import { PopoverClose } from "@radix-ui/react-popover";
 
 function AdminSidebar({ changeView, changeMasterFile }) {
-  // const { data: session, status } = useSession();
+  const { data: session, status } = useSession();
   const [view, setView] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const sideTabs = [

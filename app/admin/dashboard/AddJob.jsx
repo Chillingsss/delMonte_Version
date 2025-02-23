@@ -1,11 +1,13 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import React, { useEffect, useState } from "react";
 import AddJobMaster from "./AddJobStep/AddJobMaster";
 import AddDutiesMaster from "./AddJobStep/AddDutiesMaster";
 import {
   getDataFromSession,
-  removeSessionData,
+  removeData,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import AddJobEducation from "./AddJobStep/AddJobEducation";
@@ -94,7 +96,7 @@ function AddJob({ handleSwitchView }) {
       if (res.data === 1) {
         toast.success("Job added successfully");
         setCurrentStep(1);
-        removeSessionData("jobMaster");
+        removeData("jobMaster");
         storeDataInSession("duties", "[]");
         storeDataInSession("jobEducation", "[]");
         storeDataInSession("jobTraining", "[]");

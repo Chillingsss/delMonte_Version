@@ -4,7 +4,8 @@ npx shadcn@latest add switch
 npx shadcn@latest add radio-group
 
 
-
+npm install next-auth bcryptjs cookie
+npm install express body-parser mysql2 bcrypt jsonwebtoken
 
 
 // para ma add tanan

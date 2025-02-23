@@ -24,10 +24,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ComboBox from "@/app/my_components/combo-box";
 import { Input } from "@/components/ui/input";
-import {
-  getDataFromSession,
-  storeDataInSession,
-} from "@/app/utils/storageUtils";
+import { getDataFromSession, storeDataInSession } from "@/app/utils/storageUtils";
 
 function UpdateTrainingModal({ open, onHide, training, updateData }) {
   const formSchema = z.object({

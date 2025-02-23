@@ -1,6 +1,8 @@
 "use client";
 import {
   getDataFromSession,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 

@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import Spinner from "@/components/ui/spinner";
 import axios from "axios";
-import { getDataFromSession } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import ComboBox from "@/app/my_components/combo-box";
 
 function AddInterviewCriteria({

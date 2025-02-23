@@ -11,7 +11,10 @@ import AddJobMaster from "./AddJobMaster";
 import AddDutiesMaster from "./AddDutiesMaster";
 import {
   getDataFromSession,
+  removeData,
   removeSessionData,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import AddJobEducation from "./AddJobEducation";

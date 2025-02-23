@@ -1,11 +1,11 @@
-import { getDataFromSession } from "@/app/utils/storageUtils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Spinner from "@/components/ui/spinner";
-import axios from "axios";
-import React, { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
-import { formatDate } from "@/app/signup/page";
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Spinner from '@/components/ui/spinner';
+import axios from 'axios';
+import React, { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
+import { formatDate } from '@/app/signup/page';
 
 const ExamResult = ({ candId }) => {
   const [examResults, setExamResults] = useState([]);
@@ -16,7 +16,7 @@ const ExamResult = ({ candId }) => {
     try {
       const jobId = getDataFromSession("jobId");
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      const jsonData = { candidateId: candId, jobId: jobId };
+      const jsonData = { candidateId: candId, jobId: jobId }
       console.log("jsonData", jsonData);
       const formData = new FormData();
       formData.append("operation", "getCandidateExamPoints");
@@ -57,17 +57,9 @@ const ExamResult = ({ candId }) => {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm font-medium">Score</p>
-                  <p className="text-2xl font-bold">
-                    {result.examR_score} / {result.examR_totalscore}
-                  </p>
+                  <p className="text-2xl font-bold">{result.examR_score} / {result.examR_totalscore}</p>
                 </div>
-                <Progress
-                  value={calculatePercentage(
-                    result.examR_score,
-                    result.examR_totalscore
-                  )}
-                  className="w-full"
-                />
+                <Progress value={calculatePercentage(result.examR_score, result.examR_totalscore)} className="w-full" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium">Date Taken</p>
@@ -75,7 +67,7 @@ const ExamResult = ({ candId }) => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Status</p>
-                    <p>{result.examR_status === 1 ? "Passed" : "Failed"}</p>
+                    <p>{result.examR_status === 1 ? 'Passed' : 'Failed'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -86,7 +78,7 @@ const ExamResult = ({ candId }) => {
         <p className="text-center text-gray-500">No exam results found</p>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ExamResult;
+export default ExamResult

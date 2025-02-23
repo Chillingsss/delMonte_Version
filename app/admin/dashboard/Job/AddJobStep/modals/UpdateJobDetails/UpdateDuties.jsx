@@ -16,7 +16,7 @@ import {
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { getDataFromSession } from "@/app/utils/storageUtils";
+import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 
 function UpdateDuties({ data, handleAddData, handleUpdate, deleteData }) {
