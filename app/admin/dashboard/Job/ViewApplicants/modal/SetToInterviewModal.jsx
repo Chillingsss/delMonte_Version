@@ -20,6 +20,7 @@ import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { getDataFromSession } from "@/app/utils/storageUtils";
 import axios from "axios";
 import Spinner from "@/components/ui/spinner";
+import { set } from "date-fns";
 
 const SetToInterviewModal = ({
   datas,
@@ -31,6 +32,7 @@ const SetToInterviewModal = ({
   const [tabIndex, setTabIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState([]);
+  const [selectedData, setSelectedData] = useState([]);
 
   const formSchema = z.object({
     date: z.string().min(1, { message: "This field is required" }),
@@ -48,18 +50,18 @@ const SetToInterviewModal = ({
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const candidates = isBatch
-        ? data.map((candidate) => ({
-            fullName: candidate.FullName,
-            candId: candidate.cand_id,
-            candEmail: candidate.cand_email,
-          }))
+        ? selectedData.map((candidate) => ({
+          fullName: candidate.FullName,
+          candId: candidate.cand_id,
+          candEmail: candidate.cand_email,
+        }))
         : [
-            {
-              fullName: data.cand_lastname + ", " + data.cand_firstname,
-              candId: data.cand_id,
-              candEmail: data.cand_email,
-            },
-          ];
+          {
+            fullName: data.cand_lastname + ", " + data.cand_firstname,
+            candId: data.cand_id,
+            candEmail: data.cand_email,
+          },
+        ];
 
       const jsonData = {
         candidates: candidates,
@@ -92,10 +94,15 @@ const SetToInterviewModal = ({
   };
 
   const handleNextPage = () => {
+    if (selectedData.length === 0) {
+      toast.error("Please select at least one candidate");
+      return;
+    }
     setTabIndex(tabIndex + 1);
   };
 
   const handlePrevPage = () => {
+    // setSelectedData([]);
     setTabIndex(tabIndex - 1);
   };
 
@@ -125,8 +132,17 @@ const SetToInterviewModal = ({
     { header: "Full Name", accessor: "FullName" },
     { header: "Status", accessor: "status_name" },
   ];
+
+  const handleModalClose = (isOpen) => {
+    setIsOpen(isOpen);
+    if (!isOpen) {
+      setSelectedData([]);
+      setTabIndex(0);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogTrigger>
         <Button className="mr-1">
           {isBatch ? "Batch set to interview" : "Set to interview"}
@@ -154,6 +170,8 @@ const SetToInterviewModal = ({
                       data={data}
                       itemsPerPage={5}
                       hideSearch={true}
+                      isSelectable={true}
+                      selectedData={setSelectedData}
                     />
                   ) : (
                     <>

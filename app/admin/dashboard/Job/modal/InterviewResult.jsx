@@ -1,13 +1,13 @@
-import { getDataFromSession } from "@/app/utils/storageUtils";
-import { Card, CardContent } from "@/components/ui/card";
-import Spinner from "@/components/ui/spinner";
-import axios from "axios";
-import React, { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
-import { formatDate } from "@/app/signup/page";
-import { Button } from "@/components/ui/button";
-import ConductInterview from "./ConductInterview";
+import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
+import { Card, CardContent } from '@/components/ui/card';
+import Spinner from '@/components/ui/spinner';
+import axios from 'axios';
+import React, { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
+import { formatDate } from '@/app/signup/page';
+import { Button } from '@/components/ui/button';
+import ConductInterview from './ConductInterview';
 
 const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
   const [interviewResults, setInterviewResults] = useState([]);
@@ -20,8 +20,8 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
       const jsonData = {
         jobId: getDataFromSession("jobId"),
-        candId: candId,
-      };
+        candId: candId
+      }
       const formData = new FormData();
       formData.append("operation", "getCandInterviewResult");
       formData.append("json", JSON.stringify(jsonData));
@@ -34,10 +34,7 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
       }
     } catch (error) {
       toast.error("Network error");
-      console.error(
-        "InterviewResult.jsx => getCandInterviewResult error: ",
-        error
-      );
+      console.error("InterviewResult.jsx => getCandInterviewResult error: ", error);
     } finally {
       setIsLoading(false);
     }
@@ -72,17 +69,9 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm font-medium">Score</p>
-                  <p className="text-2xl font-bold">
-                    {result.interviewR_score} / {result.interviewR_totalScore}
-                  </p>
+                  <p className="text-2xl font-bold">{result.interviewR_score} / {result.interviewR_totalScore}</p>
                 </div>
-                <Progress
-                  value={calculatePercentage(
-                    result.interviewR_score,
-                    result.interviewR_totalScore
-                  )}
-                  className="w-full"
-                />
+                <Progress value={calculatePercentage(result.interviewR_score, result.interviewR_totalScore)} className="w-full" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium">Date Taken</p>
@@ -90,9 +79,7 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Status</p>
-                    <p>
-                      {result.interviewR_status === 1 ? "Passed" : "Failed"}
-                    </p>
+                    <p>{result.interviewR_status === 1 ? 'Passed' : 'Failed'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -103,13 +90,9 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
           </div> */}
         </div>
       ) : (
-        <div className="flex flex-col items-center space-y-4">
-          <p className="text-center text-gray-500">
-            No interview results found
-          </p>
-          <Button onClick={handleShowConductInterview}>
-            Conduct Interview
-          </Button>
+        <div className='flex flex-col items-center space-y-4'>
+          <p className="text-center text-gray-500">No interview results found</p>
+          <Button onClick={handleShowConductInterview}>Conduct Interview</Button>
         </div>
       )}
 
@@ -122,7 +105,7 @@ const InterviewResult = ({ candId, handleInterviewChangeStatus }) => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default InterviewResult;
+export default InterviewResult

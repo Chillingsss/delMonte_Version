@@ -26,6 +26,8 @@ import ComboBox from "@/app/my_components/combo-box";
 import { Input } from "@/components/ui/input";
 import {
   getDataFromSession,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import AddCourseMaster from "@/app/admin/dashboard/Masterfiles/modal/AddMasterfileForms/AddCourseMaster";
@@ -39,9 +41,7 @@ function AddEducation({
   handleAddData,
   addTotalPoints = false,
 }) {
-  const [courseCategory, setCourseCategory] = useState(
-    getDataFromSession("courseCategoryList")
-  );
+  const [courseCategory, setCourseCategory] = useState(getDataFromSession("courseCategoryList"));
   const [openState, setOpenState] = useState(false);
   const formSchema = z.object({
     courseCategory: z.number().min(1, {
@@ -97,7 +97,8 @@ function AddEducation({
 
   const onSubmit = (values) => {
     try {
-      const selectedEducation = getDataFromSession("jobEducation") || [];
+      const selectedEducation =
+        getDataFromSession("jobEducation") || [];
       let isValid = true;
       selectedEducation.forEach((element) => {
         if (element.courseCategory === values.courseCategory) {

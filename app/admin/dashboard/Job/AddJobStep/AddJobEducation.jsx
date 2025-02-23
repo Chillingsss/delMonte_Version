@@ -1,6 +1,8 @@
 "use client";
 import {
   getDataFromSession,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 import { Alert } from "@/components/ui/alert";
@@ -95,7 +97,8 @@ function AddJobEducation({
   };
 
   useEffect(() => {
-    const courseCategoryList = getDataFromSession("courseCategoryList") || [];
+    const courseCategoryList =
+      getDataFromSession("courseCategoryList") || [];
     setCourseCategoryData(courseCategoryList);
     console.log("courseCategoryList: ", courseCategoryList);
     if (

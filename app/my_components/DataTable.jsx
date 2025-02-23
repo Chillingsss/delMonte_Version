@@ -4,6 +4,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Input } from "@/components/ui/input";
 import { ChevronsUpDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const DataTable = ({
   columns,
@@ -16,13 +17,16 @@ const DataTable = ({
   onRowClick,
   idAccessor,
   headerAction,
-  tableCaption
+  tableCaption,
+  isSelectable = false,
+  selectedData,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+  const [selectedRows, setSelectedRows] = useState(new Set());
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -81,6 +85,28 @@ const DataTable = ({
     } else {
       setSortColumn(column);
       setSortOrder('asc');
+    }
+  };
+
+  const handleRowSelect = (rowIdentifier) => {
+    const newSelectedRows = new Set(selectedRows);
+    if (newSelectedRows.has(rowIdentifier)) {
+      newSelectedRows.delete(rowIdentifier);
+    } else {
+      newSelectedRows.add(rowIdentifier);
+    }
+    setSelectedRows(newSelectedRows);
+    selectedData(Array.from(newSelectedRows).map(id => data.find(row => (idAccessor ? row[idAccessor] : row) === id)));
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRows.size === currentItems.length) {
+      setSelectedRows(new Set());
+      console.log("Selected data: []");
+    } else {
+      const newSelectedRows = new Set(currentItems.map(row => idAccessor ? row[idAccessor] : row));
+      setSelectedRows(newSelectedRows);
+      selectedData(Array.from(newSelectedRows).map(id => data.find(row => (idAccessor ? row[idAccessor] : row) === id)));
     }
   };
 
@@ -210,6 +236,14 @@ const DataTable = ({
               {tableCaption && <TableCaption>{tableCaption}</TableCaption>}
               <TableHeader>
                 <TableRow>
+                  {isSelectable && (
+                    <TableHead>
+                      <Checkbox
+                        checked={selectedRows.size === currentItems.length}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                  )}
                   {autoIndex && <TableHead>#</TableHead>}
                   {columns.map((column, index) =>
                     (!isMobile || !column.hiddenOnMobile) && (
@@ -228,32 +262,43 @@ const DataTable = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentItems.map((row, rowIndex) => (
-                  <TableRow
-                    key={rowIndex}
-                    onClick={() => {
-                      const rowIdentifier = idAccessor ? row[idAccessor] : row;
-                      if (onRowClick) onRowClick(rowIdentifier);
-                    }}
-                    className={onRowClick ? 'cursor-pointer' : ''}
-                  >
-                    {autoIndex && (
-                      <TableCell>
-                        {(currentPage - 1) * itemsPerPage + rowIndex + 1}
-                      </TableCell>
-                    )}
-                    {columns.map((column, colIndex) =>
-                      (!isMobile || !column.hiddenOnMobile) && (
-                        <TableCell
-                          key={colIndex}
-                          className={typeof column.className === 'function' ? column.className(row) : column.className || ''}
-                        >
-                          {truncateText(column.cell ? column.cell(row) : (typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor]))}
+                {currentItems.map((row, rowIndex) => {
+                  const rowIdentifier = idAccessor ? row[idAccessor] : row;
+                  return (
+                    <TableRow
+                      key={rowIndex}
+                      onClick={() => {
+                        if (onRowClick) onRowClick(rowIdentifier);
+                      }}
+                      className={onRowClick ? 'cursor-pointer' : ''}
+                    >
+                      {isSelectable && (
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedRows.has(rowIdentifier)}
+                            onCheckedChange={() => handleRowSelect(rowIdentifier)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
                         </TableCell>
-                      )
-                    )}
-                  </TableRow>
-                ))}
+                      )}
+                      {autoIndex && (
+                        <TableCell>
+                          {(currentPage - 1) * itemsPerPage + rowIndex + 1}
+                        </TableCell>
+                      )}
+                      {columns.map((column, colIndex) =>
+                        (!isMobile || !column.hiddenOnMobile) && (
+                          <TableCell
+                            key={colIndex}
+                            className={typeof column.className === 'function' ? column.className(row) : column.className || ''}
+                          >
+                            {truncateText(column.cell ? column.cell(row) : (typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor]))}
+                          </TableCell>
+                        )
+                      )}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

@@ -1,8 +1,5 @@
 "use client";
-import {
-  getDataFromSession,
-  storeDataInSession,
-} from "@/app/utils/storageUtils";
+import { getDataFromSession, storeDataInSession } from "@/app/utils/storageUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription } from "@/components/ui/card";
 import ShowAlert from "@/components/ui/show-alert";
@@ -23,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import UpdateKnowledgeModal from "./UpdateJob/UpdateKnowledgeModal";
 
 function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
-  const knowledgeList = retrieveData("knowledgeList");
+  const knowledgeList = getDataFromSession("knowledgeList");
   const [datas, setDatas] = useState([]);
   const [indexToRemove, setIndexToRemove] = useState(null);
   const [updateData, setUpdateData] = useState({});
@@ -91,7 +88,7 @@ function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
   const handleAddList = (status) => {
     if (status !== 0) {
       const jsonData = {
-        jobId: retrieveData("jobId"),
+        jobId: getDataFromSession("jobId"),
         knowledgeText: status.jobKnowledge,
         knowledgeId: status.knowledgeId,
         points: status.points,
@@ -112,6 +109,7 @@ function UpdateKnowledge({ data, handleAddData, handleUpdate, deleteData }) {
     }
     console.log("datas ni knowledge:", data);
     console.log("knowledge ni knowledge:", knowledgeList);
+
   }, [data, knowledgeList]);
 
   return (

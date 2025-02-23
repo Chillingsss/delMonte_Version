@@ -26,6 +26,8 @@ import ComboBox from "@/app/my_components/combo-box";
 import { Input } from "@/components/ui/input";
 import {
   getDataFromSession,
+  retrieveData,
+  storeData,
   storeDataInSession,
 } from "@/app/utils/storageUtils";
 
@@ -58,7 +60,8 @@ function UpdateEducationModal({ open, onHide, courseCategory, updateData }) {
 
   const onSubmit = (values) => {
     try {
-      const selectedEducation = getDataFromSession("jobEducation") || [];
+      const selectedEducation =
+        getDataFromSession("jobEducation") || [];
       let isValid = true;
       const filteredSelectedData = selectedEducation.filter((element) => {
         return element.courseCategory !== updateData.categoryId;

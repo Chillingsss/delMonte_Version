@@ -1,43 +1,20 @@
-"use client";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import React from "react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import {
-  getDataFromSession,
-  storeDataInSession,
-} from "@/app/utils/storageUtils";
+"use client"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import React from 'react'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { getDataFromSession, retrieveData, storeData, storeDataInSession } from '@/app/utils/storageUtils';
 
-function AddExperience({
-  open,
-  onHide,
-  handleAddList,
-  addTotalPoints,
-  isUpdate = false,
-}) {
+function AddExperience({ open, onHide, handleAddList, addTotalPoints, isUpdate = false }) {
+
   const formSchema = z.object({
-    yearsOfExperience: z
-      .string()
+    yearsOfExperience: z.string()
       .min(1, { message: "This field is required" })
       .refine((value) => !isNaN(Number(value)), {
         message: "Years of experience must be a number",
@@ -51,14 +28,11 @@ function AddExperience({
     jobExperience: z.string().min(1, {
       message: "This field is required",
     }),
-    points: z
-      .string()
-      .min(1, {
-        message: "This field is required",
-      })
-      .refine((value) => !isNaN(Number(value)), {
-        message: "Points must be a number",
-      }),
+    points: z.string().min(1, {
+      message: "This field is required",
+    }).refine((value) => !isNaN(Number(value)), {
+      message: "Points must be a number",
+    })
   });
 
   const form = useForm({
@@ -95,18 +69,14 @@ function AddExperience({
 
   const handleOnHide = () => {
     onHide(0);
-  };
+  }
   return (
     <>
       <Dialog open={open} onOpenChange={handleOnHide}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Experience</DialogTitle>
-            {isUpdate && (
-              <DialogDescription>
-                Total points: {getDataFromSession("jobTotalPoints")}
-              </DialogDescription>
-            )}
+            {isUpdate && <DialogDescription>Total points: {getDataFromSession("jobTotalPoints")}</DialogDescription>}
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -119,10 +89,7 @@ function AddExperience({
                       <FormItem>
                         <FormLabel>Year/s of Experience</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter years of experience"
-                            {...field}
-                          />
+                          <Input placeholder="Enter years of experience" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -135,11 +102,7 @@ function AddExperience({
                       <FormItem>
                         <FormLabel>Job Experience Description</FormLabel>
                         <FormControl>
-                          <Textarea
-                            style={{ height: "200px" }}
-                            placeholder="Enter description"
-                            {...field}
-                          />
+                          <Textarea style={{ height: "200px" }} placeholder="Enter description" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -171,7 +134,7 @@ function AddExperience({
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
 
-export default AddExperience;
+export default AddExperience
