@@ -1,5 +1,5 @@
 "use client"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import React from 'react'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import ComboBox from '@/app/my_components/combo-box';
-import { getDataFromSession, retrieveData } from '@/app/utils/storageUtils';
+import { getDataFromSession } from '@/app/utils/storageUtils';
 
 function AddKnowledge({ open, onHide, knowledgeList }) {
   const formSchema = z.object({
