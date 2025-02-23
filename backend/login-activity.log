@@ -18,3 +18,4 @@
 {"level":"info","message":"Successful login","timestamp":"2025-02-23 10:30:36","userId":1,"userLevel":"100.0"}
 {"level":"info","message":"Reset failed attempts","timestamp":"2025-02-23 10:32:01","username":"rape.gallegos.coc@phinmaed.com"}
 {"level":"info","message":"Successful login","timestamp":"2025-02-23 10:32:01","userId":11,"userLevel":"1.0"}
+{"level":"info","message":"Server running on port 3002","timestamp":"2025-02-23 13:38:05"}

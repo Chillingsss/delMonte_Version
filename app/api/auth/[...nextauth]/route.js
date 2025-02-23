@@ -3,6 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const TWELVE_MINUTES = 12 * 60;
 
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://delmonte-careers-api.vercel.app"
+    : "http://localhost:3002";
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -17,7 +22,7 @@ const handler = NextAuth({
         }
 
         try {
-          const res = await fetch("http://localhost:3002/login", {
+          const res = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -44,49 +49,6 @@ const handler = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.userLevel = user.userLevel;
-      }
-
-      return token;
-    },
-
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.userLevel = token.userLevel;
-      }
-
-      return session;
-    },
-  },
-  session: {
-    strategy: "jwt",
-    maxAge: TWELVE_MINUTES,
-  },
-  jwt: {
-    maxAge: TWELVE_MINUTES,
-  },
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: TWELVE_MINUTES,
-        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
-      },
-    },
-  },
 });
 
 export { handler as GET, handler as POST };

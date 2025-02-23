@@ -37,9 +37,13 @@ const logger = winston.createLogger({
 // Middleware
 app.use(helmet());
 app.use(bodyParser.json({ limit: "10kb" }));
+console.log("Allowed Origins:", process.env.ALLOWED_ORIGINS?.split(","));
+
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000",
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || [
+      "http://localhost:3000",
+    ],
     credentials: true,
   })
 );
