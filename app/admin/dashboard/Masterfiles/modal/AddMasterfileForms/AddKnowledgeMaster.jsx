@@ -69,8 +69,7 @@ const AddKnowledgeMaster = ({
       console.log("data ni knowledge: ", data);
       console.log("values ni knowledgename: ", values.knowledgeName);
       console.log("data === null: ", data === undefined);
-      const knowledgeList =
-        JSON.parse(getDataFromSession("knowledgeList")) || [];
+      const knowledgeList = getDataFromSession("knowledgeList") || [];
       let knowledgeExists = false;
       if (data === undefined || data === null) {
         console.log("knowledgeList: ", knowledgeList);

@@ -69,8 +69,7 @@ const AddCourseCategoryMaster = ({
       console.log("data ni course category: ", data);
       console.log("values ni courseCategoryName: ", values.courseCategoryName);
       console.log("data === null: ", data === undefined);
-      const courseCategoryList =
-        JSON.parse(getDataFromSession("courseCategoryList")) || [];
+      const courseCategoryList = getDataFromSession("courseCategoryList") || [];
       let categoryExists = false;
       if (data === undefined || data === null) {
         console.log("courseCategoryList: ", courseCategoryList);
@@ -86,7 +85,7 @@ const AddCourseCategoryMaster = ({
             (category) =>
               category.course_categoryName &&
               category.course_categoryName.trim().toLowerCase() ===
-                values.courseCategoryName.trim().toLowerCase()
+              values.courseCategoryName.trim().toLowerCase()
           );
       }
 

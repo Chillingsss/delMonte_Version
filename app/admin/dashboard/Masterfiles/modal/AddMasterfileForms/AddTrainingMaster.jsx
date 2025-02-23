@@ -69,7 +69,7 @@ const AddTrainingMaster = ({
       console.log("data ni training: ", data);
       console.log("values ni trainingName: ", values.trainingName);
       console.log("data === null: ", data === undefined);
-      const trainingList = JSON.parse(getDataFromSession("trainingList")) || [];
+      const trainingList = getDataFromSession("trainingList") || [];
       let trainingExists = false;
       if (data === undefined || data === null) {
         console.log("trainingList: ", trainingList);
