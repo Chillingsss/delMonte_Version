@@ -69,7 +69,7 @@ const AddSkillMaster = ({
       console.log("data ni skill: ", data);
       console.log("values ni skillname: ", values.skillName);
       console.log("data === null: ", data === undefined);
-      const skillsList = JSON.parse(getDataFromSession("skillsList")) || [];
+      const skillsList = getDataFromSession("skillsList") || [];
       console.log("skillsList: ", skillsList);
       let skillExists = false;
       if (data === undefined || data === null) {

@@ -219,25 +219,28 @@ const PersonalInformation = ({ handleSubmit }) => {
     }
     console.log("personalInfo", storedPersonalInfo);
   }, [form]);
-
+  // FEFACA - light green
+  // 004F39 - green
+  // EAE9E7 - white
+  // 151513 - black
   return (
     <>
-      <div className="w-full max-w-xl mt-7">
+      <div className="w-full max-w-xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <Card className="w-full h-full flex flex-col bg-[#0e5a35] ">
+            <Card className="w-full h-full flex flex-col bg-[#EAE9E7] text-[#151513]">
               <CardHeader>
                 <div className="flex flex-row w-full justify-between items-center">
                   <Button
                     type="button"
-                    className="rounded bg-[#0e5a35]"
+                    className="rounded bg-[#EAE9E7] hover:bg-[#EAE9E7] text-[#151513]"
                     variant="secondary"
                     onClick={handleShowAlert}
                   >
                     <ChevronLeft className="h-6 w-6 mr-2" />
                   </Button>
                   <Image
-                    src="/assets/images/delmonteLogo.png"
+                    src="/assets/images/delmontes.png"
                     alt="DelmonteLogo"
                     width={152}
                     height={152}
@@ -266,7 +269,7 @@ const PersonalInformation = ({ handleSubmit }) => {
                                     <Input
                                       {...field}
                                       type={"text"}
-                                      className="bg-[#0e4028] border-2 border-[#0b864a] pr-10"
+                                      className="bg-[#a8b0bd] border-2 border-[#0b864a] pr-10"
                                     />
                                   </div>
                                 </FormControl>
@@ -290,6 +293,7 @@ const PersonalInformation = ({ handleSubmit }) => {
                                   subject="Gender"
                                   value={field.value}
                                   onChange={field.onChange}
+                                  styles={"bg-[#a8b0bd] border-2 border-[#0b864a] hover:bg-[#0e5a35]"}
                                 />
                               </div>
                               <FormMessage />
@@ -303,7 +307,8 @@ const PersonalInformation = ({ handleSubmit }) => {
                         name="dob"
                         label={"Date of Birth"}
                         futureAllowed={false}
-                        design="justify-start w-full text-left font-normal bg-[#0e4028] hover:bg-[#0e5a35] border-2 border-[#0b864a]"
+                        design="justify-start w-full text-left font-normal bg-[#a8b0bd] hover:bg-[#004f39] border-2 border-[#0b864a]"
+                        labelDesign={"hover:text-white text-[#151513]"}
                         isRequired={true}
                       />
                       <FormField
@@ -316,14 +321,14 @@ const PersonalInformation = ({ handleSubmit }) => {
                               <Input
                                 {...field}
                                 type={isVisible ? "text" : "password"}
-                                className="bg-[#0e4028] border-2 border-[#0b864a] pr-10"
+                                className="bg-[#a8b0bd] border-2 border-[#0b864a] pr-10"
                                 onChange={(e) => {
                                   field.onChange(e);
                                   passwordStrengthChecker(e.target.value);
                                 }}
                               />
                               <span className="absolute inset-y-0 right-0 flex items-center pr-3 hover:cursor-pointer" onClick={() => setIsVisible((prev) => !prev)}>
-                                {isVisible ? (<EyeOff className="h-5 w-5 text-gray-400" />) : (<Eye className="h-5 w-5 text-gray-400" />)}
+                                {isVisible ? (<EyeOff className="h-5 w-5 text-[#151513]" />) : (<Eye className="h-5 w-5 text-[#151513]" />)}
                               </span>
                             </div>
                             <FormMessage />
@@ -334,19 +339,19 @@ const PersonalInformation = ({ handleSubmit }) => {
                         <Progress value={Object.values(passwordCriteria).filter(Boolean).length * 20} className="h-2" />
                         <h3 className="text-xs mt-3 font-bold">Password must contain</h3>
                         <ul className="grid grid-cols-1 gap-3 mt-3 text-sm">
-                          <li className={`flex items-center ${passwordCriteria.length ? 'text-white' : 'text-[#8d9189]'}`}>
+                          <li className={`flex items-center ${passwordCriteria.length ? 'text-black' : 'text-[#8d9189]'}`}>
                             {passwordCriteria.length ? <Check className="h-3 w-4 mr-2" /> : <X className="h-3 w-4 mr-2" />} At least 8 characters
                           </li>
-                          <li className={`flex items-center ${passwordCriteria.uppercase ? 'text-white' : 'text-[#8d9189]'}`}>
+                          <li className={`flex items-center ${passwordCriteria.uppercase ? 'text-black' : 'text-[#8d9189]'}`}>
                             {passwordCriteria.uppercase ? <Check className="h-3 w-4 mr-2" /> : <X className="h-3 w-4 mr-2" />} At least 1 uppercase letter
                           </li>
-                          <li className={`flex items-center ${passwordCriteria.lowercase ? 'text-white' : 'text-[#8d9189]'}`}>
+                          <li className={`flex items-center ${passwordCriteria.lowercase ? 'text-black' : 'text-[#8d9189]'}`}>
                             {passwordCriteria.lowercase ? <Check className="h-3 w-4 mr-2" /> : <X className="h-3 w-4 mr-2" />} At least 1 lowercase letter
                           </li>
-                          <li className={`flex items-center ${passwordCriteria.number ? 'text-white' : 'text-[#8d9189]'}`}>
+                          <li className={`flex items-center ${passwordCriteria.number ? 'text-black' : 'text-[#8d9189]'}`}>
                             {passwordCriteria.number ? <Check className="h-3 w-4 mr-2" /> : <X className="h-3 w-4 mr-2" />} At least 1 number
                           </li>
-                          <li className={`flex items-center ${passwordCriteria.specialChar ? 'text-white' : 'text-[#8d9189]'}`}>
+                          <li className={`flex items-center ${passwordCriteria.specialChar ? 'text-black' : 'text-[#8d9189]'}`}>
                             {passwordCriteria.specialChar ? <Check className="h-3 w-4 mr-2" /> : <X className="h-3 w-4 mr-2" />} At least 1 special character
                           </li>
                         </ul>
@@ -362,11 +367,11 @@ const PersonalInformation = ({ handleSubmit }) => {
                               <Input
                                 {...field}
                                 type={isConfirmVisible ? "text" : "password"}
-                                className="bg-[#0e4028] border-2 border-[#0b864a] pr-10"
+                                className="bg-[#a8b0bd] border-2 border-[#0b864a] pr-10"
                                 onChange={(e) => { field.onChange(e); }}
                               />
                               <span className="absolute inset-y-0 right-0 flex items-center pr-3 hover:cursor-pointer" onClick={() => setIsConfirmVisible((prev) => !prev)}>
-                                {isConfirmVisible ? (<EyeOff className="h-5 w-5 text-gray-400" />) : (<Eye className="h-5 w-5 text-gray-400" />)}
+                                {isConfirmVisible ? (<EyeOff className="h-5 w-5 text-[#151513]" />) : (<Eye className="h-5 w-5 text-[#151513]" />)}
                               </span>
                             </div>
                             <FormMessage />
@@ -379,7 +384,7 @@ const PersonalInformation = ({ handleSubmit }) => {
                 <div className="flex flex-row gap-4 w-full max-w-4xl mt-3 justify-end p-3">
                   <Button
                     type="submit"
-                    className="px-4 py-2 text-white rounded dark:bg-[#f5f5f5] dark:text-[#0e4028] w-full sm:w-auto"
+                    className="px-4 py-2 text-white rounded dark:bg-[#004f39] dark:text-white w-full sm:w-auto"
                     disabled={isLoading}
                   >
                     {isLoading && <Spinner />}

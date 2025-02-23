@@ -26,6 +26,7 @@ const DatePicker = ({
   design,
   withTime = false,
   isRequired = false,
+  labelDesign,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState("12:00");
@@ -89,21 +90,27 @@ const DatePicker = ({
                   onClick={() => setShowPicker(!showPicker)}
                   variant="outline"
                   className={cn(
-                    design ? design : "justify-start w-full",
+                    "group justify-start w-full bg-[#a8b0bd] hover:bg-[#004f39X] border-2 border-[#0b864a]",
+                    design,
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4 text-[#151513] group-hover:text-white" />
                   {field.value ? (
                     withTime ? (
-                      format(new Date(field.value), "MMM dd, yyyy - h:mm a")
+                      <span className="text-[#151513] group-hover:text-white">
+                        {format(new Date(field.value), "MMM dd, yyyy - h:mm a")}
+                      </span>
                     ) : (
-                      format(new Date(field.value), "MMM dd, yyyy")
+                      <span className="text-[#151513] group-hover:text-white">
+                        {format(new Date(field.value), "MMM dd, yyyy")}
+                      </span>
                     )
                   ) : (
-                    <span>Pick a date</span>
+                    <span className="text-[#151513] group-hover:text-white">Pick a date</span>
                   )}
                 </Button>
+
               </PopoverTrigger>
               <PopoverContent align="start" className="w-auto p-0">
                 {withTime && (
