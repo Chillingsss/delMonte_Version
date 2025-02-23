@@ -140,25 +140,24 @@ export default function Login(user) {
     );
   };
 
-  const preventSQLInjection = (input) => {
-    if (typeof input !== "string") return input; // Ensure input is a string
-
-    return input
-      .replace(/(--|#|\/\*|\*\/|;|=)/g, "")
-      .replace(
-        /\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|UNION|GRANT|EXEC|MERGE|TRUNCATE|CALL|REPLACE|CREATE|SHOW)\b/gi,
-        ""
-      )
-      .replace(/['"\\]/g, "");
+  const isDomainValid = async (email) => {
+    const domain = email.split("@")[1];
+    try {
+      const response = await fetch(
+        `https://dns.google/resolve?name=${domain}&type=MX`
+      );
+      const data = await response.json();
+      return data.Answer?.length > 0; // If MX records exist, it's a valid email domain
+    } catch {
+      return false;
+    }
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    let sanitizedUsername = preventSQLInjection(
-      sanitizeInput(username.trim().toLowerCase())
-    );
-    let sanitizedPassword = preventSQLInjection(sanitizeInput(password.trim()));
+    let sanitizedUsername = sanitizeInput(username.trim().toLowerCase());
+    let sanitizedPassword = sanitizeInput(password.trim());
 
     if (!sanitizedUsername || !sanitizedPassword) {
       showErrorToast("⚠️ Please enter both username and password.");
@@ -166,7 +165,13 @@ export default function Login(user) {
     }
 
     if (!isValidEmail(sanitizedUsername)) {
-      showErrorToast("🔒 Invalid Credentials.");
+      showErrorToast("🔒 Invalid Email.");
+      return;
+    }
+
+    const isDomainReal = await isDomainValid(sanitizedUsername);
+    if (!isDomainReal) {
+      showErrorToast("🔒 Invalid email domain.");
       return;
     }
 
@@ -271,11 +276,12 @@ export default function Login(user) {
                   type="text"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => setUsername(e.target.value.slice(0, 50))} // Max 50 characters
                   className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                   required
                   autoFocus
                   ref={usernameRef}
+                  maxLength={50} // Also limits input length
                 />
               </div>
               <div className="mb-4">
@@ -288,10 +294,12 @@ export default function Login(user) {
                     type={showNewPassword ? "text" : "password"}
                     placeholder="********"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value.slice(0, 30))} // Max 30 characters
                     className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                     required
+                    maxLength={30} // Ensures no more than 30 characters
                   />
+
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
