@@ -131,17 +131,22 @@ const Signup = () => {
     setTheme("dark");
   }, [setTheme]);
 
+  // FEFACA - light green
+  // 004F39 - green
+  // EAE9E7 - white
+  // 151513 - black
+
   return (
     <>
       {isLoading ? (
-        <main className="bg-[#0e4028] h-screen">
+        <main className="bg-[#FEFACA] h-screen">
           <div className="flex flex-col w-full h-full justify-center items-center">
             <Spinner />
           </div>
         </main>
       ) : (
         <>
-          <main className="bg-[#0e4028]">
+          <main className="bg-[#004F39]">
             <div className="flex flex-col w-full justify-center items-center">
               <PersonalInformation handleSubmit={handleSubmit} />
             </div>
