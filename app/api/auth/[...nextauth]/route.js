@@ -3,11 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const TWELVE_MINUTES = 12 * 60;
 
-const API_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://delmonte-careers-api.vercel.app"
-    : "http://localhost:3002";
-
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -22,7 +17,7 @@ const handler = NextAuth({
         }
 
         try {
-          const res = await fetch(`${API_URL}/login`, {
+          const res = await fetch("http://localhost:3002/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -31,17 +26,7 @@ const handler = NextAuth({
             }),
           });
 
-          const text = await res.text(); // Read response as text first
-
-          let data;
-          try {
-            data = JSON.parse(text); // Try to parse as JSON
-          } catch (error) {
-            console.error("Invalid JSON response:", text);
-            throw new Error(
-              "Unexpected server response. Please try again later."
-            );
-          }
+          const data = await res.json();
 
           if (res.ok && data.user) {
             return {
@@ -54,12 +39,54 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
-          console.error("Auth Error:", error.message);
           throw new Error(error.message || "Authentication failed");
         }
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.userLevel = user.userLevel;
+      }
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.userLevel = token.userLevel;
+      }
+
+      return session;
+    },
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: TWELVE_MINUTES,
+  },
+  jwt: {
+    maxAge: TWELVE_MINUTES,
+  },
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: TWELVE_MINUTES,
+        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
+      },
+    },
+  },
 });
 
 export { handler as GET, handler as POST };
