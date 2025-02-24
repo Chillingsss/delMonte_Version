@@ -3,10 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const TWELVE_MINUTES = 12 * 60;
 
-const url = process.env.NEXT_NODE_API_URL;
-
-console.log("API URL:", process.env.NEXT_NODE_API_URL);
-
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -21,7 +17,7 @@ const handler = NextAuth({
         }
 
         try {
-          const res = await fetch(url, {
+          const res = await fetch("http://localhost:3002/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -30,10 +26,7 @@ const handler = NextAuth({
             }),
           });
 
-          const text = await res.text(); // Read as text
-          if (!text) throw new Error("Empty response from API");
-
-          const data = JSON.parse(text); // Convert to JSON
+          const data = await res.json();
 
           if (res.ok && data.user) {
             return {
@@ -46,7 +39,6 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
-          console.error("Auth Error:", error);
           throw new Error(error.message || "Authentication failed");
         }
       },
