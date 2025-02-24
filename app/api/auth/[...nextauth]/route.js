@@ -5,6 +5,8 @@ const TWELVE_MINUTES = 12 * 60;
 
 const url = process.env.NEXT_NODE_API_URL;
 
+console.log("API URL:", process.env.NEXT_NODE_API_URL);
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -28,7 +30,10 @@ const handler = NextAuth({
             }),
           });
 
-          const data = await res.json();
+          const text = await res.text(); // Read as text
+          if (!text) throw new Error("Empty response from API");
+
+          const data = JSON.parse(text); // Convert to JSON
 
           if (res.ok && data.user) {
             return {
@@ -41,6 +46,7 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
+          console.error("Auth Error:", error);
           throw new Error(error.message || "Authentication failed");
         }
       },
