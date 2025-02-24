@@ -28,7 +28,16 @@ const handler = NextAuth({
             }),
           });
 
-          const data = await res.json();
+          // Ensure response is valid JSON
+          const text = await res.text();
+          if (!text) throw new Error("Empty response from server");
+
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (error) {
+            throw new Error("Invalid JSON response from server");
+          }
 
           if (res.ok && data.user) {
             return {
@@ -41,6 +50,7 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
+          console.error("Authentication error:", error.message);
           throw new Error(error.message || "Authentication failed");
         }
       },
@@ -54,7 +64,6 @@ const handler = NextAuth({
         token.email = user.email;
         token.userLevel = user.userLevel;
       }
-
       return token;
     },
 
@@ -65,7 +74,6 @@ const handler = NextAuth({
         session.user.email = token.email;
         session.user.userLevel = token.userLevel;
       }
-
       return session;
     },
   },
@@ -85,7 +93,7 @@ const handler = NextAuth({
         path: "/",
         secure: process.env.NODE_ENV === "production",
         maxAge: TWELVE_MINUTES,
-        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
+        expires: new Date(Date.now() + TWELVE_MINUTES * 1000),
       },
     },
   },
