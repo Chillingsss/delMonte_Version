@@ -43,3 +43,9 @@
 {"level":"info","message":"Successful login","timestamp":"2025-02-24 09:03:55","userId":24,"userLevel":"1.0"}
 {"level":"info","message":"Server running on port 3002","timestamp":"2025-02-24 09:12:20"}
 {"level":"info","message":"Server running on port 3002","timestamp":"2025-02-24 09:38:21"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-24 10:26:00","username":"ralphjangallegos@gmail.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-24 10:26:00","userId":1,"userLevel":"100.0"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-24 10:33:22","username":"ralp.pelino11@gmail.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-24 10:33:22","userId":24,"userLevel":"1.0"}
+{"level":"info","message":"Reset failed attempts","timestamp":"2025-02-24 11:13:34","username":"ralphjangallegos@gmail.com"}
+{"level":"info","message":"Successful login","timestamp":"2025-02-24 11:13:34","userId":1,"userLevel":"100.0"}

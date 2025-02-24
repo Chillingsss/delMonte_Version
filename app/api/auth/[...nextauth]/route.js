@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const TWELVE_MINUTES = 12 * 60;
 
+const url = process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -17,7 +19,7 @@ const handler = NextAuth({
         }
 
         try {
-          const res = await fetch("http://localhost:3002/login", {
+          const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
