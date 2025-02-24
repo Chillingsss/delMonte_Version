@@ -1,5 +1,5 @@
-require("dotenv").config(); // Loads .env
-require("dotenv").config({ path: ".env.local", override: true }); // Overrides with .env.local
+require("dotenv").config(); // Load .env
+require("dotenv").config({ path: ".env.local", override: true }); // Override with .env.local
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -11,6 +11,8 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const port = 3002;
+
+app.set("trust proxy", 1); // Fix for 'X-Forwarded-For' header issue
 
 app.use(bodyParser.json());
 app.use(cors());

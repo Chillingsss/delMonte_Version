@@ -30,7 +30,8 @@ const handler = NextAuth({
         }
 
         try {
-          const url = process.env.NEXT_NODE_API_URL;
+          const url =
+            process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
           console.log(`Attempting authentication to: ${url}`);
 
           const res = await fetch(url, {
