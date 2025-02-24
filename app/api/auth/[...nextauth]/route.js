@@ -17,8 +17,7 @@ const handler = NextAuth({
         }
 
         try {
-          const url =
-            process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
+          const url = process.env.NEXT_NODE_API_URL || "http://localhost:3002";
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

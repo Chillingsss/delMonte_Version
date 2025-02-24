@@ -1,5 +1,5 @@
-require("dotenv").config(); // Load .env
-require("dotenv").config({ path: ".env.local", override: true }); // Override with .env.local
+require("dotenv").config(); // Loads .env
+require("dotenv").config({ path: ".env.local", override: true }); // Overrides with .env.local
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -11,8 +11,6 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 const port = 3002;
-
-app.set("trust proxy", 1); // Fix for 'X-Forwarded-For' header issue
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -26,23 +24,6 @@ console.log("DB_NAME:", process.env.DB_NAME);
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 10 * 60 * 1000; // 10 minutes lock
 const JWT_SECRET = process.env.NEXTAUTH_SECRET;
-
-// Configure CORS with allowed origins
-app.use(
-  cors({
-    origin: [
-      "https://delmonte-careers.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:3002",
-      "https://d787-175-176-85-64.ngrok-free.app",
-    ],
-    credentials: true,
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-app.use(bodyParser.json());
 
 // Generate JWT Token
 const generateToken = (userId, userLevel) => {
@@ -117,7 +98,6 @@ const loginLimiter = rateLimit({
 // Login API
 app.post("/login", loginLimiter, async (req, res) => {
   const { username, password } = req.body;
-  console.log("🔹 Login Attempt:", username);
   const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
 
   try {
