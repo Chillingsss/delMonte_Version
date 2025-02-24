@@ -3,8 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 const TWELVE_MINUTES = 12 * 60;
 
-const url = process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
-
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -19,6 +17,7 @@ const handler = NextAuth({
         }
 
         try {
+          const url = process.env.NEXT_NODE_API_URL || "http://localhost:3002";
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -28,16 +27,7 @@ const handler = NextAuth({
             }),
           });
 
-          // Ensure response is valid JSON
-          const text = await res.text();
-          if (!text) throw new Error("Empty response from server");
-
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch (error) {
-            throw new Error("Invalid JSON response from server");
-          }
+          const data = await res.json();
 
           if (res.ok && data.user) {
             return {
@@ -50,7 +40,6 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
-          console.error("Authentication error:", error.message);
           throw new Error(error.message || "Authentication failed");
         }
       },
@@ -64,6 +53,7 @@ const handler = NextAuth({
         token.email = user.email;
         token.userLevel = user.userLevel;
       }
+
       return token;
     },
 
@@ -74,6 +64,7 @@ const handler = NextAuth({
         session.user.email = token.email;
         session.user.userLevel = token.userLevel;
       }
+
       return session;
     },
   },
@@ -93,7 +84,7 @@ const handler = NextAuth({
         path: "/",
         secure: process.env.NODE_ENV === "production",
         maxAge: TWELVE_MINUTES,
-        expires: new Date(Date.now() + TWELVE_MINUTES * 1000),
+        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
       },
     },
   },
