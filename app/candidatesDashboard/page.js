@@ -801,7 +801,7 @@ export default function DashboardCandidates() {
           <Image
             width={70}
             height={70}
-            src="/assets/images/delMontes.png"
+            src="/assets/images/delmontes.png"
             alt="Del Monte Logo"
             className="h-10 w-auto ml-2"
             onClick={refreshTransactions}
