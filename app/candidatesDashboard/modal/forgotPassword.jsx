@@ -229,7 +229,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         </h3>
         {!isPinCodeSent ? (
           <div className="mb-4">
-            <label className="block text-gray-500 text-sm font-normal mb-2">
+            <label className="block text-[#151513] text-sm font-normal mb-2">
               Email:
             </label>
             <input
@@ -262,7 +262,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         ) : (
           <form onSubmit={handleSubmitPasswordChange}>
             <div className="mb-4">
-              <label className="block text-gray-300 text-sm font-normal">
+              <label className="block text-[#151513] text-sm font-normal">
                 Enter PIN Code (sent to your email):
               </label>
               <input
@@ -271,12 +271,12 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                 value={enteredPinCode}
                 onChange={(e) => setEnteredPinCode(e.target.value)}
                 placeholder="Enter PIN Code"
-                className="w-full p-3 rounded-lg bg-[#0E5A35]  placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-white"
+                className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                 required
               />
             </div>
             <div className="mb-4 relative">
-              <label className="block text-gray-300 text-sm font-normal">
+              <label className="block text-[#151513] text-sm font-normal">
                 New Password:
               </label>
               <div className="relative">
@@ -284,7 +284,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   type={showNewPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full p-3 rounded-lg bg-[#0E5A35] text-white pr-10"
+                  className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                   required
                 />
                 <button
@@ -292,7 +292,11 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
-                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showNewPassword ? (
+                    <EyeOff size={20} className="text-[#151513]" />
+                  ) : (
+                    <Eye size={20} className="text-[#151513]" />
+                  )}
                 </button>
               </div>
               <ul className="text-sm mt-2">
@@ -337,7 +341,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               </ul>
             </div>
             <div className="mb-4 relative">
-              <label className="block text-gray-300 text-sm font-normal">
+              <label className="block text-[#151513] text-sm font-normal">
                 Confirm New Password:
               </label>
               <div className="relative">
@@ -345,7 +349,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={handleConfirmPasswordChange}
-                  className={`w-full p-3 rounded-lg bg-[#0E5A35] text-white pr-10 ${
+                  className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
                     confirmPassword &&
                     (confirmPasswordValid
                       ? "border-green-500"
@@ -359,9 +363,9 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20} />
+                    <EyeOff size={20} className="text-[#151513]" />
                   ) : (
-                    <Eye size={20} />
+                    <Eye size={20} className="text-[#151513]" />
                   )}
                 </button>
               </div>
@@ -370,13 +374,13 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="p-2 rounded-lg bg-red-500 text-white"
+                className="p-2 rounded-lg bg-transparent text-[#151513] border border-[#151513] hover:bg-red-500 hover:text-white"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="p-2 rounded-lg bg-green-500 text-white"
+                className="p-2 rounded-lg bg-green-500 text-white animation hover:bg-green-600"
                 disabled={loading}
               >
                 {loading ? "Saving..." : "Save New Password"}
