@@ -53,11 +53,16 @@ export default function Login(user) {
 
     const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
 
+
     if (userLevel) {
       if (userLevel === "1.0") {
         router.push("/candidatesDashboard");
       } else if (userLevel === "100.0") {
         router.push("/admin/dashboard");
+      } else if (userLevel === "50.0") {
+        router.push("/manager/dashboard");
+      } else if (userLevel === "20.0") {
+        router.push("/supervisor/dashboard");
       }
     }
   }, [session, router]);
@@ -156,8 +161,9 @@ export default function Login(user) {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    let sanitizedUsername = sanitizeInput(username.trim().toLowerCase());
+    let sanitizedUsername = sanitizeInput(username.trim());
     let sanitizedPassword = sanitizeInput(password.trim());
+
 
     if (!sanitizedUsername || !sanitizedPassword) {
       showErrorToast("⚠️ Please enter both username and password.");
@@ -201,7 +207,7 @@ export default function Login(user) {
     setLoading(true);
     const response = await signIn("credentials", {
       redirect: false,
-      username: sanitizeInput(username.trim().toLowerCase()),
+      username: sanitizeInput(username.trim()),
       password: sanitizeInput(password.trim()),
     });
 
@@ -225,6 +231,8 @@ export default function Login(user) {
           router.replace("/candidatesDashboard");
         } else if (userLevel === "100.0") {
           router.replace("/admin/dashboard");
+        } else if (userLevel === "50.0") {
+          router.replace("/manager/dashboard");
         }
       }, 5000);
     }

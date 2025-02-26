@@ -74,6 +74,25 @@ const tables = [
     userLevelCols: "userL_level",
     userLevelCol: "cand_userLevel",
   },
+  {
+    name: "tblmanager",
+    emailCol: "manager_email",
+    passCol: "manager_password",
+    idCol: "manager_id",
+    nameCol: "manager_firstname",
+    userLevelCols: "userL_level",
+    userLevelCol: "manager_userLevel",
+  },
+  {
+    name: "tblsupervisor",
+    emailCol: "sup_email",
+    passCol: "sup_password",
+    idCol: "sup_id",
+    nameCol: "sup_firstname",
+    userLevelCols: "userL_level",
+    userLevelCol: "sup_userLevel",
+  },
+
 ];
 
 // Fetch user data

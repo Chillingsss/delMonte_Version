@@ -15,6 +15,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [isPinCodeSent, setIsPinCodeSent] = useState(false);
   const [candId, setCandId] = useState(null);
   const [admId, setAdmId] = useState(null);
+  const [manId, setManId] = useState(null);
+  const [supId, setSupId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
@@ -115,6 +117,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setIsPinCodeSent(true);
         setCandId(data.candId);
         setAdmId(data.admId);
+        setManId(data.manId);
+        setSupId(data.supId);
         showSuccessToast("PIN code sent to your email.");
       } else if (data.error) {
         showErrorToast(data.error);
@@ -159,6 +163,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         JSON.stringify({
           cand_id: candId,
           adm_id: admId,
+          man_id: manId,
+          sup_id: supId,
           password: newPassword,
         })
       );
@@ -166,6 +172,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       console.log("Sending data:", {
         cand_id: candId,
         adm_id: admId,
+        man_id: manId,
+        sup_id: supId,
         password: newPassword,
       });
 

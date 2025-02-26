@@ -16,6 +16,8 @@ const handler = NextAuth({
           throw new Error("Username and password are required");
         }
 
+        const sanitizedUsername = credentials.username.trim();
+
         try {
           const url =
             process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
@@ -23,7 +25,7 @@ const handler = NextAuth({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              username: credentials.username,
+              username: sanitizedUsername,
               password: credentials.password,
             }),
           });
