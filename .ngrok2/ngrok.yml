@@ -1,0 +1,10 @@
+version: "2"
+authtoken: 2sT6PUvCAXupnWbSEMIxJ1TcU8K_7XRMmV7J6Zv7jgDBMmW5
+
+tunnels:
+  api:
+    proto: http
+    addr: 80
+  login:
+    proto: http
+    addr: 3002
