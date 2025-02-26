@@ -1,11 +1,12 @@
 "use client"
 import Reacts from 'react'
+import JobAppliedChart from './JobAppliedChart'
 
 function AdminDashboard() {
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold underline"></h1>
+    <div className='grid grid-cols-1 gap-4'>
+      <JobAppliedChart />
     </div>
   )
 }

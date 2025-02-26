@@ -23,8 +23,10 @@ import {
   getDataFromSession,
   retrieveData,
 } from "@/app/utils/storageUtils";
+import Spinner from "@/components/ui/spinner";
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const [viewIndex, setViewIndex] = useState(0);
 
@@ -47,54 +49,68 @@ export default function Page() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const authToken = getDataFromCookie("auth_token");
+  // useEffect(() => {
+  //   const authToken = getDataFromCookie("auth_token");
 
-    if (status === "unauthenticated" && !authToken) {
-      router.push("/");
-    }
-  }, [status, router]);
+  //   if (status === "unauthenticated" && !authToken) {
+  //     router.push("/");
+  //   }
+  // }, [status, router]);
 
-  useEffect(() => {
-    const getUserLevelFromCookie = () => {
-      const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null;
-    };
+  // useEffect(() => {
+  //   const getUserLevelFromCookie = () => {
+  //     const tokenData = getDataFromCookie("auth_token");
+  //     return tokenData?.userLevel || null;
+  //   };
 
-    const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
+  //   const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
 
-    if (!userLevel) {
-      console.log("No valid session or cookie found. Redirecting to login...");
-      router.replace("/"); // Redirect to login if both are missing
-      return;
-    }
+  //   if (!userLevel) {
+  //     console.log("No valid session or cookie found. Redirecting to login...");
+  //     router.replace("/"); // Redirect to login if both are missing
+  //     return;
+  //   }
 
-    if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
-      router.replace("/candidatesDashboard");
-    } else if (
-      userLevel === "100.0" &&
-      router.pathname !== "/admin/dashboard"
-    ) {
-      router.replace("/admin/dashboard");
-    }
-  }, [session, router]);
+  //   if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
+  //     router.replace("/candidatesDashboard");
+  //   } else if (
+  //     userLevel === "100.0" &&
+  //     router.pathname !== "/admin/dashboard"
+  //   ) {
+  //     router.replace("/admin/dashboard");
+  //   } else {
+  //     setIsLoading(false);
+  //   }
+  // }, [session, router]);
 
   const handleChangeView = (index) => {
     setViewIndex(index);
   };
 
   return (
-    <div className="bg-background h-screen">
-      <AdminSidebar changeView={handleChangeView} />
-      <main className="sm:ps-20 px-5 py-3">
-        <div className="flex justify-end">
-          <ModeToggle />
-        </div>
-        <CardTitle className="text-3xl py-3">
-          {adminViews[viewIndex].title}
-        </CardTitle>
-        {adminViews[viewIndex].view}
-      </main>
-    </div>
+    <>
+      <div className="bg-background h-screen">
+
+        {isLoading ?
+          <div className="flex justify-center items-center h-screen">
+            <Spinner />
+          </div>
+          :
+          <>
+            <AdminSidebar changeView={handleChangeView} />
+            <main className="sm:ps-20 px-5 py-3">
+              <div className="flex justify-end">
+                <ModeToggle />
+              </div>
+              <CardTitle className="text-3xl py-3">
+                {adminViews[viewIndex].title}
+              </CardTitle>
+              {adminViews[viewIndex].view}
+            </main>
+          </>
+        }
+      </div>
+
+    </>
   );
 }
