@@ -97,7 +97,7 @@ const UpdateEmail = ({
 
         // Example usage
         const userId = session?.user?.id || getUserIdFromCookie();
-        console.log("User ID:", userId);
+        // console.log("User ID:", userId);
 
         const formData = new FormData();
         formData.append("operation", "checkPasswordExists");
@@ -136,7 +136,7 @@ const UpdateEmail = ({
       };
       const cand_id = session?.user?.id || getUserIdFromCookie();
 
-      console.log("User ID:", cand_id);
+      // console.log("User ID:", cand_id);
 
       // Verify the current password
       const verifyPasswordFormData = new FormData();
@@ -152,7 +152,7 @@ const UpdateEmail = ({
       );
       const verifyPasswordData = verifyPasswordResponse.data;
 
-      console.log("Verify password data:", verifyPasswordData);
+      // console.log("Verify password data:", verifyPasswordData);
 
       if (!verifyPasswordData.success) {
         toast.error("Current password is incorrect.");

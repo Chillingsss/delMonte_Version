@@ -63,6 +63,8 @@ export default function Login(user) {
         router.push("/manager/dashboard");
       } else if (userLevel === "20.0") {
         router.push("/supervisor/dashboard");
+      } else if (userLevel === "10.0") {
+        router.push("/analyst/dashboard");
       }
     }
   }, [session, router]);
@@ -233,6 +235,10 @@ export default function Login(user) {
           router.replace("/admin/dashboard");
         } else if (userLevel === "50.0") {
           router.replace("/manager/dashboard");
+        } else if (userLevel === "20.0") {
+          router.replace("/supervisor/dashboard");
+        } else if (userLevel === "10.0") {
+          router.replace("/analyst/dashboard");
         }
       }, 5000);
     }

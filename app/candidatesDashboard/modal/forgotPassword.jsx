@@ -17,6 +17,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [admId, setAdmId] = useState(null);
   const [manId, setManId] = useState(null);
   const [supId, setSupId] = useState(null);
+  const [analystId, setAnalystId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
@@ -110,7 +111,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
 
       const response = await axios.post(url, formData);
       const data = response.data;
-      console.log("Data:", data);
+      // console.log("Data:", data);
 
       if (data.pincode) {
         setPinCode(data.pincode);
@@ -119,6 +120,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setAdmId(data.admId);
         setManId(data.manId);
         setSupId(data.supId);
+        setAnalystId(data.analystId);
         showSuccessToast("PIN code sent to your email.");
       } else if (data.error) {
         showErrorToast(data.error);
@@ -165,22 +167,24 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
           adm_id: admId,
           man_id: manId,
           sup_id: supId,
+          analyst_id: analystId,
           password: newPassword,
         })
       );
 
-      console.log("Sending data:", {
-        cand_id: candId,
-        adm_id: admId,
-        man_id: manId,
-        sup_id: supId,
-        password: newPassword,
-      });
+      // console.log("Sending data:", {
+      //   cand_id: candId,
+      //   adm_id: admId,
+      //   man_id: manId,
+      //   sup_id: supId,
+      //   analyst_id: analystId,
+      //   password: newPassword,
+      // });
 
       const response = await axios.post(url, formData);
       const data = response.data;
 
-      console.log("data change:", data);
+      // console.log("data change:", data);
 
       if (data.success) {
         showSuccessToast("Password updated successfully.");

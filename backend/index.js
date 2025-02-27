@@ -61,7 +61,7 @@ const tables = [
     emailCol: "adm_email",
     passCol: "adm_password",
     idCol: "adm_id",
-    nameCol: "adm_name",
+    nameCol: "adm_firstname",
     userLevelCols: "userL_level",
     userLevelCol: "adm_userLevel",
   },
@@ -92,6 +92,15 @@ const tables = [
     userLevelCols: "userL_level",
     userLevelCol: "sup_userLevel",
   },
+  {
+    name: "tblanalyst",
+    emailCol: "analyst_email",
+    passCol: "analyst_password",
+    idCol: "analyst_id",
+    nameCol: "analyst_firstname",
+    userLevelCols: "userL_level",
+    userLevelCol: "analyst_userLevel",
+  }
 
 ];
 
