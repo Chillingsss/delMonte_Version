@@ -363,25 +363,26 @@ export const DateRangePicker = ({
                     <DateInput
                       value={range.from}
                       onChange={(date) => {
-                        const toDate =
-                          range.to == null || date > range.to ? date : range.to
+                        console.log('DateInput onChange triggered with:', date);
+                        const toDate = range.to == null || date > range.to ? date : range.to;
                         setRange((prevRange) => ({
                           ...prevRange,
                           from: date,
                           to: toDate
-                        }))
+                        }));
                       }}
                     />
                     <div className="py-1">-</div>
                     <DateInput
                       value={range.to}
                       onChange={(date) => {
-                        const fromDate = date < range.from ? date : range.from
+                        console.log('DateInput onChange triggered with:', date);
+                        const toDate = range.to == null || date > range.to ? date : range.to;
                         setRange((prevRange) => ({
                           ...prevRange,
-                          from: fromDate,
-                          to: date
-                        }))
+                          from: date,
+                          to: toDate
+                        }));
                       }}
                     />
                   </div>
@@ -489,16 +490,12 @@ export const DateRangePicker = ({
           <Button
             onClick={() => {
               setIsOpen(false)
-              if (
-                !areRangesEqual(range, openedRangeRef.current) ||
-                !areRangesEqual(rangeCompare, openedRangeCompareRef.current)
-              ) {
-                onUpdate?.({ range, rangeCompare })
-              }
+              onUpdate?.({ range, rangeCompare }) // Always call onUpdate
             }}
           >
             Update
           </Button>
+
         </div>
       </PopoverContent>
     </Popover>
