@@ -20,6 +20,7 @@ import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { IoLogoGoogle } from "react-icons/io";
 import { lineSpinner } from "ldrs";
 import { Eye, EyeOff, XCircle } from "lucide-react";
+import TwoFactorAuthModal from "../components/TwoFactorAuthModal";
 
 export default function Login(user) {
   const { data: session } = useSession();
@@ -38,6 +39,9 @@ export default function Login(user) {
   const captchaInputRef = useRef(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showTwoFAInput, setShowTwoFAInput] = useState(false);
+  const [twoFACode, setTwoFACode] = useState("");
+  const [twoFAEmail, setTwoFAEmail] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -48,13 +52,13 @@ export default function Login(user) {
   useEffect(() => {
     const getUserLevelFromCookie = () => {
       const tokenData = getDataFromCookie("auth_token");
-      return tokenData?.userLevel || null; // Return userId if found, otherwise null
+      return tokenData?.userLevel || null;
     };
 
-    const userLevel = session?.user?.userLevel || getUserLevelFromCookie(); // Prioritize session, fallback to cookie
-
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
 
     if (userLevel) {
+      setShowTwoFAInput(false);
       if (userLevel === "1.0") {
         router.push("/candidatesDashboard");
       } else if (userLevel === "100.0") {
@@ -66,8 +70,19 @@ export default function Login(user) {
       } else if (userLevel === "10.0") {
         router.push("/analyst/dashboard");
       }
+    } else if (session) {
+      setShowTwoFAInput(true);
     }
   }, [session, router]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedUsername = localStorage.getItem("savedUsername");
+      const savedPassword = localStorage.getItem("savedPassword");
+      if (savedUsername) setUsername(savedUsername);
+      if (savedPassword) setPassword(savedPassword);
+    }
+  }, []);
 
   const generateCaptcha = useCallback(() => {
     if (typeof window === "undefined") return; // Prevents running on the server
@@ -166,7 +181,7 @@ export default function Login(user) {
     let sanitizedUsername = sanitizeInput(username.trim());
     let sanitizedPassword = sanitizeInput(password.trim());
 
-
+    // Initial validation
     if (!sanitizedUsername || !sanitizedPassword) {
       showErrorToast("⚠️ Please enter both username and password.");
       return;
@@ -188,9 +203,9 @@ export default function Login(user) {
       return;
     }
 
+    // Show CAPTCHA after initial validation
     setUsername(sanitizedUsername);
     setPassword(sanitizedPassword);
-
     generateCaptcha();
     setCaptchaInput("");
     setShowCaptcha(true);
@@ -207,41 +222,125 @@ export default function Login(user) {
     }
 
     setLoading(true);
-    const response = await signIn("credentials", {
-      redirect: false,
-      username: sanitizeInput(username.trim()),
-      password: sanitizeInput(password.trim()),
-    });
+    try {
+      const response = await signIn("credentials", {
+        redirect: false,
+        username: sanitizeInput(username.trim()),
+        password: sanitizeInput(password.trim()),
+      });
 
-    setLoading(false);
+      if (response?.ok) {
+        // Save credentials to localStorage only after successful login
+        localStorage.setItem("savedUsername", sanitizeInput(username.trim()));
+        localStorage.setItem("savedPassword", sanitizeInput(password.trim()));
 
-    if (response?.error) {
-      showErrorToast(`🔒 ${response.error}`);
-
-      generateCaptcha();
-      setCaptchaInput("");
-      setUsername("");
-      setPassword("");
-      setShowCaptcha(false);
-      setButtonText("Log In");
-    } else {
-      setIsRedirecting(true);
-      const userLevel = response?.user?.userLevel;
-
-      setTimeout(() => {
-        if (userLevel === "1.0") {
-          router.replace("/candidatesDashboard");
-        } else if (userLevel === "100.0") {
-          router.replace("/admin/dashboard");
-        } else if (userLevel === "50.0") {
-          router.replace("/manager/dashboard");
-        } else if (userLevel === "20.0") {
-          router.replace("/supervisor/dashboard");
-        } else if (userLevel === "10.0") {
-          router.replace("/analyst/dashboard");
+        setShowTwoFAInput(true);
+        if (response?.user?.twoFA) {
+          setShowCaptcha(false);
+          showErrorToast("📧 Check your email for the 2FA code");
+        } else {
+          setIsRedirecting(true);
+          handleRedirect(response?.user?.userLevel);
         }
-      }, 5000);
+      } else if (response?.error) {
+        if (response.error === "2FA code sent to your email.") {
+          setShowCaptcha(false);
+          showErrorToast("📧 Check your email for the 2FA code");
+          console.log("showTwoFAInput", showTwoFAInput);
+        } else {
+          showErrorToast(`🔒 ${response.error}`);
+          generateCaptcha();
+          setCaptchaInput("");
+          setUsername("");
+          setPassword("");
+          setShowCaptcha(false);
+        }
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      showErrorToast("An error occurred during login");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleTwoFASubmit = async (e) => {
+    if (e) e.preventDefault();
+
+    if (!twoFACode || twoFACode.length !== 6) {
+      showErrorToast("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await signIn("credentials", {
+        redirect: false,
+        username: username,
+        password: password,
+        twoFACode: twoFACode,
+      });
+
+      if (response?.error) {
+        showErrorToast(`🔒 ${response.error}`);
+        setTwoFACode("");
+      } else if (response?.ok) {
+        setShowTwoFAInput(false);
+        setIsRedirecting(true);
+        handleRedirect(response?.user?.userLevel);
+        localStorage.removeItem("savedUsername");
+        localStorage.removeItem("savedPassword");
+      }
+    } catch (error) {
+      console.error("2FA verification error:", error);
+      showErrorToast("An error occurred during 2FA verification");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRedirect = (userLevel) => {
+    setTimeout(() => {
+      if (userLevel === "1.0") {
+        router.replace("/candidatesDashboard");
+      } else if (userLevel === "100.0") {
+        router.replace("/admin/dashboard");
+      } else if (userLevel === "50.0") {
+        router.replace("/manager/dashboard");
+      } else if (userLevel === "20.0") {
+        router.replace("/supervisor/dashboard");
+      } else if (userLevel === "10.0") {
+        router.replace("/analyst/dashboard");
+      }
+    }, 5000);
+  };
+
+  const handleClose2FAModal = () => {
+    setShowTwoFAInput(false);
+    setTwoFACode("");
+  };
+
+  const clearAuthData = async () => {
+    if (typeof window !== "undefined") {
+      document.cookie.split(";").forEach((cookie) => {
+        const [name] = cookie.split("=");
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+      });
+    }
+    await signOut({ redirect: false });
+  };
+
+  const handleCancelLogin = async () => {
+    await clearAuthData();
+    setShowTwoFAInput(false);
+    setIsRedirecting(false);
+    setTwoFACode("");
+    localStorage.removeItem("savedUsername");
+    localStorage.removeItem("savedPassword");
+    router.replace("/login");
+    setUsername("");
+    setPassword("");
   };
 
   return (
@@ -276,95 +375,91 @@ export default function Login(user) {
           </h2>
           <p className="text-gray-500 mb-6 slide-up">Log In to your account</p>
 
-          {/* Show login form if user is NOT logged in */}
-          {!session ? (
-            <form
-              onSubmit={showCaptcha ? handleCaptchaValidation : handleLogin}
-            >
-              <div className="mb-4">
-                <label className="block text-gray-500 mb-2" htmlFor="username">
-                  Email
-                </label>
+          <form
+            onSubmit={
+              showTwoFAInput
+                ? handleTwoFASubmit
+                : showCaptcha
+                ? handleCaptchaValidation
+                : handleLogin
+            }
+          >
+            <div className="mb-4">
+              <label className="block text-gray-500 mb-2" htmlFor="username">
+                Email
+              </label>
+              <input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.slice(0, 50))} // Max 50 characters
+                className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
+                required
+                autoFocus
+                ref={usernameRef}
+                maxLength={50} // Also limits input length
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-500 mb-2" htmlFor="password">
+                Password
+              </label>
+              <div className="relative">
                 <input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value.slice(0, 50))} // Max 50 characters
+                  id="password"
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.slice(0, 30))} // Max 30 characters
                   className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
                   required
+                  maxLength={30} // Ensures no more than 30 characters
+                />
+
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+            {showCaptcha && !showTwoFAInput && (
+              <div className="mb-4">
+                <img src={captchaImage} alt="Captcha" />
+                <input
+                  ref={captchaInputRef}
+                  type="text"
+                  placeholder="Enter captcha"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
+                    captchaInput === captchaText
+                      ? "border-green-500 focus:ring-green-500"
+                      : "border-red-500 focus:ring-red-500"
+                  } slide-up`}
+                  required
                   autoFocus
-                  ref={usernameRef}
-                  maxLength={50} // Also limits input length
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-500 mb-2" htmlFor="password">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showNewPassword ? "text" : "password"}
-                    placeholder="********"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value.slice(0, 30))} // Max 30 characters
-                    className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
-                    required
-                    maxLength={30} // Ensures no more than 30 characters
-                  />
+            )}
 
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                  >
-                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-              {showCaptcha && (
-                <div className="mb-4">
-                  <img src={captchaImage} alt="Captcha" />
-                  <input
-                    ref={captchaInputRef}
-                    type="text"
-                    placeholder="Enter captcha"
-                    value={captchaInput}
-                    onChange={(e) => setCaptchaInput(e.target.value)}
-                    className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
-                      captchaInput === captchaText
-                        ? "border-green-500 focus:ring-green-500"
-                        : "border-red-500 focus:ring-red-500"
-                    } slide-up`}
-                    required
-                    autoFocus
-                  />
-                </div>
-              )}
-              <button
-                type="submit"
-                className="w-full bg-[#004F39] hover:bg-green-800 text-green-100 py-3 rounded-lg transition duration-200 slide-up"
-                disabled={loading}
-              >
-                {loading ? "Logging in..." : buttonText}
-              </button>
-            </form>
-          ) : (
-            <div className="text-white">
-              <l-line-spinner
-                size="40"
-                stroke="3"
-                speed="1"
-                color="#ffffff"
-              ></l-line-spinner>
-              <p className="text-green-200">You are already logged in.</p>
-              <p className="mt-2">
-                You are logged in as{" "}
-                <span className="font-semibold">{session.user.email}</span>
-              </p>
-            </div>
-          )}
+            <button
+              type="submit"
+              className="w-full bg-[#004F39] hover:bg-green-800 text-green-100 py-3 rounded-lg transition duration-200 slide-up"
+              disabled={loading}
+            >
+              {loading
+                ? "Verifying..."
+                : showTwoFAInput
+                ? "Verify 2FA Code"
+                : showCaptcha
+                ? "Verify CAPTCHA"
+                : "Log In"}
+            </button>
+          </form>
 
           {/* Google Login Button */}
           {!session && (
@@ -414,9 +509,21 @@ export default function Login(user) {
         />
       )}
 
+      {showTwoFAInput && (
+        <TwoFactorAuthModal
+          showModal={showTwoFAInput}
+          onClose={handleClose2FAModal}
+          onSubmit={handleTwoFASubmit}
+          onCancel={handleCancelLogin}
+          loading={loading}
+          twoFACode={twoFACode}
+          setTwoFACode={setTwoFACode}
+        />
+      )}
+
       {/* Redirecting Loader */}
       {isRedirecting && (
-        <div className="fixed inset-0 bg-[#01472B] bg-opacity-90 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[#01472B] bg-opacity-90 flex items-center justify-center z-20">
           <div className="flex flex-col items-center bg-[#0E5A35] p-8 rounded-xl shadow-2xl transform animate-fade-in">
             <l-line-spinner
               size="48"
