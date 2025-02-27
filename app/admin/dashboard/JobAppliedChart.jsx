@@ -6,11 +6,12 @@ import { toast } from 'sonner'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import SelectedJob from './Job/modal/SelectedJob'
+import { DateRangePicker } from '@/app/my_components/DateRangePicker'
 
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "#2563eb",
+    color: "#009b70",
   }
 }
 
@@ -60,13 +61,20 @@ const JobAppliedChart = () => {
       {isLoading ? <Spinner /> :
         <>
           <Card>
-            <CardHeader className="grid grid-cols-2 justify-center gap-1 px-6 py-5 sm:py-6">
+            <CardHeader className="grid grid-cols-1 sm:grid-cols-2 justify-center gap-1 px-6 py-5 sm:py-6">
               <div>
                 <CardTitle>Job Applications</CardTitle>
                 <CardDescription>Number of applicants per job</CardDescription>
               </div>
               <div className='justify-self-end'>
-                hellos
+                <DateRangePicker
+                  onUpdate={(values) => console.log(values)}
+                  initialDateFrom={new Date().toISOString().slice(0, 7) + "-01"}
+                  initialDateTo={new Date().toISOString().slice(0, 10)}
+                  align="start"
+                  locale="en-GB"
+                  showCompare={false}
+                />
               </div>
             </CardHeader>
             <CardContent className="px-2 sm:p-6">
@@ -88,7 +96,6 @@ const JobAppliedChart = () => {
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="Total_Applied" fill="var(--color-desktop)" radius={4} onClick={handleBarClick} className='hover:cursor-pointer' />
                   </BarChart>
-
                 </ChartContainer>
               </ChartContainer>
             </CardContent>
