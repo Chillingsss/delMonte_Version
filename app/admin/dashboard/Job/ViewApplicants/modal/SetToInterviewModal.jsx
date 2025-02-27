@@ -94,7 +94,7 @@ const SetToInterviewModal = ({
   };
 
   const handleNextPage = () => {
-    if (selectedData.length === 0) {
+    if (selectedData.length === 0 && isBatch) {
       toast.error("Please select at least one candidate");
       return;
     }

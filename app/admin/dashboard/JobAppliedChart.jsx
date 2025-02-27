@@ -11,7 +11,7 @@ import { DateRangePicker } from '@/app/my_components/DateRangePicker'
 const chartConfig = {
   desktop: {
     label: "Desktop",
-    color: "#009b70",
+    color: "#22c55e",
   }
 }
 

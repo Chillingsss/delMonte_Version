@@ -446,6 +446,7 @@ export const DateRangePicker = ({
               <div>
                 <Calendar
                   mode="range"
+                  captionHidden={false}
                   onSelect={(value) => {
                     if (value?.from != null) {
                       const newRange = { from: value.from, to: value?.to };

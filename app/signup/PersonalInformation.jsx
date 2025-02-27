@@ -308,7 +308,7 @@ const PersonalInformation = ({ handleSubmit }) => {
                         label={"Date of Birth"}
                         futureAllowed={false}
                         design="justify-start w-full text-left font-normal bg-[#a8b0bd] hover:bg-[#004f39] border-2 border-[#0b864a]"
-                        labelDesign={"hover:text-white text-[#151513]"}
+                        labelDesign={true}
                         isRequired={true}
                       />
                       <FormField

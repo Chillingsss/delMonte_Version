@@ -90,12 +90,12 @@ const DatePicker = ({
                   onClick={() => setShowPicker(!showPicker)}
                   variant="outline"
                   className={cn(
-                    "group justify-start w-full bg-[#a8b0bd] hover:bg-[#004f39X] border-2 border-[#0b864a]",
+                    `${design && design} group justify-start w-full`,
                     design,
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 text-[#151513] group-hover:text-white" />
+                  <CalendarIcon className={`mr-2 h-4 w-4 ${labelDesign && "text-[#151513] group-hover:text-white"}`} />
                   {field.value ? (
                     withTime ? (
                       <span className="text-[#151513] group-hover:text-white">
@@ -107,7 +107,7 @@ const DatePicker = ({
                       </span>
                     )
                   ) : (
-                    <span className="text-[#151513] group-hover:text-white">Pick a date</span>
+                    <span className={labelDesign && "text-[#151513] group-hover:text-white"}>Pick a date</span>
                   )}
                 </Button>
 
