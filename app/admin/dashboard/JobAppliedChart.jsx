@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import SelectedJob from './Job/modal/SelectedJob'
 
 const chartConfig = {
   desktop: {
@@ -16,6 +17,13 @@ const chartConfig = {
 const JobAppliedChart = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [chartData, setChartData] = useState([])
+
+  const [showSelectedJobModal, setShowSelectedJobModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState(0);
+
+  const closeShowSelectedJobModal = () => {
+    setShowSelectedJobModal(false);
+  };
 
   const getAllJobWithCandidates = async () => {
     setIsLoading(true);
@@ -42,15 +50,23 @@ const JobAppliedChart = () => {
     getAllJobWithCandidates();
   }, []);
 
+  const handleBarClick = (data) => {
+    setSelectedJobId(data.jobM_id);
+    setShowSelectedJobModal(true);
+  };
+
   return (
     <div>
       {isLoading ? <Spinner /> :
         <>
           <Card>
-            <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
-              <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+            <CardHeader className="grid grid-cols-2 justify-center gap-1 px-6 py-5 sm:py-6">
+              <div>
                 <CardTitle>Job Applications</CardTitle>
                 <CardDescription>Number of applicants per job</CardDescription>
+              </div>
+              <div className='justify-self-end'>
+                hellos
               </div>
             </CardHeader>
             <CardContent className="px-2 sm:p-6">
@@ -70,7 +86,7 @@ const JobAppliedChart = () => {
                       tickFormatter={(value) => value.length > 10 ? value.slice(0, 3) + "..." : value}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="Total_Applied" fill="var(--color-desktop)" radius={4} />
+                    <Bar dataKey="Total_Applied" fill="var(--color-desktop)" radius={4} onClick={handleBarClick} className='hover:cursor-pointer' />
                   </BarChart>
 
                 </ChartContainer>
@@ -79,6 +95,15 @@ const JobAppliedChart = () => {
           </Card>
         </>
       }
+
+      {showSelectedJobModal && (
+        <SelectedJob
+          open={showSelectedJobModal}
+          onHide={closeShowSelectedJobModal}
+          jobId={selectedJobId}
+          getJobs={getAllJobWithCandidates}
+        />
+      )}
     </div>
   )
 }

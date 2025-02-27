@@ -28,7 +28,8 @@ export default function RootLayout({ children }) {
               {" "}
               {/* ✅ Wrap inside ClientWrapper */}
               <div className="dark:bg-[#0e4028] h-screen">
-                <Toaster position="top-center" richColors duration={2000} />
+                {/* <Toaster position="top-center" richColors duration={2000} /> */}
+                <Toaster position="top-right" richColors duration={2000} />
                 {children}
               </div>
             </ClientWrapper>

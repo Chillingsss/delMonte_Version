@@ -3,40 +3,13 @@ import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Briefcase,
-  CheckCircle,
-  Circle,
-  Edit,
-  EllipsisVertical,
-  Filter,
-  Plus,
-  Settings,
-  XCircle,
-} from "lucide-react";
+import { Briefcase, CheckCircle, Circle, Edit, EllipsisVertical, Filter, Plus, Settings, XCircle } from "lucide-react";
 import Spinner from "@/components/ui/spinner";
 import AddJob from "./AddJob";
-import {
-  getDataFromSession,
-  removeData,
-  retrieveData,
-} from "@/app/utils/storageUtils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { getDataFromSession, removeData, retrieveData } from "@/app/utils/storageUtils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import SelectedJob from "./modal/SelectedJob";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Switch } from "@/components/ui/switch";
 import ShowAlert from "@/components/ui/show-alert";
 import UpdateJobModal from "./UpdateJobDetails/UpdateJobModal";
