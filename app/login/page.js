@@ -42,6 +42,7 @@ export default function Login(user) {
   const [showTwoFAInput, setShowTwoFAInput] = useState(false);
   const [twoFACode, setTwoFACode] = useState("");
   const [twoFAEmail, setTwoFAEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -235,8 +236,8 @@ export default function Login(user) {
         localStorage.setItem("savedPassword", sanitizeInput(password.trim()));
 
         setShowTwoFAInput(true);
+        setShowCaptcha(false);
         if (response?.user?.twoFA) {
-          setShowCaptcha(false);
           showErrorToast("📧 Check your email for the 2FA code");
         } else {
           setIsRedirecting(true);
@@ -245,8 +246,8 @@ export default function Login(user) {
       } else if (response?.error) {
         if (response.error === "2FA code sent to your email.") {
           setShowCaptcha(false);
+          setShowTwoFAInput(true);
           showErrorToast("📧 Check your email for the 2FA code");
-          console.log("showTwoFAInput", showTwoFAInput);
         } else {
           showErrorToast(`🔒 ${response.error}`);
           generateCaptcha();
@@ -296,6 +297,29 @@ export default function Login(user) {
       showErrorToast("An error occurred during 2FA verification");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResendLoading(true);
+    try {
+      const response = await signIn("credentials", {
+        redirect: false,
+        username: username,
+        password: password,
+        isResend: true,
+      });
+
+      if (response?.error) {
+        showErrorToast(response.error);
+      } else {
+        showErrorToast("📧 New code sent to your email");
+      }
+    } catch (error) {
+      console.error("Error resending code:", error);
+      showErrorToast("Failed to resend code");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -519,6 +543,8 @@ export default function Login(user) {
           loading={loading}
           twoFACode={twoFACode}
           setTwoFACode={setTwoFACode}
+          onResendCode={handleResendCode}
+          resendLoading={resendLoading}
         />
       )}
 

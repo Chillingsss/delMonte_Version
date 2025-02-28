@@ -448,6 +448,9 @@ export default function DashboardCandidates() {
       // Call signOut to clear session
       await signOut({ redirect: false });
 
+      localStorage.removeItem("savedUsername");
+      localStorage.removeItem("savedPassword");
+
       // Force a reload to clear state and session storage
       window.location.href = "/";
     } catch (error) {

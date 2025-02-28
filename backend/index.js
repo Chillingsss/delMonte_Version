@@ -125,6 +125,15 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit for resending 2FA codes (3 attempts per 10 minutes)
+const resendLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 3, // Limit per IP
+  message: { error: "Too many resend attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Add this function to generate 2FA code
 const generateTwoFACode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -189,10 +198,18 @@ const updateLastTwoFAVerification = async (email) => {
 
 // Modify the login endpoint
 app.post("/login", loginLimiter, async (req, res) => {
-  const { username, password, twoFACode } = req.body;
+  const { username, password, twoFACode, isResend } = req.body;
   const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
 
   try {
+    // Apply resend limiter only for resend requests
+    if (isResend) {
+      const limiterRes = await new Promise((resolve) => {
+        resendLimiter(req, res, resolve);
+      });
+      if (res.statusCode === 429) return; // Rate limit exceeded
+    }
+
     // Check if user is locked out
     const failedLoginData = await checkFailedAttempts(username);
     if (
@@ -289,9 +306,17 @@ app.post("/login", loginLimiter, async (req, res) => {
             const info = await transporter.sendMail({
               from: `"Del Monte Philippines" <${process.env.SMTP_USER}>`,
               to: username,
-              subject: "Your Login Verification Code",
+              subject: isResend ? "Your New Login Verification Code" : "Your Login Verification Code",
               text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
-              html: `<p>Your verification code is: <strong>${code}</strong></p><p>This code will expire in 10 minutes.</p>`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #004F39;">Del Monte Philippines</h2>
+                  <p>Your ${isResend ? 'new ' : ''}verification code is:</p>
+                  <h1 style="color: #004F39; font-size: 32px; letter-spacing: 5px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">${code}</h1>
+                  <p>This code will expire in 10 minutes.</p>
+                  <p style="color: #666; font-size: 12px; margin-top: 20px;">If you didn't request this code, please ignore this email.</p>
+                </div>
+              `,
             });
 
           } catch (error) {
