@@ -277,15 +277,13 @@ app.post("/login", loginLimiter, async (req, res) => {
           // Send 2FA code via email
           try {
             const info = await transporter.sendMail({
-              from: `"Del Monte 2FA" <${process.env.SMTP_USER}>`,
+              from: `"Del Monte Philippines" <${process.env.SMTP_USER}>`,
               to: username,
               subject: "Your Login Verification Code",
               text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
               html: `<p>Your verification code is: <strong>${code}</strong></p><p>This code will expire in 10 minutes.</p>`,
             });
 
-            console.log("Message sent: %s", info.messageId);
-            console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
           } catch (error) {
             console.error("Detailed email error:", error);
             throw new Error("Failed to send 2FA code");
