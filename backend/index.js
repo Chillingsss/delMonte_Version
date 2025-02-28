@@ -152,6 +152,31 @@ transporter.verify(function (error, success) {
   }
 });
 
+// Check if 2FA is required based on last verification
+const isTwoFARequired = async (email) => {
+  const [result] = await pool.query(
+    'SELECT last_verification FROM tbl2fa_verification WHERE email = ?',
+    [email]
+  );
+  
+  if (!result.length) return true;
+  
+  const lastVerification = new Date(result[0].last_verification);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  
+  return lastVerification < sevenDaysAgo;
+};
+
+// Update last 2FA verification timestamp
+const updateLastTwoFAVerification = async (email) => {
+  await pool.query(
+    `INSERT INTO tbl2fa_verification (email, last_verification) 
+     VALUES (?, NOW()) 
+     ON DUPLICATE KEY UPDATE last_verification = NOW()`,
+    [email]
+  );
+};
+
 // Modify the login endpoint
 app.post("/login", loginLimiter, async (req, res) => {
   const { username, password, twoFACode } = req.body;
@@ -184,6 +209,26 @@ app.post("/login", loginLimiter, async (req, res) => {
           storedHash = "$2b$" + storedHash.slice(4);
 
         if (await bcrypt.compare(password.trim(), storedHash)) {
+          // Check if 2FA is required
+          const requireTwoFA = await isTwoFARequired(username);
+          
+          // If 2FA is not required, complete login
+          if (!requireTwoFA) {
+            await updateFailedAttempts(username, true);
+            return res.json({
+              user: {
+                id: user[table.idCol],
+                name: user[table.nameCol],
+                email: username,
+                userLevel: user[table.userLevelCols],
+              },
+              token: generateToken(
+                user[table.idCol],
+                user[table.userLevelCols]
+              ),
+            });
+          }
+
           // If 2FA code is provided, verify it
           if (twoFACode) {
             const [twoFAResult] = await pool.query(
@@ -199,6 +244,9 @@ app.post("/login", loginLimiter, async (req, res) => {
 
             // Clear the 2FA code after successful use
             await pool.query("DELETE FROM tbl2fa WHERE email = ?", [username]);
+            
+            // Update last verification timestamp
+            await updateLastTwoFAVerification(username);
 
             // Complete login
             await updateFailedAttempts(username, true);

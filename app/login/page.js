@@ -341,6 +341,7 @@ export default function Login(user) {
     router.replace("/login");
     setUsername("");
     setPassword("");
+    setShowCaptcha(false);
   };
 
   return (
