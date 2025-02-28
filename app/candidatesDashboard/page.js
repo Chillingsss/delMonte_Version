@@ -174,14 +174,14 @@ export default function DashboardCandidates() {
     }
   }, []);
 
-  useEffect(() => {
-    const authToken =
-      typeof window !== "undefined" ? getDataFromCookie("auth_token") : null;
+  // useEffect(() => {
+  //   const authToken =
+  //     typeof window !== "undefined" ? getDataFromCookie("auth_token") : null;
 
-    if (status === "unauthenticated" && !authToken) {
-      router.replace("/");
-    }
-  }, [status, router]);
+  //   if (status === "unauthenticated" && !authToken) {
+  //     router.replace("/");
+  //   }
+  // }, [status, router]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const filteredJobs = jobs.filter((job) => {
