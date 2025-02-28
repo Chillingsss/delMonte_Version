@@ -12,7 +12,23 @@ export const metadata = {
   title: "Del Monte Careers",
   description: "Del Monte Philippines",
   icons: {
-    icon: "/assets/images/delmontes.png",
+    icon: [
+      {
+        url: '/assets/images/delmontes.png',
+        sizes: '32x32',
+        type: 'image/png'
+      },
+      {
+        url: '/assets/images/delmontes.png',
+        sizes: '16x16',
+        type: 'image/png'
+      }
+    ],
+    apple: {
+      url: '/assets/images/delmontes.png',
+      sizes: '180x180',
+      type: 'image/png'
+    }
   },
 };
 
