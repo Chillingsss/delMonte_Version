@@ -8,9 +8,92 @@ import {
   getDataFromSession,
 } from "@/app/utils/storageUtils";
 import Select from "react-select";
-import { Toaster, toast } from "react-hot-toast"; // Updated import
+import { Toaster, toast } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import stringSimilarity from "string-similarity";
+
+const performSemanticAnalysis = (text1, text2) => {
+  // Define threshold constants
+  const THRESHOLDS = {
+    HIGH: 80,    // High similarity (very good match)
+    MEDIUM: 60,  // Medium similarity (acceptable match)
+    LOW: 40      // Low similarity (poor match)
+  };
+
+  // Normalize and tokenize texts
+  const normalize = (text) => text.toLowerCase().trim().split(/\s+/);
+  const tokens1 = normalize(text1);
+  const tokens2 = normalize(text2);
+
+  // Calculate word-based similarity
+  const set1 = new Set(tokens1);
+  const set2 = new Set(tokens2);
+  const intersection = new Set(tokens1.filter(x => set2.has(x)));
+  const union = new Set([...tokens1, ...tokens2]);
+
+  // Jaccard similarity (word overlap)
+  const jaccardSimilarity = intersection.size / union.size;
+
+  // Word-by-word similarity using string-similarity
+  const cosineSimilarity = stringSimilarity.compareTwoStrings(text1, text2);
+
+  // Calculate edit distance (simplified)
+  const calculateEditDistance = (str1, str2) => {
+    if (str1.length === 0) return str2.length;
+    if (str2.length === 0) return str1.length;
+
+    const matrix = Array(str1.length + 1).fill().map(() => 
+      Array(str2.length + 1).fill(0)
+    );
+
+    for (let i = 0; i <= str1.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= str1.length; i++) {
+      for (let j = 1; j <= str2.length; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[str1.length][str2.length];
+  };
+
+  const editDistance = calculateEditDistance(text1, text2);
+  const maxLength = Math.max(text1.length, text2.length);
+  const editSimilarity = 1 - (editDistance / maxLength);
+
+  // Calculate scores
+  const scores = {
+    cosine: parseFloat((cosineSimilarity * 100).toFixed(2)),
+    jaccard: parseFloat((jaccardSimilarity * 100).toFixed(2)),
+    edit: parseFloat((editSimilarity * 100).toFixed(2))
+  };
+
+  // Determine overall match quality
+  const avgScore = (scores.cosine + scores.jaccard + scores.edit) / 3;
+  let matchQuality;
+  if (avgScore >= THRESHOLDS.HIGH) {
+    matchQuality = "Excellent Match ";
+  } else if (avgScore >= THRESHOLDS.MEDIUM) {
+    matchQuality = "Acceptable Match ";
+  } else {
+    matchQuality = "Poor Match ";
+  }
+
+  return {
+    scores,
+    matchQuality,
+    thresholds: THRESHOLDS,
+    commonWords: Array.from(intersection),
+    uniqueWords1: Array.from(set1).filter(x => !set2.has(x)),
+    uniqueWords2: Array.from(set2).filter(x => !set1.has(x)),
+    averageScore: avgScore.toFixed(2)
+  };
+};
 
 const UpdateTraining = ({
   showModal,
@@ -217,24 +300,45 @@ const UpdateTraining = ({
       const normalizedTrainingTitle = data.training_title.trim().toLowerCase();
       const normalizedTrainingName = data.perT_name.trim().toLowerCase();
 
+      // Perform semantic analysis for image vs title
+      console.log('\n=== Detailed Semantic Analysis: Image vs Title ===');
+      const imageVsTitleAnalysis = performSemanticAnalysis(normalizedTextFromImage, normalizedTrainingTitle);
+      console.log('Match Quality:', imageVsTitleAnalysis.matchQuality);
+      console.log('Average Similarity Score:', imageVsTitleAnalysis.averageScore + '%');
+      console.log('Individual Scores:');
+      console.log('- Cosine Similarity:', imageVsTitleAnalysis.scores.cosine + '%');
+      console.log('- Jaccard Similarity:', imageVsTitleAnalysis.scores.jaccard + '%');
+      console.log('- Edit Distance Similarity:', imageVsTitleAnalysis.scores.edit + '%');
+      console.log('Common Words:', imageVsTitleAnalysis.commonWords);
+      console.log('Words only in Image:', imageVsTitleAnalysis.uniqueWords1);
+      console.log('Words only in Title:', imageVsTitleAnalysis.uniqueWords2);
+
+      // Use the average score for validation
       if (
         data.image &&
-        !normalizedTextFromImage.includes(normalizedTrainingTitle) &&
-        !normalizedTrainingTitle.includes(normalizedTextFromImage)
+        parseFloat(imageVsTitleAnalysis.averageScore) < imageVsTitleAnalysis.thresholds.MEDIUM
       ) {
-        toast.error("The certificate image does not match the training title.");
+        toast.error("The certificate image does not match the training title (Similarity: " + imageVsTitleAnalysis.averageScore + "%)");
         setLoading(false);
         return;
       }
 
-      const similarity = stringSimilarity.compareTwoStrings(
-        normalizedTrainingTitle,
-        normalizedTrainingName
-      );
+      // Perform semantic analysis for title vs name
+      console.log('\n=== Detailed Semantic Analysis: Title vs Name ===');
+      const titleVsNameAnalysis = performSemanticAnalysis(normalizedTrainingTitle, normalizedTrainingName);
+      console.log('Match Quality:', titleVsNameAnalysis.matchQuality);
+      console.log('Average Similarity Score:', titleVsNameAnalysis.averageScore + '%');
+      console.log('Individual Scores:');
+      console.log('- Cosine Similarity:', titleVsNameAnalysis.scores.cosine + '%');
+      console.log('- Jaccard Similarity:', titleVsNameAnalysis.scores.jaccard + '%');
+      console.log('- Edit Distance Similarity:', titleVsNameAnalysis.scores.edit + '%');
+      console.log('Common Words:', titleVsNameAnalysis.commonWords);
+      console.log('Words only in Title:', titleVsNameAnalysis.uniqueWords1);
+      console.log('Words only in Name:', titleVsNameAnalysis.uniqueWords2);
 
-      const similarityThreshold = 0.6;
-      if (similarity < similarityThreshold) {
-        toast.error("The training title does not match the selected training.");
+      // Use the average score for validation
+      if (parseFloat(titleVsNameAnalysis.averageScore) < titleVsNameAnalysis.thresholds.MEDIUM) {
+        toast.error("The training title does not match the selected training (Similarity: " + titleVsNameAnalysis.averageScore + "%)");
         setLoading(false);
         return;
       }
