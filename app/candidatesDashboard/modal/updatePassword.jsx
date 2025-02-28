@@ -109,7 +109,7 @@ const UpdatePassword = ({
 
         // Example usage
         const userId = session?.user?.id || getUserIdFromCookie();
-        console.log("User ID:", userId);
+        // console.log("User ID:", userId);
 
         const formData = new FormData();
         formData.append("operation", "checkPasswordExists");

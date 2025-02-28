@@ -10,8 +10,12 @@ const handler = NextAuth({
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
+        twoFACode: { label: "2FA Code", type: "text" },
       },
       async authorize(credentials) {
+        const url =
+          process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
+
         if (!credentials?.username || !credentials?.password) {
           throw new Error("Username and password are required");
         }
@@ -19,20 +23,38 @@ const handler = NextAuth({
         const sanitizedUsername = credentials.username.trim();
 
         try {
-          const url =
-            process.env.NEXT_NODE_API_URL || "http://localhost:3002/login";
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               username: sanitizedUsername,
               password: credentials.password,
+              twoFACode: credentials.twoFACode,
             }),
           });
 
           const data = await res.json();
+          console.log("Backend Response:", data); // Debug log
 
-          if (res.ok && data.user) {
+          // If 2FA is required and no code provided
+          if (
+            !credentials.twoFACode &&
+            data.message === "2FA code sent to your email."
+          ) {
+            console.log("2FA Required"); // Debug log
+            return {
+              email: sanitizedUsername,
+              twoFA: true,
+            };
+          }
+
+          // If 2FA code is invalid
+          if (credentials.twoFACode && !res.ok) {
+            throw new Error(data.error || "Invalid 2FA code");
+          }
+
+          // If 2FA is verified or not required
+          if (res.ok) {
             return {
               id: data.user.id,
               name: data.user.name,
@@ -43,7 +65,8 @@ const handler = NextAuth({
 
           throw new Error(data.error || "Authentication failed");
         } catch (error) {
-          throw new Error(error.message || "Authentication failed");
+          console.error("Authorization error:", error);
+          throw error;
         }
       },
     }),

@@ -97,18 +97,18 @@ const Signup = () => {
           email: personalInfo.email,
         };
         // console.log("url: " + url);
-        console.log("email niya: " + JSON.stringify(jsonData));
+        // console.log("email niya: " + JSON.stringify(jsonData));
         const formData = new FormData();
         formData.append("json", JSON.stringify(jsonData));
         formData.append("operation", "getPinCode");
         const res = await axios.post(url, formData);
 
-        console.log("RES DATA: ", res.data);
+        // console.log("RES DATA: ", res.data);
         if (res.data === -1) {
           toast.error("Email already exist, please return to step 1");
           return;
         } else if (res.data !== 0) {
-          console.log("pincode niya: " + JSON.stringify(res.data));
+          // console.log("pincode niya: " + JSON.stringify(res.data));
           setEmail(personalInfo.email);
           setPincode(res.data.pincode);
           setExpirationDate(res.data.expirationDate);
@@ -118,7 +118,7 @@ const Signup = () => {
         setTimeout(() => {
           toast.error("Network error");
         }, [500]);
-        console.log("Signup.jsx => onSubmit(): " + error);
+        // console.log("Signup.jsx => onSubmit(): " + error);
       } finally {
         setIsLoading(false);
       }
