@@ -159,10 +159,20 @@ const isTwoFARequired = async (email) => {
     [email]
   );
   
-  if (!result.length) return true;
+  if (!result.length) {
+    console.log("No previous 2FA verification found for:", email);
+    return true;
+  }
   
   const lastVerification = new Date(result[0].last_verification);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const nextVerificationDate = new Date(lastVerification.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  console.log("2FA Status for:", email);
+  console.log("Last verification:", lastVerification.toLocaleString());
+  console.log("Next verification required on:", nextVerificationDate.toLocaleString());
+  console.log("Current server time:", new Date().toLocaleString());
+  console.log("Days remaining:", Math.ceil((nextVerificationDate - Date.now()) / (1000 * 60 * 60 * 24)));
   
   return lastVerification < sevenDaysAgo;
 };
