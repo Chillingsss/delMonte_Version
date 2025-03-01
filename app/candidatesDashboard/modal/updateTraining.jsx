@@ -12,86 +12,18 @@ import { Toaster, toast } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import stringSimilarity from "string-similarity";
 
-const performSemanticAnalysis = (text1, text2) => {
-  // Define threshold constants
-  const THRESHOLDS = {
-    HIGH: 80,    // High similarity (very good match)
-    MEDIUM: 60,  // Medium similarity (acceptable match)
-    LOW: 40      // Low similarity (poor match)
-  };
+const performSemanticAnalysis = (text1, text2, threshold) => {
+  // Calculate cosine similarity using string-similarity
+  const similarity = stringSimilarity.compareTwoStrings(text1, text2);
+  const similarityScore = parseFloat((similarity * 100).toFixed(2));
 
-  // Normalize and tokenize texts
-  const normalize = (text) => text.toLowerCase().trim().split(/\s+/);
-  const tokens1 = normalize(text1);
-  const tokens2 = normalize(text2);
-
-  // Calculate word-based similarity
-  const set1 = new Set(tokens1);
-  const set2 = new Set(tokens2);
-  const intersection = new Set(tokens1.filter(x => set2.has(x)));
-  const union = new Set([...tokens1, ...tokens2]);
-
-  // Jaccard similarity (word overlap)
-  const jaccardSimilarity = intersection.size / union.size;
-
-  // Word-by-word similarity using string-similarity
-  const cosineSimilarity = stringSimilarity.compareTwoStrings(text1, text2);
-
-  // Calculate edit distance (simplified)
-  const calculateEditDistance = (str1, str2) => {
-    if (str1.length === 0) return str2.length;
-    if (str2.length === 0) return str1.length;
-
-    const matrix = Array(str1.length + 1).fill().map(() => 
-      Array(str2.length + 1).fill(0)
-    );
-
-    for (let i = 0; i <= str1.length; i++) matrix[i][0] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[0][j] = j;
-
-    for (let i = 1; i <= str1.length; i++) {
-      for (let j = 1; j <= str2.length; j++) {
-        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost
-        );
-      }
-    }
-    return matrix[str1.length][str2.length];
-  };
-
-  const editDistance = calculateEditDistance(text1, text2);
-  const maxLength = Math.max(text1.length, text2.length);
-  const editSimilarity = 1 - (editDistance / maxLength);
-
-  // Calculate scores
-  const scores = {
-    cosine: parseFloat((cosineSimilarity * 100).toFixed(2)),
-    jaccard: parseFloat((jaccardSimilarity * 100).toFixed(2)),
-    edit: parseFloat((editSimilarity * 100).toFixed(2))
-  };
-
-  // Determine overall match quality
-  const avgScore = (scores.cosine + scores.jaccard + scores.edit) / 3;
-  let matchQuality;
-  if (avgScore >= THRESHOLDS.HIGH) {
-    matchQuality = "Excellent Match ";
-  } else if (avgScore >= THRESHOLDS.MEDIUM) {
-    matchQuality = "Acceptable Match ";
-  } else {
-    matchQuality = "Poor Match ";
-  }
+  // Determine match quality based on provided threshold
+  let matchQuality = similarityScore >= threshold ? "Acceptable Match" : "Poor Match";
 
   return {
-    scores,
+    score: similarityScore,
     matchQuality,
-    thresholds: THRESHOLDS,
-    commonWords: Array.from(intersection),
-    uniqueWords1: Array.from(set1).filter(x => !set2.has(x)),
-    uniqueWords2: Array.from(set2).filter(x => !set1.has(x)),
-    averageScore: avgScore.toFixed(2)
+    threshold: threshold
   };
 };
 
@@ -109,6 +41,7 @@ const UpdateTraining = ({
     training_id: train?.training_id || "",
     perT_id: train?.training_perTId || "",
     perT_name: train?.perT_name || "",
+    perT_percentage: train?.perT_percentage,
     training_title: "",
     image: null,
     training_image: train?.training_image || "",
@@ -174,6 +107,7 @@ const UpdateTraining = ({
           training_id: "",
           perT_id: "",
           perT_name: "",
+          perT_percentage: 60,
           training_title: "",
           image: null,
           training_image: "",
@@ -184,6 +118,7 @@ const UpdateTraining = ({
           training_id: train.training_id || "",
           perT_id: train.training_perTId || "",
           perT_name: train.perT_name || "",
+          perT_percentage: train.perT_percentage || 60,
           training_image: train.training_image || "",
           training_title: "",
         });
@@ -198,6 +133,7 @@ const UpdateTraining = ({
         training_id: selectedTraining.training_id || "",
         perT_id: selectedTraining.training_perTId || "",
         perT_name: selectedTraining.perT_name || "",
+        perT_percentage: selectedTraining.perT_percentage || 60,
         training_image: selectedTraining.training_image || "",
         training_title: "",
       });
@@ -230,13 +166,15 @@ const UpdateTraining = ({
   const handleSelectChange = (selectedOption) => {
     if (selectedOption) {
       const isCustom = selectedOption.value === "custom";
+      const selectedTraining = trainings.find(t => t.perT_id === selectedOption.value);
       setData({
         ...data,
         perT_id: selectedOption.value,
         perT_name: isCustom ? "" : selectedOption.label,
+        perT_percentage: isCustom ? 60 : (selectedTraining?.perT_percentage || 60)
       });
     } else {
-      setData({ ...data, perT_id: "", perT_name: "" });
+      setData({ ...data, perT_id: "", perT_name: "", perT_percentage: 60 });
     }
     setError("");
   };
@@ -300,45 +238,41 @@ const UpdateTraining = ({
       const normalizedTrainingTitle = data.training_title.trim().toLowerCase();
       const normalizedTrainingName = data.perT_name.trim().toLowerCase();
 
-      // Perform semantic analysis for image vs title
+      // Perform semantic analysis for image vs title with dynamic threshold
       console.log('\n=== Detailed Semantic Analysis: Image vs Title ===');
-      const imageVsTitleAnalysis = performSemanticAnalysis(normalizedTextFromImage, normalizedTrainingTitle);
+      const imageVsTitleAnalysis = performSemanticAnalysis(
+        normalizedTextFromImage, 
+        normalizedTrainingTitle,
+        data.perT_percentage
+      );
       console.log('Match Quality:', imageVsTitleAnalysis.matchQuality);
-      console.log('Average Similarity Score:', imageVsTitleAnalysis.averageScore + '%');
-      console.log('Individual Scores:');
-      console.log('- Cosine Similarity:', imageVsTitleAnalysis.scores.cosine + '%');
-      console.log('- Jaccard Similarity:', imageVsTitleAnalysis.scores.jaccard + '%');
-      console.log('- Edit Distance Similarity:', imageVsTitleAnalysis.scores.edit + '%');
-      console.log('Common Words:', imageVsTitleAnalysis.commonWords);
-      console.log('Words only in Image:', imageVsTitleAnalysis.uniqueWords1);
-      console.log('Words only in Title:', imageVsTitleAnalysis.uniqueWords2);
+      console.log('Cosine Score:', imageVsTitleAnalysis.score + '%');
+      console.log('Required Percentage:', data.perT_percentage + '%');
 
-      // Use the average score for validation
+      // Use cosine similarity with dynamic threshold for validation
       if (
         data.image &&
-        parseFloat(imageVsTitleAnalysis.averageScore) < imageVsTitleAnalysis.thresholds.MEDIUM
+        parseFloat(imageVsTitleAnalysis.score) < data.perT_percentage
       ) {
-        toast.error("The certificate image does not match the training title (Similarity: " + imageVsTitleAnalysis.averageScore + "%)");
+        toast.error(`The certificate image does not match the training title (Similarity: ${imageVsTitleAnalysis.score}%, Required: ${data.perT_percentage}%)`);
         setLoading(false);
         return;
       }
 
-      // Perform semantic analysis for title vs name
+      // Perform semantic analysis for title vs name with dynamic threshold
       console.log('\n=== Detailed Semantic Analysis: Title vs Name ===');
-      const titleVsNameAnalysis = performSemanticAnalysis(normalizedTrainingTitle, normalizedTrainingName);
+      const titleVsNameAnalysis = performSemanticAnalysis(
+        normalizedTrainingTitle, 
+        normalizedTrainingName,
+        data.perT_percentage
+      );
       console.log('Match Quality:', titleVsNameAnalysis.matchQuality);
-      console.log('Average Similarity Score:', titleVsNameAnalysis.averageScore + '%');
-      console.log('Individual Scores:');
-      console.log('- Cosine Similarity:', titleVsNameAnalysis.scores.cosine + '%');
-      console.log('- Jaccard Similarity:', titleVsNameAnalysis.scores.jaccard + '%');
-      console.log('- Edit Distance Similarity:', titleVsNameAnalysis.scores.edit + '%');
-      console.log('Common Words:', titleVsNameAnalysis.commonWords);
-      console.log('Words only in Title:', titleVsNameAnalysis.uniqueWords1);
-      console.log('Words only in Name:', titleVsNameAnalysis.uniqueWords2);
+      console.log('Cosine Score:', titleVsNameAnalysis.score + '%');
+      console.log('Required Percentage:', data.perT_percentage + '%');
 
-      // Use the average score for validation
-      if (parseFloat(titleVsNameAnalysis.averageScore) < titleVsNameAnalysis.thresholds.MEDIUM) {
-        toast.error("The training title does not match the selected training (Similarity: " + titleVsNameAnalysis.averageScore + "%)");
+      // Use cosine similarity with dynamic threshold for title vs name validation
+      if (parseFloat(titleVsNameAnalysis.score) < data.perT_percentage) {
+        toast.error(`The training title does not match the selected training (Similarity: ${titleVsNameAnalysis.score}%, Required: ${data.perT_percentage}%)`);
         setLoading(false);
         return;
       }
