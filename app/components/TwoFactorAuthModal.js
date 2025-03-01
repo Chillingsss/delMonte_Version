@@ -115,7 +115,7 @@ const TwoFactorAuthModal = ({
             className="flex-1 bg-[#004F39] hover:bg-green-800 text-green-100 py-3 rounded-lg transition duration-200"
             disabled={loading}
           >
-            {loading ? "Verifying..." : "Verify 2FA Code"}
+            {loading ? "Verifying..." : "Verify"}
           </button>
           <button
             onClick={onCancel}

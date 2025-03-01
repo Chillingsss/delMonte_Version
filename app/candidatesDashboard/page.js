@@ -198,7 +198,7 @@ export default function DashboardCandidates() {
       job.license_master_name?.toLocaleString()?.toLowerCase(),
       job.perT_name?.toLowerCase(),
     ];
-
+    
     return jobData.some((data) => data?.includes(searchQuery.toLowerCase()));
   });
 
