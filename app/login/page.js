@@ -448,7 +448,7 @@ export default function Login(user) {
               <div className="mb-4">
                 <div className="bg-white p-4 rounded-lg shadow-md">
                   <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                    Verify that you're human
+                    Verify that you are human
                   </h3>
                   <div className="space-y-4">
                     <div className="text-center text-gray-600">
