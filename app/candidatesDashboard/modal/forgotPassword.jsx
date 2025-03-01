@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Check, Eye, EyeOff, X } from "lucide-react";
+import { getDataFromLocal, removeLocalData, storeDataInLocal } from "@/app/utils/storageUtils";
 
 const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [email, setEmail] = useState("");
@@ -31,8 +32,35 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [sliderPosition, setSliderPosition] = useState(0);
+  const [targetNumber, setTargetNumber] = useState(Math.floor(Math.random() * 21) + 40);
 
   const modalRef = useRef(null);
+
+  useEffect(() => {
+    const storedPinData = getDataFromLocal('forgotPasswordPinData');
+    if (storedPinData) {
+      setPinCode(storedPinData.pinCode);
+      setIsPinCodeSent(true);
+      setCandId(storedPinData.candId);
+      setAdmId(storedPinData.admId);
+      setManId(storedPinData.manId);
+      setSupId(storedPinData.supId);
+      setAnalystId(storedPinData.analystId);
+      setEmail(storedPinData.email);
+    }
+  }, []);
+
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setShowCaptcha(false);
+    setCaptchaVerified(false);
+    setSliderPosition(0);
+    setTargetNumber(Math.floor(Math.random() * 21) + 40);
+  };
 
   const validatePassword = (password) => {
     const checks = {
@@ -58,19 +86,140 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     setConfirmPasswordValid(value === newPassword);
   };
 
+  const handleSliderChange = (e) => {
+    const value = parseInt(e.target.value);
+    setSliderPosition(value);
+  };
+
+  const handleSliderComplete = () => {
+    if (sliderPosition === targetNumber) {
+      setCaptchaVerified(true);
+      toast.success("CAPTCHA verified successfully!", {
+        duration: 4000,
+        position: "bottom-left",
+        style: {
+          background: "#065F46",
+          color: "#F8FAFC",
+          borderRadius: "10px",
+          padding: "12px 16px",
+          fontSize: "14px",
+          fontWeight: "500",
+          border: "1px solid #22C55E",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      });
+    } else {
+      setCaptchaVerified(false);
+      toast.error("Please match the exact number", {
+        duration: 4000,
+        position: "bottom-left",
+        style: {
+          background: "#013220",
+          color: "#F8FAFC",
+          borderRadius: "10px",
+          padding: "12px 16px",
+          fontSize: "14px",
+          fontWeight: "500",
+          border: "1px solid #DC2626",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      });
+      setSliderPosition(0);
+    }
+  };
+
+  const handleEmailContinue = async () => {
+    if (!email) {
+      toast.error("⚠️ Please enter your email.", {
+        duration: 4000,
+        position: "bottom-left",
+        style: {
+          background: "#013220",
+          color: "#F8FAFC",
+          borderRadius: "10px",
+          padding: "12px 16px",
+          fontSize: "14px",
+          fontWeight: "500",
+          border: "1px solid #DC2626",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      });
+      return;
+    }
+
+    try {
+      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const formData = new FormData();
+      formData.append("operation", "checkEmailExists");
+      formData.append("json", JSON.stringify({ email }));
+
+      const response = await axios.post(url, formData);
+      const data = response.data;
+
+      if (data.exists) {
+        setShowCaptcha(true);
+        toast.success("Email verified successfully!", {
+          duration: 4000,
+          position: "bottom-left",
+          style: {
+            background: "#065F46",
+            color: "#F8FAFC",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            fontSize: "14px",
+            fontWeight: "500",
+            border: "1px solid #22C55E",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+          },
+        });
+      } else {
+        toast.error("Email not found. Please check your email address.", {
+          duration: 4000,
+          position: "bottom-left",
+          style: {
+            background: "#013220",
+            color: "#F8FAFC",
+            borderRadius: "10px",
+            padding: "12px 16px",
+            fontSize: "14px",
+            fontWeight: "500",
+            border: "1px solid #DC2626",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      toast.error("An error occurred while verifying email.", {
+        duration: 4000,
+        position: "bottom-left",
+        style: {
+          background: "#013220",
+          color: "#F8FAFC",
+          borderRadius: "10px",
+          padding: "12px 16px",
+          fontSize: "14px",
+          fontWeight: "500",
+          border: "1px solid #DC2626",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        },
+      });
+    }
+  };
+
   const showErrorToast = (message) => {
     toast(message, {
       duration: 4000,
       position: "bottom-left",
       style: {
-        background: "#013220", // Darker green for contrast
-        color: "#F8FAFC", // Light text for readability
+        background: "#013220",
+        color: "#F8FAFC",
         borderRadius: "10px",
         padding: "12px 16px",
         fontSize: "14px",
         fontWeight: "500",
-        border: "1px solid #DC2626", // Red border for error emphasis
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+        border: "1px solid #DC2626",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
       },
     });
   };
@@ -81,14 +230,14 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       position: "bottom-left",
       icon: <Check className="text-green-500 w-6 h-6" />,
       style: {
-        background: "#065F46", // Dark green for success
-        color: "#F8FAFC", // Light text for readability
+        background: "#065F46",
+        color: "#F8FAFC",
         borderRadius: "10px",
         padding: "12px 16px",
         fontSize: "14px",
         fontWeight: "500",
-        border: "1px solid #22C55E", // Green border for success emphasis
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+        border: "1px solid #22C55E",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
       },
     });
   };
@@ -111,9 +260,19 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
 
       const response = await axios.post(url, formData);
       const data = response.data;
-      // console.log("Data:", data);
 
       if (data.pincode) {
+        const pinData = {
+          pinCode: data.pincode,
+          candId: data.candId,
+          admId: data.admId,
+          manId: data.manId,
+          supId: data.supId,
+          analystId: data.analystId,
+          email: email
+        };
+        storeDataInLocal('forgotPasswordPinData', pinData);
+
         setPinCode(data.pincode);
         setIsPinCodeSent(true);
         setCandId(data.candId);
@@ -172,19 +331,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         })
       );
 
-      // console.log("Sending data:", {
-      //   cand_id: candId,
-      //   adm_id: admId,
-      //   man_id: manId,
-      //   sup_id: supId,
-      //   analyst_id: analystId,
-      //   password: newPassword,
-      // });
-
       const response = await axios.post(url, formData);
       const data = response.data;
-
-      // console.log("data change:", data);
 
       if (data.success) {
         showSuccessToast("Password updated successfully.");
@@ -200,6 +348,24 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelPasswordChange = () => {
+    removeLocalData('forgotPasswordPinData');
+    setIsPinCodeSent(false);
+    setPinCode("");
+    setEnteredPinCode("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setCandId(null);
+    setAdmId(null);
+    setManId(null);
+    setSupId(null);
+    setAnalystId(null);
+    setShowCaptcha(false);
+    setCaptchaVerified(false);
+    setSliderPosition(0);
+    setTargetNumber(Math.floor(Math.random() * 21) + 40);
   };
 
   useEffect(() => {
@@ -226,16 +392,17 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     >
       <div
         ref={modalRef}
-        className="modal-content bg-[#EAE9E7] p-5 rounded-lg shadow-lg w-96 relative" // Added relative positioning
+        className="modal-content bg-[#EAE9E7] p-5 rounded-lg shadow-lg w-96 relative"
       >
-        <button
-          type="button"
-          onClick={() => setShowModal(false)}
-          className="absolute top-4 right-4 text-gray-800"
-        >
-          <X size={24} />{" "}
-          {/* Use the X icon from Lucid React with a specified size */}
-        </button>
+        {!isPinCodeSent && (
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="absolute top-4 right-4 text-gray-800"
+          >
+            <X size={24} />
+          </button>
+        )}
         <h3 className="text-xl font-semibold text-[#151513] mb-4">
           Reset Your Password
         </h3>
@@ -248,28 +415,77 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               type="email"
               name="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               placeholder="Enter your email"
               className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
               required
             />
-            <div className="flex justify-between mt-6">
-              <button
-                type="button"
-                onClick={requestPinCode}
-                className="p-2 rounded-lg bg-[#004F39] text-white"
-                disabled={requestLoading}
-              >
-                {requestLoading ? "Sending..." : "SEND OTP"}
-              </button>
-              {/* <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="p-2 rounded-lg bg-red-500 text-white"
-              >
-                Cancel
-              </button> */}
-            </div>
+            {!showCaptcha ? (
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  onClick={handleEmailContinue}
+                  className="p-2 rounded-lg bg-[#004F39] text-white"
+                >
+                  Continue
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <div className="bg-white p-4 rounded-lg shadow-md">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                      Verify that you are human
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="text-center text-gray-600">
+                        Move the slider to {targetNumber}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={sliderPosition}
+                          onChange={handleSliderChange}
+                          onMouseUp={handleSliderComplete}
+                          onTouchEnd={handleSliderComplete}
+                          className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, #004F39 0%, #004F39 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`,
+                          }}
+                        />
+                        <div className="absolute top-4 w-full flex justify-between text-xs text-gray-500">
+                          <span>0</span>
+                          <span>50</span>
+                          <span>100</span>
+                        </div>
+                      </div>
+                      <div className="text-center text-lg font-bold text-gray-700">
+                        {sliderPosition}
+                      </div>
+                      {captchaVerified && (
+                        <div className="text-green-600 text-center font-semibold">
+                          ✓ Verification successful
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between mt-6">
+                  {captchaVerified && (
+                    <button
+                      type="button"
+                      onClick={requestPinCode}
+                      className="p-2 rounded-lg bg-[#004F39] text-white"
+                      disabled={requestLoading}
+                    >
+                      {requestLoading ? "Sending..." : "SEND OTP"}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmitPasswordChange}>
@@ -385,10 +601,10 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
             <div className="flex justify-between">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={handleCancelPasswordChange}
                 className="p-2 rounded-lg bg-transparent text-[#151513] border border-[#151513] hover:bg-red-500 hover:text-white"
               >
-                Cancel
+                Cancel Password Change
               </button>
               <button
                 type="submit"

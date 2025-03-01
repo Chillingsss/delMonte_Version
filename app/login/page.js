@@ -15,6 +15,7 @@ import {
   getDataFromSession,
   getDataFromLocal,
   storeDataInLocal,
+  removeLocalData,
 } from "../utils/storageUtils";
 import ForgotPassword from "../candidatesDashboard/modal/forgotPassword";
 import { IoLogoGoogle } from "react-icons/io";
@@ -78,8 +79,8 @@ export default function Login(user) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedUsername = localStorage.getItem("savedUsername");
-      const savedPassword = localStorage.getItem("savedPassword");
+      const savedUsername = getDataFromLocal("savedUsername");
+      const savedPassword = getDataFromLocal("savedPassword");
       if (savedUsername) setUsername(savedUsername);
       if (savedPassword) setPassword(savedPassword);
     }
@@ -211,8 +212,8 @@ export default function Login(user) {
       });
 
       if (response?.ok) {
-        localStorage.setItem("savedUsername", sanitizeInput(username.trim()));
-        localStorage.setItem("savedPassword", sanitizeInput(password.trim()));
+        storeDataInLocal("savedUsername", sanitizeInput(username.trim()));
+        storeDataInLocal("savedPassword", sanitizeInput(password.trim()));
 
         setShowTwoFAInput(true);
         setShowCaptcha(false);
@@ -282,8 +283,8 @@ export default function Login(user) {
         setShowTwoFAInput(false);
         setIsRedirecting(true);
         handleRedirect(response?.user?.userLevel);
-        localStorage.removeItem("savedUsername");
-        localStorage.removeItem("savedPassword");
+        removeLocalData("savedUsername");
+        removeLocalData("savedPassword");
       }
     } catch (error) {
       console.error("2FA verification error:", error);
@@ -318,6 +319,8 @@ export default function Login(user) {
 
   const handleRedirect = (userLevel) => {
     setTimeout(() => {
+      removeLocalData("savedUsername");
+      removeLocalData("savedPassword");
       if (userLevel === "1.0") {
         router.replace("/candidatesDashboard");
       } else if (userLevel === "100.0") {
@@ -353,8 +356,8 @@ export default function Login(user) {
     setShowTwoFAInput(false);
     setIsRedirecting(false);
     setTwoFACode("");
-    localStorage.removeItem("savedUsername");
-    localStorage.removeItem("savedPassword");
+    removeLocalData("savedUsername");
+    removeLocalData("savedPassword");
     router.replace("/login");
     setUsername("");
     setPassword("");
@@ -463,7 +466,7 @@ export default function Login(user) {
                         onChange={handleSliderChange}
                         onMouseUp={handleSliderComplete}
                         onTouchEnd={handleSliderComplete}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                         style={{
                           background: `linear-gradient(to right, #004F39 0%, #004F39 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`
                         }}
