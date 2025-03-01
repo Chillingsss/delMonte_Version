@@ -29,10 +29,10 @@ export default function Login(user) {
   const [loading, setLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const router = useRouter();
-  const [captchaType, setCaptchaType] = useState('slider'); // 'slider', 'puzzle', or 'image'
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-  const [sliderPosition, setSliderPosition] = useState(0);
-  const [targetNumber, setTargetNumber] = useState(0);
+  const [captchaImage, setCaptchaImage] = useState("");
+  const [captcha, setCaptcha] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
+  const [captchaText, setCaptchaText] = useState("");
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [buttonText, setButtonText] = useState("Log In");
   const usernameRef = useRef(null);
@@ -86,31 +86,51 @@ export default function Login(user) {
   }, []);
 
   const generateCaptcha = useCallback(() => {
-    // Generate random target number between 40-60
-    setTargetNumber(Math.floor(Math.random() * 21) + 40);
-    setCaptchaVerified(false);
-    setSliderPosition(0);
+    if (typeof window === "undefined") return; // Prevents running on the server
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 150;
+    canvas.height = 50;
+
+    ctx.fillStyle = "#EAE9E7";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < 30; i++) {
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+      ctx.strokeStyle = "#0E5A35";
+      ctx.stroke();
+    }
+
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let text = "";
+    for (let i = 0; i < 5; i++) {
+      text += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    ctx.font = "bold 28px Arial";
+    ctx.fillStyle = "#151513";
+    for (let i = 0; i < text.length; i++) {
+      const x = 20 + i * 25;
+      const y = 30 + Math.random() * 10;
+      const angle = (Math.random() - 0.5) * 0.4;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.fillText(text[i], 0, 0);
+      ctx.restore();
+    }
+
+    setCaptchaImage(canvas.toDataURL());
+    setCaptchaText(text);
   }, []);
 
   useEffect(() => {
     generateCaptcha();
   }, [generateCaptcha]);
-
-  const handleSliderChange = (e) => {
-    const value = parseInt(e.target.value);
-    setSliderPosition(value);
-  };
-
-  const handleSliderComplete = () => {
-    if (Math.abs(sliderPosition - targetNumber) <= 2) {
-      setCaptchaVerified(true);
-      toast.success("CAPTCHA verified successfully!");
-    } else {
-      setCaptchaVerified(false);
-      toast.error("Please try again");
-      setSliderPosition(0);
-    }
-  };
 
   const showErrorToast = (message) => {
     toast(message, {
@@ -187,18 +207,18 @@ export default function Login(user) {
     // Show CAPTCHA after initial validation
     setUsername(sanitizedUsername);
     setPassword(sanitizedPassword);
+    generateCaptcha();
+    setCaptchaInput("");
     setShowCaptcha(true);
-    setCaptchaVerified(false);
-    setSliderPosition(0);
-    // Generate new target number when showing CAPTCHA
-    setTargetNumber(Math.floor(Math.random() * 21) + 40);
   };
 
   const handleCaptchaValidation = async (e) => {
     e.preventDefault();
 
-    if (!captchaVerified) {
-      showErrorToast("Please complete the CAPTCHA verification");
+    if (captchaInput !== captchaText) {
+      showErrorToast("❌ Incorrect CAPTCHA. Try again.");
+      generateCaptcha();
+      setCaptchaInput("");
       return;
     }
 
@@ -211,6 +231,7 @@ export default function Login(user) {
       });
 
       if (response?.ok) {
+        // Save credentials to localStorage only after successful login
         localStorage.setItem("savedUsername", sanitizeInput(username.trim()));
         localStorage.setItem("savedPassword", sanitizeInput(password.trim()));
 
@@ -229,30 +250,16 @@ export default function Login(user) {
           showErrorToast("📧 Check your email for the 2FA code");
         } else {
           showErrorToast(`🔒 ${response.error}`);
-          // Reset all fields
+          generateCaptcha();
+          setCaptchaInput("");
           setUsername("");
           setPassword("");
-          setShowCaptcha(true);
-          setCaptchaVerified(false);
-          setSliderPosition(0);
-          // Generate new target number
-          setTargetNumber(Math.floor(Math.random() * 21) + 40);
-          // Reset password field visibility
-          setShowNewPassword(false);
           setShowCaptcha(false);
         }
       }
     } catch (error) {
       console.error("Login error:", error);
       showErrorToast("An error occurred during login");
-      // Reset all fields here too in case of error
-      setUsername("");
-      setPassword("");
-      setShowCaptcha(true);
-      setCaptchaVerified(false);
-      setSliderPosition(0);
-      setTargetNumber(Math.floor(Math.random() * 21) + 40);
-      setShowNewPassword(false);
     } finally {
       setLoading(false);
     }
@@ -344,6 +351,7 @@ export default function Login(user) {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
       });
+      
     }
     await signOut({ redirect: false });
   };
@@ -446,44 +454,21 @@ export default function Login(user) {
             </div>
             {showCaptcha && !showTwoFAInput && (
               <div className="mb-4">
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                    Verify that you're human
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="text-center text-gray-600">
-                      Move the slider to {targetNumber}
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={sliderPosition}
-                        onChange={handleSliderChange}
-                        onMouseUp={handleSliderComplete}
-                        onTouchEnd={handleSliderComplete}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                        style={{
-                          background: `linear-gradient(to right, #004F39 0%, #004F39 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`
-                        }}
-                      />
-                      <div className="absolute top-4 w-full flex justify-between text-xs text-gray-500">
-                        <span>0</span>
-                        <span>50</span>
-                        <span>100</span>
-                      </div>
-                    </div>
-                    <div className="text-center text-lg font-bold text-gray-700">
-                      {sliderPosition}
-                    </div>
-                    {captchaVerified && (
-                      <div className="text-green-600 text-center font-semibold">
-                        ✓ Verification successful
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <img src={captchaImage} alt="Captcha" />
+                <input
+                  ref={captchaInputRef}
+                  type="text"
+                  placeholder="Enter captcha"
+                  value={captchaInput}
+                  onChange={(e) => setCaptchaInput(e.target.value)}
+                  className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
+                    captchaInput === captchaText
+                      ? "border-green-500 focus:ring-green-500"
+                      : "border-red-500 focus:ring-red-500"
+                  } slide-up`}
+                  required
+                  autoFocus
+                />
               </div>
             )}
 
@@ -495,9 +480,9 @@ export default function Login(user) {
               {loading
                 ? "Verifying..."
                 : showTwoFAInput
-                ? "Verifying..."
+                ? "Verify 2FA Code"
                 : showCaptcha
-                ? "Continue"
+                ? "Verify CAPTCHA"
                 : "Log In"}
             </button>
           </form>
