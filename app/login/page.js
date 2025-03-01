@@ -102,12 +102,12 @@ export default function Login(user) {
   };
 
   const handleSliderComplete = () => {
-    if (Math.abs(sliderPosition - targetNumber) <= 2) {
+    if (sliderPosition === targetNumber) {
       setCaptchaVerified(true);
       toast.success("CAPTCHA verified successfully!");
     } else {
       setCaptchaVerified(false);
-      toast.error("Please try again");
+      toast.error("Please match the exact number");
       setSliderPosition(0);
     }
   };
