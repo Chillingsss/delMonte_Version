@@ -12,7 +12,7 @@ const TwoFactorAuthModal = ({
   onResendCode,
   resendLoading,
 }) => {
-  const [countdown, setCountdown] = useState(120); // 2 minutes in seconds
+  const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [codes, setCodes] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);

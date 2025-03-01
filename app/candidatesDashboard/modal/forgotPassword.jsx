@@ -36,6 +36,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(0);
   const [targetNumber, setTargetNumber] = useState(Math.floor(Math.random() * 21) + 40);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(false);
 
   const modalRef = useRef(null);
 
@@ -52,6 +54,24 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       setEmail(storedPinData.email);
     }
   }, []);
+
+  useEffect(() => {
+    let timer;
+    if (resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [resendTimer]);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
@@ -245,6 +265,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const requestPinCode = async () => {
     if (requestLoading) return;
     setRequestLoading(true);
+    setCanResend(false);
+    setResendTimer(60);
 
     if (!email) {
       showErrorToast("⚠️ Please enter your email.");
@@ -281,6 +303,8 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setSupId(data.supId);
         setAnalystId(data.analystId);
         showSuccessToast("PIN code sent to your email.");
+
+        console.log("pincode", data.pincode);
       } else if (data.error) {
         showErrorToast(data.error);
       } else {
@@ -337,6 +361,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       if (data.success) {
         showSuccessToast("Password updated successfully.");
         setShowModal(false);
+        removeLocalData('forgotPasswordPinData');
       } else if (data.error) {
         toast.error(data.error);
       } else {
@@ -493,15 +518,35 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
               <label className="block text-[#151513] text-sm font-normal">
                 Enter PIN Code (sent to your email):
               </label>
-              <input
-                type="text"
-                name="pinCode"
-                value={enteredPinCode}
-                onChange={(e) => setEnteredPinCode(e.target.value)}
-                placeholder="Enter PIN Code"
-                className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="pinCode"
+                  value={enteredPinCode}
+                  onChange={(e) => setEnteredPinCode(e.target.value)}
+                  placeholder="Enter PIN Code"
+                  className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
+                  required
+                />
+                <div className="mt-2 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={requestPinCode}
+                    className={`text-sm ${
+                      canResend
+                        ? 'text-[#004F39] hover:underline cursor-pointer'
+                        : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                    disabled={!canResend || requestLoading}
+                  >
+                    {requestLoading
+                      ? "Sending..."
+                      : canResend
+                      ? "Resend OTP"
+                      : `Resend OTP in ${formatTime(resendTimer)}`}
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="mb-4 relative">
               <label className="block text-[#151513] text-sm font-normal">

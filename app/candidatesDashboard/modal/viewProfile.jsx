@@ -1750,7 +1750,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
               <div
                 className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
                   isDarkMode ? "bg-gray-700 text-white" : ""
@@ -1806,41 +1806,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                     {profile.candidateInformation?.cand_lastname || "N/A"},{" "}
                     {profile.candidateInformation?.cand_firstname || "N/A"}{" "}
                     {profile.candidateInformation?.cand_middlename || "N/A"}
-                  </p>
-                )}
-              </div>
-
-              <div
-                className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-                  isDarkMode ? "bg-gray-700 text-white" : ""
-                }`}
-              >
-                <label
-                  className={`block text-gray-600 text-sm font-normal ${
-                    isDarkMode ? "text-white" : ""
-                  }`}
-                >
-                  Alternate Email Address:
-                </label>
-                {isEditingPersonalInfo ? (
-                  <input
-                    type="email"
-                    name="candidateInformation.cand_alternateEmail"
-                    value={
-                      editData.candidateInformation?.cand_alternateEmail || ""
-                    }
-                    onChange={handleChangeNotArray}
-                    className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-                      isDarkMode ? "bg-gray-700 text-white" : ""
-                    }`}
-                  />
-                ) : (
-                  <p
-                    className={`text-gray-800 font-semibold mt-1 ${
-                      isDarkMode ? "text-white" : ""
-                    }`}
-                  >
-                    {profile.candidateInformation?.cand_alternateEmail || "N/A"}
                   </p>
                 )}
               </div>

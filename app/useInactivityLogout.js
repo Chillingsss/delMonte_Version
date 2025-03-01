@@ -4,8 +4,8 @@
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
-const TWELVE_MINUTES_MS = 12 * 60 * 1000; // 12 minutes in milliseconds
-const CHECK_INTERVAL = 10 * 1000; // Check every 10 seconds
+const THIRTY_MINUTES_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+const CHECK_INTERVAL = 30 * 1000; // Check every 30 seconds
 
 export function useInactivityLogout() {
   const { data: session } = useSession();
@@ -46,17 +46,8 @@ export function useInactivityLogout() {
       const currentTime = Date.now();
       const timeSinceLastActivity = currentTime - activityTimeRef.current;
 
-      // Check if session has expired
-      if (session?.expires) {
-        const sessionExpiry = new Date(session.expires).getTime();
-        if (currentTime >= sessionExpiry) {
-          handleLogout();
-          return;
-        }
-      }
-
-      // Check inactivity timeout
-      if (timeSinceLastActivity >= TWELVE_MINUTES_MS) {
+      // Only check inactivity timeout, not session expiry
+      if (timeSinceLastActivity >= THIRTY_MINUTES_MS) {
         handleLogout();
         return;
       }

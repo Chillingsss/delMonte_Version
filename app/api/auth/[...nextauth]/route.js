@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const TWELVE_MINUTES = 12 * 60;
+const TWO_HOURS = 2 * 60 * 60; // 2 hours in seconds
 
 const handler = NextAuth({
   providers: [
@@ -96,10 +96,10 @@ const handler = NextAuth({
   },
   session: {
     strategy: "jwt",
-    maxAge: TWELVE_MINUTES,
+    maxAge: TWO_HOURS, // Increased to 2 hours
   },
   jwt: {
-    maxAge: TWELVE_MINUTES,
+    maxAge: TWO_HOURS,
   },
   cookies: {
     sessionToken: {
@@ -109,8 +109,8 @@ const handler = NextAuth({
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        maxAge: TWELVE_MINUTES,
-        expires: new Date(Date.now() + TWELVE_MINUTES * 1000), // Ensure correct expiration date
+        maxAge: TWO_HOURS,
+        expires: new Date(Date.now() + TWO_HOURS * 1000), // Ensure correct expiration date
       },
     },
   },
