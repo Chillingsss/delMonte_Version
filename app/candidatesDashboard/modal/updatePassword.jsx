@@ -39,13 +39,14 @@ const UpdatePassword = ({
     specialChar: false,
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
-
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("appearance");
     if (savedTheme === "dark") return true;
     if (savedTheme === "light") return false;
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(true);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -87,6 +88,18 @@ const UpdatePassword = ({
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
     };
   }, []);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   const handlePasswordChange = (e) => {
     const value = e.target.value;
@@ -147,7 +160,7 @@ const UpdatePassword = ({
   };
 
   const requestPinCode = async () => {
-    if (requestLoading) return;
+    if (requestLoading || !canResend) return;
     setRequestLoading(true);
 
     if (requiresPassword && !currentPassword) {
@@ -194,6 +207,8 @@ const UpdatePassword = ({
       if (pinData.pincode) {
         setPinCode(pinData.pincode);
         setIsPinCodeSent(true); // Show the Save button
+        setResendTimer(60); // Start the 60-second timer
+        setCanResend(false);
         toast.success("PIN code sent to the provided email.");
       } else if (pinData.error) {
         toast.error(pinData.error);
@@ -278,212 +293,330 @@ const UpdatePassword = ({
     <div className={`modal ${showModal ? "block" : "hidden"}`}>
       <div
         className={`modal-content ${
-          isDarkMode ? "bg-gray-700" : "bg-gray-200"
-        } p-6 rounded-lg shadow-lg w-full relative`}
+          isDarkMode ? "bg-gray-800" : "bg-gray-100"
+        } p-6 sm:p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto relative border ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        }`}
       >
-        <X
-          className="absolute top-4 right-4 cursor-pointer"
+        <button
           onClick={() => setShowModal(false)}
-        />
+          className={`absolute top-4 right-4 p-2 rounded-lg transition-all duration-200 ${
+            isDarkMode
+              ? "hover:bg-gray-700 text-gray-400 hover:text-white"
+              : "hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <h3
           className={`text-xl font-semibold ${
-            isDarkMode ? "text-gray-300" : "text-gray-800"
-          } mb-4`}
+            isDarkMode ? "text-white" : "text-gray-800"
+          } mb-6`}
         >
           Update Password
         </h3>
-        <form onSubmit={handleSubmit}>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           {requiresPassword && (
-            <div className="mb-4 relative">
+            <div className="space-y-2">
+              <label
+                className={`block text-sm font-medium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Current Password
+              </label>
               <div className="relative">
-                <label
-                  className={`block ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } text-sm font-normal`}
-                >
-                  Current Password:
-                </label>
                 <input
                   type={showNewPassword ? "text" : "password"}
-                  name="currentPassword"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter Current Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${
-                    isDarkMode ? "bg-gray-600" : "bg-white"
-                  }`}
+                  placeholder="Enter your current password"
+                  className={`w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  } border focus:ring-2 focus:ring-blue-500/20 focus:outline-none`}
                   required
                 />
                 <button
                   type="button"
-                  className={`absolute right-3 top-1/2 transform ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-colors duration-200 ${
+                    isDarkMode
+                      ? "text-gray-400 hover:text-gray-300 hover:bg-gray-600"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                   }`}
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
-                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
           )}
-          <div className="mb-4">
+
+          <div className="space-y-2">
             <button
               type="button"
               onClick={requestPinCode}
-              className={`p-2 rounded-lg bg-blue-500 text-white mt-2 ${
-                isDarkMode ? "bg-blue-600" : ""
+              className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                !canResend && resendTimer > 0
+                  ? isDarkMode
+                    ? "bg-gray-700 text-gray-300"
+                    : "bg-gray-200 text-gray-600"
+                  : isDarkMode
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-blue-500 hover:bg-blue-600 text-white"
+              } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isDarkMode
+                  ? "focus:ring-blue-500 focus:ring-offset-gray-800"
+                  : "focus:ring-blue-500 focus:ring-offset-white"
               }`}
-              disabled={requestLoading || loading}
+              disabled={requestLoading || loading || (!canResend && resendTimer > 0)}
             >
-              {requestLoading ? "Sending..." : "SEND OTP"}
+              {requestLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Sending OTP...
+                </span>
+              ) : (
+                <>
+                  {isPinCodeSent
+                    ? resendTimer > 0
+                      ? `Resend OTP (${resendTimer}s)`
+                      : "Resend OTP"
+                    : "Send OTP"}
+                </>
+              )}
             </button>
           </div>
+
           {isPinCodeSent && (
-            <>
-              <div className="mb-4">
+            <div className="space-y-6 pt-2">
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  New Password
+                </label>
                 <div className="relative">
-                  <label
-                    className={`block ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
-                    } text-sm font-normal`}
-                  >
-                    New Password:
-                  </label>
                   <input
                     type={showNewPassword ? "text" : "password"}
-                    name="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    placeholder="Enter New Password"
-                    className={`w-full p-2 border rounded-lg mt-1 ${
-                      isDarkMode ? "bg-gray-700" : "bg-white"
-                    } ${passwordValid ? "border-green-500" : "border-red-500"}`}
+                    placeholder="Enter your new password"
+                    className={`w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ${
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    } border ${
+                      password
+                        ? passwordValid
+                          ? "border-green-500 focus:border-green-500"
+                          : "border-red-500 focus:border-red-500"
+                        : isDarkMode
+                          ? "border-gray-600"
+                          : "border-gray-300"
+                    } focus:ring-2 focus:ring-opacity-20 focus:outline-none ${
+                      passwordValid
+                        ? "focus:ring-green-500"
+                        : password
+                          ? "focus:ring-red-500"
+                          : "focus:ring-blue-500"
+                    }`}
                   />
                   <button
                     type="button"
-                    className={`absolute right-3 top-1/2 transform ${
-                      isDarkMode ? "text-gray-300" : "text-gray-600"
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-colors duration-200 ${
+                      isDarkMode
+                        ? "text-gray-400 hover:text-gray-300 hover:bg-gray-600"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                     }`}
                     onClick={() => setShowNewPassword(!showNewPassword)}
                   >
-                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
 
-                <ul className="text-sm mt-2">
-                  <li
-                    className={
-                      passwordChecks.length ? "text-green-500" : "text-red-500"
-                    }
-                  >
-                    {passwordChecks.length ? "✅" : "❌"} At least 8 characters
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.uppercase
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }
-                  >
-                    {passwordChecks.uppercase ? "✅" : "❌"} One uppercase
-                    letter
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.lowercase
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }
-                  >
-                    {passwordChecks.lowercase ? "✅" : "❌"} One lowercase
-                    letter
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.number ? "text-green-500" : "text-red-500"
-                    }
-                  >
-                    {passwordChecks.number ? "✅" : "❌"} One number
-                  </li>
-                  <li
-                    className={
-                      passwordChecks.specialChar
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }
-                  >
-                    {passwordChecks.specialChar ? "✅" : "❌"} One special
-                    character (@$!%*?&)
-                  </li>
+                <ul className="space-y-1.5 mt-3">
+                  {Object.entries({
+                    length: "At least 8 characters",
+                    uppercase: "One uppercase letter",
+                    lowercase: "One lowercase letter",
+                    number: "One number",
+                    specialChar: "One special character (@$!%*?&)",
+                  }).map(([key, text]) => (
+                    <li
+                      key={key}
+                      className={`flex items-center text-sm ${
+                        passwordChecks[key]
+                          ? isDarkMode
+                            ? "text-green-400"
+                            : "text-green-600"
+                          : isDarkMode
+                            ? "text-red-400"
+                            : "text-red-600"
+                      }`}
+                    >
+                      <span className="mr-2">
+                        {passwordChecks[key] ? "✓" : "×"}
+                      </span>
+                      {text}
+                    </li>
+                  ))}
                 </ul>
               </div>
-              <div className="mb-4">
+
+              <div className="space-y-2">
                 <label
-                  className={`block ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } text-sm font-normal`}
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
                 >
-                  Confirm Password:
+                  Confirm Password
                 </label>
                 <input
                   type="password"
-                  name="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
                     checkPasswordsMatch(e.target.value);
                   }}
-                  placeholder="Confirm Password"
-                  className={`w-full p-2 border rounded-lg mt-1 ${
-                    isDarkMode ? "bg-gray-600" : "bg-white"
-                  } ${passwordsMatch ? "border-green-500" : "border-red-500"}`}
+                  placeholder="Confirm your new password"
+                  className={`w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  } border ${
+                    confirmPassword
+                      ? passwordsMatch
+                        ? "border-green-500 focus:border-green-500"
+                        : "border-red-500 focus:border-red-500"
+                      : isDarkMode
+                        ? "border-gray-600"
+                        : "border-gray-300"
+                  } focus:ring-2 focus:ring-opacity-20 focus:outline-none ${
+                    passwordsMatch
+                      ? "focus:ring-green-500"
+                      : confirmPassword
+                        ? "focus:ring-red-500"
+                        : "focus:ring-blue-500"
+                  }`}
                 />
-                <p
-                  className={`text-sm mt-1 ${
-                    passwordsMatch ? "text-green-500" : "text-red-500"
+                {confirmPassword && (
+                  <p
+                    className={`text-sm mt-1.5 ${
+                      passwordsMatch
+                        ? isDarkMode
+                          ? "text-green-400"
+                          : "text-green-600"
+                        : isDarkMode
+                          ? "text-red-400"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {passwordsMatch ? "✓ Passwords match" : "× Passwords do not match"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-medium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
-                  {passwordsMatch
-                    ? "Passwords match."
-                    : "Passwords do not match."}
-                </p>
-              </div>
-              <div className="mb-4">
-                <label
-                  className={`block ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } text-sm font-normal`}
-                >
-                  Enter PIN Code (sent to the provided email):
+                  Verification Code
                 </label>
                 <input
                   type="text"
-                  name="pinCode"
                   value={enteredPinCode}
                   onChange={(e) => setEnteredPinCode(e.target.value)}
-                  placeholder="Enter PIN Code"
-                  className={`w-full p-2 border rounded-lg mt-1 ${
-                    isDarkMode ? "bg-gray-600" : "bg-white"
-                  }`}
+                  placeholder="Enter the verification code"
+                  className={`w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  } border focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-center tracking-wider`}
+                  maxLength={10}
                   required
                 />
+                <p
+                  className={`text-sm mt-1.5 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Enter the verification code sent to your email
+                </p>
               </div>
-            </>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isDarkMode
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-green-500 hover:bg-green-600 text-white"
+                  } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    isDarkMode
+                      ? "focus:ring-green-500 focus:ring-offset-gray-800"
+                      : "focus:ring-green-500 focus:ring-offset-white"
+                  }`}
+                  disabled={loading || !passwordValid || !passwordsMatch || !enteredPinCode}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Updating...
+                    </span>
+                  ) : (
+                    "Update Password"
+                  )}
+                </button>
+              </div>
+            </div>
           )}
-          <div className="flex justify-between">
-            {isPinCodeSent && (
-              <button
-                type="submit"
-                className="p-2 rounded-lg bg-green-500 text-white"
-                disabled={loading}
-              >
-                {loading ? "Updating..." : "Save"}
-              </button>
-            )}
-          </div>
         </form>
       </div>
-      <Toaster position="bottom-left" /> {/* Add Toaster component */}
+      <Toaster position="bottom-left" />
     </div>
   );
 };

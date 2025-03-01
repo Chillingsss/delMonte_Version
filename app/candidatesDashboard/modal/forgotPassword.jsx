@@ -29,6 +29,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     lowercase: false,
     number: false,
     specialChar: false,
+    noSpace: false,
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -38,6 +39,10 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [targetNumber, setTargetNumber] = useState(Math.floor(Math.random() * 21) + 40);
   const [resendTimer, setResendTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   const modalRef = useRef(null);
 
@@ -67,31 +72,96 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     return () => clearInterval(timer);
   }, [resendTimer]);
 
+  useEffect(() => {
+    // Check if all conditions are met
+    const isValid = 
+      passwordValid && 
+      confirmPasswordValid && 
+      enteredPinCode === pinCode && 
+      enteredPinCode !== "" && 
+      Object.values(passwordChecks).every(Boolean) &&
+      isEmailValid;
+    
+    setIsFormValid(isValid);
+  }, [passwordValid, confirmPasswordValid, enteredPinCode, pinCode, passwordChecks, isEmailValid]);
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleEmailChange = (e) => {
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  const restrictedDomains = [
+    'example.com',
+    'test.com',
+    'invalid.com',
+    'temporary.com',
+    'disposable.com'
+  ];
+
+  const validateEmail = async (email) => {
+    setIsCheckingEmail(true);
+    setEmailError("");
+    setIsEmailValid(false);
+
+    // Basic sanitization
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    // Basic format check
+    if (!emailRegex.test(sanitizedEmail)) {
+      setEmailError("Please enter a valid email address");
+      setIsCheckingEmail(false);
+      return false;
+    }
+
+    // Check for restricted domains
+    const domain = sanitizedEmail.split('@')[1];
+    if (restrictedDomains.includes(domain)) {
+      setEmailError("This email domain is not allowed");
+      setIsCheckingEmail(false);
+      return false;
+    }
+
+    try {
+      // Check domain validity using the validateEmailDomain endpoint
+      const response = await axios.post('/api/validateEmailDomain', {
+        domain: domain // Send only the domain part
+      });
+
+      const isValid = response.data.isValid;
+      setIsEmailValid(isValid);
+
+      if (!isValid) {
+        setEmailError("This email domain does not exist");
+      }
+
+      return isValid;
+    } catch (error) {
+      console.error("Error validating email domain:", error);
+      setEmailError("Error validating email. Please try again.");
+      setIsEmailValid(false);
+      return false;
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const handleEmailChange = async (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     setShowCaptcha(false);
     setCaptchaVerified(false);
     setSliderPosition(0);
     setTargetNumber(Math.floor(Math.random() * 21) + 40);
-  };
 
-  const validatePassword = (password) => {
-    const checks = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /\d/.test(password),
-      specialChar: /[@$!%*?&]/.test(password),
-    };
-    setPasswordChecks(checks);
-    return Object.values(checks).every(Boolean);
+    if (newEmail) {
+      await validateEmail(newEmail);
+    } else {
+      setEmailError("Email is required");
+      setIsEmailValid(false);
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -409,64 +479,110 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     };
   }, [showModal, setShowModal]);
 
+  const validatePassword = (password) => {
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      specialChar: /[@$!%*?&]/.test(password),
+      noSpace: !/\s/.test(password), // Check for absence of whitespace
+    };
+    setPasswordChecks(checks);
+    return Object.values(checks).every(Boolean);
+  };
+
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 ${
-        showModal ? "" : "hidden"
+      className={`fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm transition-all duration-300 ${
+        showModal ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
       <div
         ref={modalRef}
-        className="modal-content bg-[#EAE9E7] p-5 rounded-lg shadow-lg w-96 relative"
+        className="modal-content bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl w-[450px] relative transform transition-all duration-300 scale-100"
       >
         {!isPinCodeSent && (
           <button
             type="button"
             onClick={() => setShowModal(false)}
-            className="absolute top-4 right-4 text-gray-800"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         )}
-        <h3 className="text-xl font-semibold text-[#151513] mb-4">
+        <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
           Reset Your Password
         </h3>
         {!isPinCodeSent ? (
           <div className="mb-4">
-            <label className="block text-[#151513] text-sm font-normal mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-normal mb-2">
               Email:
             </label>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={handleEmailChange}
-              placeholder="Enter your email"
-              className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
-              required
-            />
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder="Enter your email"
+                className={`w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-700 border ${
+                  email
+                    ? isEmailValid && !emailError
+                      ? "border-green-500 focus:ring-green-500"
+                      : "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 dark:border-gray-600 focus:ring-green-500"
+                } focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+                required
+              />
+              {isCheckingEmail && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <svg className="animate-spin h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              )}
+              {email && !isCheckingEmail && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {isEmailValid && !emailError ? (
+                    <Check className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-500" />
+                  )}
+                </div>
+              )}
+            </div>
+            {emailError && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{emailError}</p>
+            )}
             {!showCaptcha ? (
-              <div className="flex justify-between mt-6">
+              <div className="flex justify-center mt-6">
                 <button
                   type="button"
                   onClick={handleEmailContinue}
-                  className="p-2 rounded-lg bg-[#004F39] text-white"
+                  disabled={!isEmailValid || emailError || isCheckingEmail}
+                  className={`px-6 py-2.5 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2 w-full ${
+                    !isEmailValid || emailError || isCheckingEmail
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
                 >
-                  Continue
+                  <span className="flex items-center justify-center w-full">Continue</span>
                 </button>
               </div>
             ) : (
               <>
                 <div className="mt-4">
-                  <div className="bg-white p-4 rounded-lg shadow-md">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl shadow-md space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                       Verify that you are human
                     </h3>
-                    <div className="space-y-4">
-                      <div className="text-center text-gray-600">
+                    <div className="space-y-6">
+                      <div className="text-center text-gray-700 dark:text-gray-300 font-medium">
                         Move the slider to {targetNumber}
                       </div>
-                      <div className="relative">
+                      <div className="relative pt-1">
                         <input
                           type="range"
                           min="0"
@@ -475,23 +591,24 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                           onChange={handleSliderChange}
                           onMouseUp={handleSliderComplete}
                           onTouchEnd={handleSliderComplete}
-                          className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
                           style={{
-                            background: `linear-gradient(to right, #004F39 0%, #004F39 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`,
+                            background: `linear-gradient(to right, #059669 0%, #059669 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`,
                           }}
                         />
-                        <div className="absolute top-4 w-full flex justify-between text-xs text-gray-500">
+                        <div className="absolute -bottom-6 w-full flex justify-between text-sm text-gray-600 dark:text-gray-400">
                           <span>0</span>
                           <span>50</span>
                           <span>100</span>
                         </div>
                       </div>
-                      <div className="text-center text-lg font-bold text-gray-700">
+                      <div className="text-center text-xl font-bold text-gray-900 dark:text-white mt-8">
                         {sliderPosition}
                       </div>
                       {captchaVerified && (
-                        <div className="text-green-600 text-center font-semibold">
-                          ✓ Verification successful
+                        <div className="flex items-center justify-center text-green-600 dark:text-green-400 font-medium space-x-2">
+                          <Check size={20} />
+                          <span>Verification successful</span>
                         </div>
                       )}
                     </div>
@@ -502,10 +619,23 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                     <button
                       type="button"
                       onClick={requestPinCode}
-                      className="p-2 rounded-lg bg-[#004F39] text-white"
-                      disabled={requestLoading}
+                      className={`w-full px-6 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2
+                        ${requestLoading || !captchaVerified
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                      disabled={requestLoading || !captchaVerified}
                     >
-                      {requestLoading ? "Sending..." : "SEND OTP"}
+                      {requestLoading ? (
+                        <span className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending OTP...
+                        </span>
+                      ) : (
+                        <span>Send OTP</span>
+                      )}
                     </button>
                   )}
                 </div>
@@ -515,7 +645,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         ) : (
           <form onSubmit={handleSubmitPasswordChange}>
             <div className="mb-4">
-              <label className="block text-[#151513] text-sm font-normal">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-normal">
                 Enter PIN Code (sent to your email):
               </label>
               <div className="relative">
@@ -525,31 +655,36 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   value={enteredPinCode}
                   onChange={(e) => setEnteredPinCode(e.target.value)}
                   placeholder="Enter PIN Code"
-                  className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
+                  className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white"
                   required
                 />
-                <div className="mt-2 flex justify-between items-center">
+                <div className="mt-3 flex justify-between items-center">
                   <button
                     type="button"
                     onClick={requestPinCode}
-                    className={`text-sm ${
-                      canResend
-                        ? 'text-[#004F39] hover:underline cursor-pointer'
-                        : 'text-gray-400 cursor-not-allowed'
-                    }`}
+                    className={`text-sm transition-colors duration-200 flex items-center justify-center space-x-2
+                      ${canResend && !requestLoading
+                        ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-500'
+                        : 'text-gray-400 cursor-not-allowed'}`}
                     disabled={!canResend || requestLoading}
                   >
-                    {requestLoading
-                      ? "Sending..."
-                      : canResend
-                      ? "Resend OTP"
-                      : `Resend OTP in ${formatTime(resendTimer)}`}
+                    {requestLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending OTP...
+                      </span>
+                    ) : (
+                      <span>{canResend ? "Resend OTP" : `Resend OTP in ${formatTime(resendTimer)}`}</span>
+                    )}
                   </button>
                 </div>
               </div>
             </div>
             <div className="mb-4 relative">
-              <label className="block text-[#151513] text-sm font-normal">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-normal">
                 New Password:
               </label>
               <div className="relative">
@@ -557,64 +692,48 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   type={showNewPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513]"
+                  className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
                   {showNewPassword ? (
-                    <EyeOff size={20} className="text-[#151513]" />
+                    <EyeOff size={18} />
                   ) : (
-                    <Eye size={20} className="text-[#151513]" />
+                    <Eye size={18} />
                   )}
                 </button>
               </div>
-              <ul className="text-sm mt-2">
-                <li
-                  className={
-                    passwordChecks.length ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {passwordChecks.length ? "✅" : "❌"} At least 8 characters
-                </li>
-                <li
-                  className={
-                    passwordChecks.uppercase ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {passwordChecks.uppercase ? "✅" : "❌"} One uppercase letter
-                </li>
-                <li
-                  className={
-                    passwordChecks.lowercase ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {passwordChecks.lowercase ? "✅" : "❌"} One lowercase letter
-                </li>
-                <li
-                  className={
-                    passwordChecks.number ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {passwordChecks.number ? "✅" : "❌"} One number
-                </li>
-                <li
-                  className={
-                    passwordChecks.specialChar
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }
-                >
-                  {passwordChecks.specialChar ? "✅" : "❌"} One special
-                  character (@$!%*?&)
-                </li>
+              <ul className="space-y-2 mt-4">
+                {Object.entries(passwordChecks).map(([check, isValid]) => (
+                  <li
+                    key={check}
+                    className={`flex items-center space-x-2 text-sm ${
+                      isValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {isValid ? (
+                      <Check size={16} className="flex-shrink-0" />
+                    ) : (
+                      <X size={16} className="flex-shrink-0" />
+                    )}
+                    <span>
+                      {check === 'length' && 'At least 8 characters'}
+                      {check === 'uppercase' && 'One uppercase letter'}
+                      {check === 'lowercase' && 'One lowercase letter'}
+                      {check === 'number' && 'One number'}
+                      {check === 'specialChar' && 'One special character (@$!%*?&)'}
+                      {check === 'noSpace' && 'No spaces allowed'}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="mb-4 relative">
-              <label className="block text-[#151513] text-sm font-normal">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-normal">
                 Confirm New Password:
               </label>
               <div className="relative">
@@ -622,41 +741,55 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={handleConfirmPasswordChange}
-                  className={`w-full p-2 rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 slide-up text-[#151513] ${
-                    confirmPassword &&
-                    (confirmPasswordValid
-                      ? "border-green-500"
-                      : "border-red-500")
+                  className={`w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-700 border transition-all duration-200 text-gray-900 dark:text-white focus:outline-none focus:ring-2 ${
+                    confirmPassword
+                      ? confirmPasswordValid
+                        ? "border-green-500 focus:ring-green-500"
+                        : "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 dark:border-gray-600 focus:ring-green-500"
                   }`}
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20} className="text-[#151513]" />
+                    <EyeOff size={18} />
                   ) : (
-                    <Eye size={20} className="text-[#151513]" />
+                    <Eye size={18} />
                   )}
                 </button>
               </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between space-x-4 mt-8">
               <button
                 type="button"
                 onClick={handleCancelPasswordChange}
-                className="p-2 rounded-lg bg-transparent text-[#151513] border border-[#151513] hover:bg-red-500 hover:text-white"
+                className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-all duration-200 font-medium"
               >
-                Cancel Password Change
+                Cancel
               </button>
               <button
                 type="submit"
-                className="p-2 rounded-lg bg-green-500 text-white animation hover:bg-green-600"
-                disabled={loading}
+                className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2
+                  ${loading || !isFormValid
+                    ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                    : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                disabled={loading || !isFormValid}
               >
-                {loading ? "Saving..." : "Save New Password"}
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </span>
+                ) : (
+                  <span>Save New Password</span>
+                )}
               </button>
             </div>
           </form>

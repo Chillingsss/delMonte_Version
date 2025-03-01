@@ -319,8 +319,6 @@ export default function Login(user) {
 
   const handleRedirect = (userLevel) => {
     setTimeout(() => {
-      removeLocalData("savedUsername");
-      removeLocalData("savedPassword");
       if (userLevel === "1.0") {
         router.replace("/candidatesDashboard");
       } else if (userLevel === "100.0") {
