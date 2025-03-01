@@ -91,7 +91,7 @@ const TwoFactorAuthModal = ({
         </div>
 
         <div className="mb-4">
-          <div className="flex gap-2 justify-between">
+          <div className="flex gap-1 sm:gap-2 justify-between">
             {[0, 1, 2, 3, 4, 5].map((index) => (
               <input
                 key={index}
@@ -102,7 +102,7 @@ const TwoFactorAuthModal = ({
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
-                className="w-12 h-12 text-center text-xl rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-[#151513]"
+                className="w-8 h-8 sm:w-12 sm:h-12 text-center text-base sm:text-xl rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-[#151513]"
                 required
                 autoFocus={index === 0}
               />
