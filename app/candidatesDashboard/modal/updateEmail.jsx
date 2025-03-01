@@ -604,7 +604,7 @@ const UpdateEmail = ({
                     type="text"
                     value={enteredPinCode}
                     onChange={(e) => setEnteredPinCode(e.target.value)}
-                    placeholder="Enter 10-digit code"
+                    placeholder="Enter 10 digit code"
                     maxLength={10}
                     className={`w-full px-4 py-2 rounded-lg transition-colors duration-200 ${
                       isDarkMode 
@@ -656,7 +656,7 @@ const UpdateEmail = ({
                   isDarkMode ? 'bg-gray-700/50' : 'bg-blue-50'
                 } border ${isDarkMode ? 'border-gray-600' : 'border-blue-100'}`}>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-blue-700'}`}>
-                    <span className="font-medium">Note:</span> Please check your email inbox for the verification code. If you don't see it, check your spam folder.
+                    <span className="font-medium">Note:</span> Please check your email inbox for the verification code. If you do not see it, check your spam folder.
                   </p>
                 </div>
               </div>
@@ -778,7 +778,7 @@ const UpdateEmail = ({
                     type="text"
                     value={enteredNewPinCode}
                     onChange={(e) => setEnteredNewPinCode(e.target.value)}
-                    placeholder="Enter 10-digit code"
+                    placeholder="Enter 10 digit code"
                     maxLength={10}
                     className={`w-full px-4 py-2 rounded-lg transition-colors duration-200 ${
                       isDarkMode 
@@ -830,7 +830,7 @@ const UpdateEmail = ({
                   isDarkMode ? 'bg-gray-700/50' : 'bg-blue-50'
                 } border ${isDarkMode ? 'border-gray-600' : 'border-blue-100'}`}>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-blue-700'}`}>
-                    <span className="font-medium">Note:</span> Please check your new email inbox for the verification code. If you don't see it, check your spam folder.
+                    <span className="font-medium">Note:</span> Please check your new email inbox for the verification code. If you do not see it, check your spam folder.
                   </p>
                 </div>
               </div>
