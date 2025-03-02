@@ -12,31 +12,29 @@ module.exports = {
     first_name,
     last_name,
   }) {
-    // Get the current date and time in Philippines timezone (UTC+8)
+
     const philippinesTime = moment()
       .tz("Asia/Manila")
       .format("YYYY-MM-DD hh:mm:ss A");
 
-    // Step 1: Check if the email exists in the tbladmin table
-    const [adminRows] = await pool.execute(
+    const [hrRows] = await pool.execute(
       `SELECT
-          a.adm_id,
-          a.adm_email,
-          b.userL_level AS adm_userLevel
-       FROM tbladmin a
-       INNER JOIN tbluserlevel b ON a.adm_userLevel = b.userL_id
-       WHERE adm_email = ?`,
+          a.hr_id,
+          a.hr_email,
+          b.userL_level AS hr_userLevel
+       FROM tblhr a
+       INNER JOIN tbluserlevel b ON a.hr_userLevel = b.userL_id
+       WHERE hr_email = ?`,
       [email]
     );
 
-    let adminData;
+    let hrData;
     let candidateData;
 
-    if (adminRows.length > 0) {
-      // Email exists sa tbladmin, get the admin details
-      adminData = {
-        adm_id: adminRows[0].adm_id,
-        adm_userLevel: adminRows[0].adm_userLevel,
+    if (hrRows.length > 0) {
+      hrData = {
+        hr_id: hrRows[0].hr_id,
+        hr_userLevel: hrRows[0].hr_userLevel,
       };
     } else {
       // Step 2: Check if naay email ga exist sa tblcandidates
@@ -56,7 +54,7 @@ module.exports = {
         // Email exists in tblcandidates, get the candidate details
         candidateData = {
           cand_id: candidateRows[0].cand_id,
-          cand_userLevel: candidateRows[0].cand_userLevel, // This is now the level name (e.g., 'admin', 'superAdmin')
+          cand_userLevel: candidateRows[0].cand_userLevel,
           cand_firstname: candidateRows[0].cand_firstname,
           cand_lastname: candidateRows[0].cand_lastname,
         };
@@ -102,12 +100,12 @@ module.exports = {
 
     // Step 3: Insert or update the user in the users table
     const [userResult] = await pool.execute(
-      `INSERT INTO users (provider, provider_user_id, email, first_name, last_name, cand_userId, admin_id, created_at, last_login)
+      `INSERT INTO users (provider, provider_user_id, email, first_name, last_name, cand_userId, hr_userId, created_at, last_login)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE
          last_login = ?,
          cand_userId = ?,
-         admin_id = ?`,
+         hr_userId = ?`,
       [
         provider,
         provider_user_id,
@@ -115,14 +113,17 @@ module.exports = {
         first_name,
         last_name,
         candidateData ? candidateData.cand_id : null,
-        adminData ? adminData.adm_id : null,
+        hrData ? hrData.hr_id : null,
         philippinesTime,
         philippinesTime, // For the new record
         philippinesTime, // For the update
         candidateData ? candidateData.cand_id : null,
-        adminData ? adminData.adm_id : null,
+        hrData ? hrData.hr_id : null,
       ]
     );
+
+    console.log("hrData", hrData);
+    console.log("candidateData", candidateData);
 
     return {
       id: userResult.insertId || userResult.updateId,
@@ -135,8 +136,8 @@ module.exports = {
       cand_userLevel: candidateData ? candidateData.cand_userLevel : null,
       cand_firstname: candidateData ? candidateData.cand_firstname : null,
       cand_lastname: candidateData ? candidateData.cand_lastname : null,
-      adm_id: adminData ? adminData.adm_id : null,
-      adm_userLevel: adminData ? adminData.adm_userLevel : null,
+      hr_id: hrData ? hrData.hr_id : null,
+      hr_userLevel: hrData ? hrData.hr_userLevel : null,
     };
   },
 };

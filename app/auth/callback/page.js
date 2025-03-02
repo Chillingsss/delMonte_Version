@@ -42,11 +42,14 @@ export default function Callback() {
         searchParams.get("cand_userLevel") !== "null"
           ? searchParams.get("cand_userLevel")
           : null;
-      const adm_id = searchParams.get("adm_id") || null;
-      const adm_userLevel =
-        searchParams.get("adm_userLevel") !== "null"
-          ? searchParams.get("adm_userLevel")
+      const hr_id = searchParams.get("hr_id") || null;
+      const hr_userLevel =
+        searchParams.get("hr_userLevel") !== "null"
+          ? searchParams.get("hr_userLevel")
           : null;
+
+          console.log("hr_id", hr_id);
+          console.log("hr_userLevel", hr_userLevel);
 
       if (token) {
         console.log(
@@ -55,9 +58,9 @@ export default function Callback() {
 
         // Create a token object with user details
         const tokenData = {
-          userId: cand_id || adm_id,
+          userId: cand_id || hr_id,
           timestamp: new Date().getTime(),
-          userLevel: cand_userLevel || adm_userLevel,
+          userLevel: cand_userLevel || hr_userLevel,
         };
 
         // ✅ Store in Cookies & Session Storage
@@ -65,7 +68,7 @@ export default function Callback() {
         storeDataInSession("user", tokenData); // ✅ Now storing in session
 
         // Redirect based on user level
-        const userLevel = cand_userLevel || adm_userLevel;
+        const userLevel = cand_userLevel || hr_userLevel;
         switch (userLevel) {
           case "1.0":
             router.replace("/candidatesDashboard");

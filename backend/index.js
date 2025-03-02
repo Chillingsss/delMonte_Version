@@ -60,13 +60,13 @@ const updateFailedAttempts = async (username, reset = false) => {
 // User tables
 const tables = [
   {
-    name: "tbladmin",
-    emailCol: "adm_email",
-    passCol: "adm_password",
-    idCol: "adm_id",
-    nameCol: "adm_firstname",
+    name: "tblhr",
+    emailCol: "hr_email",
+    passCol: "hr_password",
+    idCol: "hr_id",
+    nameCol: "hr_firstname",
     userLevelCols: "userL_level",
-    userLevelCol: "adm_userLevel",
+    userLevelCol: "hr_userLevel",
   },
   {
     name: "tblcandidates",
@@ -76,33 +76,6 @@ const tables = [
     nameCol: "cand_firstname",
     userLevelCols: "userL_level",
     userLevelCol: "cand_userLevel",
-  },
-  {
-    name: "tblmanager",
-    emailCol: "manager_email",
-    passCol: "manager_password",
-    idCol: "manager_id",
-    nameCol: "manager_firstname",
-    userLevelCols: "userL_level",
-    userLevelCol: "manager_userLevel",
-  },
-  {
-    name: "tblsupervisor",
-    emailCol: "sup_email",
-    passCol: "sup_password",
-    idCol: "sup_id",
-    nameCol: "sup_firstname",
-    userLevelCols: "userL_level",
-    userLevelCol: "sup_userLevel",
-  },
-  {
-    name: "tblanalyst",
-    emailCol: "analyst_email",
-    passCol: "analyst_password",
-    idCol: "analyst_id",
-    nameCol: "analyst_firstname",
-    userLevelCols: "userL_level",
-    userLevelCol: "analyst_userLevel",
   },
 ];
 
@@ -148,8 +121,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  debug: true, // Add this for debugging
-  logger: true, // Add this for debugging
 });
 
 // Add error handling for the transporter
@@ -200,6 +171,13 @@ const updateLastTwoFAVerification = async (email) => {
 app.post("/login", loginLimiter, async (req, res) => {
   const { username, password, twoFACode, isResend } = req.body;
   const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
+
+  console.log("Received login request:", {
+    username,
+    password,
+    twoFACode,
+    isResend,
+  });
 
   try {
     // Apply resend limiter only for resend requests

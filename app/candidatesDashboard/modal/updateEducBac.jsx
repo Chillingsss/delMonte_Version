@@ -333,7 +333,9 @@ const UpdateEducBac = ({
         if (fetchCourseCategorys) {
           fetchCourseCategorys();
         }
-      } else {
+      } else if (response.data === -1) {
+        toast.error("Educational background already exists.");
+      }else {
         console.error(
           "Failed to update educational background:",
           response.data

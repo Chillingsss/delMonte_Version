@@ -205,7 +205,6 @@ const clearAllData = () => {
   clearAllCookies();
   clearAllLocalData();
   clearAllSessionData();
-  window.location.href = "/"; // Redirect to login
 };
 
 if (typeof window !== "undefined") {

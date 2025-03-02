@@ -86,6 +86,7 @@ export default function Page() {
     }
      else {
       setIsLoading(false);
+      router.replace("/");
     }
   }, [session, router]);
 

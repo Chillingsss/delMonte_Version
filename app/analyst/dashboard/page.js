@@ -95,6 +95,7 @@ export default function Page() {
       router.replace("/analyst/dashboard");
     } else {
       setIsLoading(false);
+      router.replace("/");
     }
   }, [session, router]);
 

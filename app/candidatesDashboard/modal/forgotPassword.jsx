@@ -15,10 +15,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPinCodeSent, setIsPinCodeSent] = useState(false);
   const [candId, setCandId] = useState(null);
-  const [admId, setAdmId] = useState(null);
-  const [manId, setManId] = useState(null);
-  const [supId, setSupId] = useState(null);
-  const [analystId, setAnalystId] = useState(null);
+  const [hrId, setHrId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
@@ -52,10 +49,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       setPinCode(storedPinData.pinCode);
       setIsPinCodeSent(true);
       setCandId(storedPinData.candId);
-      setAdmId(storedPinData.admId);
-      setManId(storedPinData.manId);
-      setSupId(storedPinData.supId);
-      setAnalystId(storedPinData.analystId);
+      setHrId(storedPinData.hrId);
       setEmail(storedPinData.email);
     }
   }, []);
@@ -357,10 +351,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         const pinData = {
           pinCode: data.pincode,
           candId: data.candId,
-          admId: data.admId,
-          manId: data.manId,
-          supId: data.supId,
-          analystId: data.analystId,
+          hrId: data.hrId,
           email: email
         };
         storeDataInLocal('forgotPasswordPinData', pinData);
@@ -368,10 +359,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setPinCode(data.pincode);
         setIsPinCodeSent(true);
         setCandId(data.candId);
-        setAdmId(data.admId);
-        setManId(data.manId);
-        setSupId(data.supId);
-        setAnalystId(data.analystId);
+        setHrId(data.hrId);
         showSuccessToast("PIN code sent to your email.");
 
         console.log("pincode", data.pincode);
@@ -417,10 +405,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         "json",
         JSON.stringify({
           cand_id: candId,
-          adm_id: admId,
-          man_id: manId,
-          sup_id: supId,
-          analyst_id: analystId,
+          hr_id: hrId,
           password: newPassword,
         })
       );
@@ -453,10 +438,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     setNewPassword("");
     setConfirmPassword("");
     setCandId(null);
-    setAdmId(null);
-    setManId(null);
-    setSupId(null);
-    setAnalystId(null);
+    setHrId(null);
     setShowCaptcha(false);
     setCaptchaVerified(false);
     setSliderPosition(0);

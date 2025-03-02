@@ -171,6 +171,14 @@ export default function DashboardCandidates() {
       router.pathname !== "/admin/dashboard"
     ) {
       router.replace("/admin/dashboard");
+    } else if (userLevel === "50.0" && router.pathname !== "/manager/dashboard") {
+      router.replace("/manager/dashboard");
+    } else if (userLevel === "20.0" && router.pathname !== "/supervisor/dashboard") {
+      router.replace("/supervisor/dashboard");
+    } else if (userLevel === "10.0" && router.pathname !== "/analyst/dashboard") {
+      router.replace("/analyst/dashboard");
+    } else {
+      router.replace("/");
     }
   }, []);
 

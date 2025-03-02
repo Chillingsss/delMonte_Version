@@ -6,9 +6,9 @@ const jwt = require("jsonwebtoken");
 const generateToken = (user) => {
   return jwt.sign(
     {
-      id: user.cand_userId || user.adm_id, // Support both candidate & admin
+      id: user.cand_userId || user.hr_id, // Support both candidate & admin
       email: user.email,
-      userLevel: user.cand_userLevel || user.adm_userLevel, // Include user level
+      userLevel: user.cand_userLevel || user.hr_userLevel, // Include user level
     },
     process.env.JWT_SECRET || "default-secret", // Ensure secret is set
     { expiresIn: "1h" }
@@ -36,8 +36,8 @@ router.get(
       cand_firstname,
       cand_lastname,
       cand_userLevel,
-      adm_id,
-      adm_userLevel,
+      hr_id,
+      hr_userLevel,
     } = req.user;
 
     // ✅ Set HttpOnly Cookie (Server-side)
@@ -55,9 +55,9 @@ router.get(
         cand_userId || ""
       }&cand_firstname=${cand_firstname || ""}&cand_lastname=${
         cand_lastname || ""
-      }&cand_userLevel=${cand_userLevel || ""}&adm_id=${
-        adm_id || ""
-      }&adm_userLevel=${adm_userLevel || ""}`
+      }&cand_userLevel=${cand_userLevel || ""}&hr_id=${
+        hr_id || ""
+      }&hr_userLevel=${hr_userLevel || ""}`
     );
   }
 );
