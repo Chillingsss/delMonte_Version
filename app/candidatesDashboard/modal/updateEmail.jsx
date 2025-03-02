@@ -574,7 +574,7 @@ const UpdateEmail = ({
                     </p>
                     <ul className={`text-sm ${isDarkMode ? "text-blue-300" : "text-blue-700"} list-disc list-inside ml-1 space-y-1`}>
                       <li>Your current password</li>
-                      <li>Your current email address</li>
+                      <li>Your current primary email address</li>
                     </ul>
                   </div>
                 </div>
@@ -709,7 +709,7 @@ const UpdateEmail = ({
               <div className={`mt-4 p-2.5 sm:p-3 rounded-lg text-xs sm:text-sm ${
                 isDarkMode ? 'bg-gray-700/50 text-gray-300' : 'bg-blue-50 text-blue-700'
               } border ${isDarkMode ? 'border-gray-600' : 'border-blue-100'}`}>
-                <span className="font-medium">Note:</span> A verification code will be sent to your current email address.
+                <span className="font-medium">Note:</span> A verification code will be sent to your current primary email address.
               </div>
             </div>
           )}
