@@ -37,6 +37,7 @@ const UpdatePassword = ({
     lowercase: false,
     number: false,
     specialChar: false,
+    noSpace: false,
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -149,6 +150,7 @@ const UpdatePassword = ({
       lowercase: /[a-z]/.test(password),
       number: /\d/.test(password),
       specialChar: /[@$!%*?&]/.test(password),
+      noSpace: !/\s/.test(password), // Check for absence of whitespace
     };
     setPasswordChecks(checks);
     return Object.values(checks).every(Boolean);
@@ -491,6 +493,7 @@ const UpdatePassword = ({
                     lowercase: "One lowercase letter",
                     number: "One number",
                     specialChar: "One special character (@$!%*?&)",
+                    noSpace: "No spaces allowed",
                   }).map(([key, text]) => (
                     <li
                       key={key}

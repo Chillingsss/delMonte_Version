@@ -626,7 +626,7 @@ const PersonalInformation = ({ handleSubmit }) => {
                                 {data.isContact && (
                                   <div className="space-y-1 mt-1">
                                     <p className="text-xs text-gray-500">
-                                      Enter Philippine mobile number (+63 format)
+                                      Enter Philippine mobile number
                                     </p>
                                   </div>
                                 )}

@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  storeDataInSession,
+  storeDataInSession, 
   getDataFromCookie,
   getDataFromSession,
 } from "../utils/storageUtils";

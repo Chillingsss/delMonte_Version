@@ -304,7 +304,6 @@ const UpdateEducBac = ({
         ],
       };
 
-      console.log("Updated data:", updatedData);
 
       const formData = new FormData();
       formData.append("operation", "updateEducationalBackground");
@@ -317,7 +316,7 @@ const UpdateEducBac = ({
       });
 
       if (response.data === 1) {
-        toast.success("Educational background updated successfully"); // This will now use react-hot-toast
+        toast.success("Educational background updated successfully");
         if (fetchProfile) {
           fetchProfile();
         }

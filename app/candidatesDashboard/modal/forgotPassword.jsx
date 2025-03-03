@@ -178,7 +178,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
   const handleSliderComplete = () => {
     if (sliderPosition === targetNumber) {
       setCaptchaVerified(true);
-      toast.success("CAPTCHA verified successfully!", {
+      showSuccessToast("CAPTCHA verified successfully!", {
         duration: 4000,
         position: "bottom-left",
         style: {
@@ -194,7 +194,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       });
     } else {
       setCaptchaVerified(false);
-      toast.error("Please match the exact number", {
+      showErrorToast("Please match the exact number", {
         duration: 4000,
         position: "bottom-left",
         style: {
@@ -214,7 +214,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
 
   const handleEmailContinue = async () => {
     if (!email) {
-      toast.error("⚠️ Please enter your email.", {
+      showErrorToast("⚠️ Please enter your email.", {
         duration: 4000,
         position: "bottom-left",
         style: {
@@ -362,7 +362,6 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setHrId(data.hrId);
         showSuccessToast("PIN code sent to your email.");
 
-        console.log("pincode", data.pincode);
       } else if (data.error) {
         showErrorToast(data.error);
       } else {
@@ -370,7 +369,7 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
       }
     } catch (error) {
       console.error("Error requesting PIN code:", error);
-      toast.error("An error occurred while requesting the PIN code.");
+      showErrorToast("An error occurred while requesting the PIN code.");
     } finally {
       setRequestLoading(false);
     }
@@ -380,12 +379,12 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
     e.preventDefault();
 
     if (enteredPinCode !== pinCode) {
-      showErrorToast("Invalid PIN code.");
+      showErrorToast("⚠️ Invalid PIN code.");
       return;
     }
 
     if (!passwordValid) {
-      showErrorToast("Password does not meet the criteria.");
+      showErrorToast("⚠️ Password does not meet the criteria.");
       return;
     }
 
@@ -418,13 +417,13 @@ const ForgotPassword = ({ showModal, setShowModal, fetchProfile }) => {
         setShowModal(false);
         removeLocalData('forgotPasswordPinData');
       } else if (data.error) {
-        toast.error(data.error);
+        showErrorToast(data.error);
       } else {
-        toast.error("Failed to update password.");
+        showErrorToast("Failed to update password.");
       }
     } catch (error) {
       console.error("Error updating password:", error);
-      toast.error("An error occurred while updating the password.");
+      showErrorToast("An error occurred while updating the password.");
     } finally {
       setLoading(false);
     }
