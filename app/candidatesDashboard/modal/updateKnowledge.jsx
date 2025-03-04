@@ -182,7 +182,10 @@ const UpdateKnowledge = ({
           fetchKnowledge();
         }
         setShowModal(false);
-      } else {
+      } else if (response.data === 2) {
+        toast.error("Knowledge exists.");
+      }
+       else {
         console.error("Failed to update knowledge:", response.data);
         toast.error("Failed to update knowledge.");
       }

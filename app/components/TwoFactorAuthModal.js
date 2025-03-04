@@ -101,7 +101,7 @@ const TwoFactorAuthModal = ({
                 value={codes[index]}
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={handlePaste}
+                onPaste={handlePaste}s
                 className="w-8 h-8 sm:w-12 sm:h-12 text-center text-base sm:text-xl rounded-md bg-transparent border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-[#151513]"
                 required
                 autoFocus={index === 0}

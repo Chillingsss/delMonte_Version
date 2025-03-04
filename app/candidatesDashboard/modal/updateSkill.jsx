@@ -188,6 +188,8 @@ const UpdateSkill = ({
         if (fetchSkills) {
           fetchSkills();
         }
+      } else if (response.data === 2) {
+        toast.error("Skill already exists.");
       } else {
         toast.error("Failed to update skill.");
       }

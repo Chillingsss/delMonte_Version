@@ -209,7 +209,6 @@ export default function Login(user) {
         redirect: false,
         username: sanitizeInput(username.trim()),
         password: sanitizeInput(password.trim()),
-        userAgent: navigator.userAgent,
       });
 
       if (response?.ok) {
@@ -275,7 +274,6 @@ export default function Login(user) {
         username: username,
         password: password,
         twoFACode: twoFACode,
-        userAgent: navigator.userAgent,
       });
 
       if (response?.error) {

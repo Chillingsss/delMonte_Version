@@ -247,7 +247,11 @@ const UpdateLicense = ({
           fetchLicense();
         }
         setShowLicenseModal(false);
-      } else {
+      }
+       else if (response.data === 2) {
+        toast.error("License exists.");
+      }
+      else {
         console.error("Failed to update license:", response.data);
         toast.error("Failed to update license."); // Updated toast call
       }

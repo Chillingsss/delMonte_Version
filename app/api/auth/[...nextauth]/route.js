@@ -11,7 +11,6 @@ const handler = NextAuth({
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
         twoFACode: { label: "2FA Code", type: "text" },
-        userAgent: { label: "User-Agent", type: "text" }
       },
       async authorize(credentials) {
         const url =
@@ -31,11 +30,6 @@ const handler = NextAuth({
               username: sanitizedUsername,
               password: credentials.password,
               twoFACode: credentials.twoFACode,
-            },
-            {
-              headers: {
-                "User-Agent": credentials.userAgent // Use the user agent passed from the client
-              }
             }),
           });
 

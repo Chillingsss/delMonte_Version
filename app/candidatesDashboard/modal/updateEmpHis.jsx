@@ -164,7 +164,10 @@ const UpdateEmpHis = ({
           fetchProfile();
         }
         setShowModal(false);
-      } else {
+      } else if (response.data.duplicate) {
+        toast.error(response.data.duplicate);
+      }
+       else {
         console.error("Failed to update employment history:", response.data);
       }
     } catch (error) {

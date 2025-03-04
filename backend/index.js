@@ -9,8 +9,6 @@ const cors = require("cors");
 const pool = require("./db"); // Database connection
 const rateLimit = require("express-rate-limit");
 const nodemailer = require("nodemailer");
-const geoip = require('geoip-lite');
-const UAParser = require('ua-parser-js');
 
 const app = express();
 const port = 3002;
@@ -134,167 +132,29 @@ transporter.verify(function (error, success) {
   }
 });
 
-const getLocationFromIP = (ip) => {
-  const geo = geoip.lookup(ip);
-  return geo ? `${geo.city}, ${geo.country}` : 'Unknown';
-};
-
-const getDeviceInfo = (userAgent) => {
-  console.log("Received User Agent:", userAgent);
-
-  // Handle missing or basic user agent
-  if (!userAgent || userAgent === 'node' || userAgent === 'undefined') {
-    return {
-      browser: 'Unknown Browser',
-      os: 'Unknown OS',
-      device: 'unknown'
-    };
-  }
-
-  const parser = new UAParser(userAgent);
-  const result = parser.getResult();
-  
-  // Extract meaningful browser information
-  let browserName = result.browser.name || 'Unknown Browser';
-  
-  // Some versions of Chrome identify as "Chrome" but are actually other browsers
-  // Check for common browser identifiers in the user agent string
-  if (userAgent.includes('Edg/') || userAgent.includes('Edge/')) {
-    browserName = 'Microsoft Edge';
-  } else if (userAgent.includes('OPR/') || userAgent.includes('Opera/')) {
-    browserName = 'Opera';
-  } else if (userAgent.includes('Brave')) {
-    browserName = 'Brave';
-  } else if (userAgent.includes('Firefox/')) {
-    browserName = 'Firefox';
-  } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome/')) {
-    browserName = 'Safari';
-  }
-  
-  const deviceInfo = {
-    browser: browserName,
-    os: result.os.name ? `${result.os.name} ${result.os.version || ''}`.trim() : 'Unknown OS',
-    device: result.device.vendor ? 
-            `${result.device.vendor} ${result.device.model || ''}`.trim() : 
-            (result.device.type || 'desktop')
-  };
-
-  console.log("Final Device Info:", deviceInfo);
-  return deviceInfo;
-};
-
-// Modified function to check if a device is known
-const isKnownDevice = async (email, deviceInfo) => {
-  // Get all known devices for this user
-  const [devices] = await pool.query(
-    'SELECT * FROM tblknown_devices WHERE email = ?',
-    [email]
-  );
-  
-  // Log all known devices for debugging
-  console.log(`Known devices for ${email}:`, devices);
-  
-  // Check if this browser/OS combination is known
-  for (const device of devices) {
-    if (device.browser === deviceInfo.browser && device.os === deviceInfo.os) {
-      console.log("Found matching device:", device);
-      return true;
-    }
-  }
-  
-  console.log("No matching device found for:", deviceInfo);
-  return false;
-};
-
-const isKnownLocation = async (email, location) => {
-  const [result] = await pool.query(
-    'SELECT * FROM tblknown_locations WHERE email = ? AND location = ?',
-    [email, location]
-  );
-  return result.length > 0;
-};
-
-const recordNewDevice = async (email, deviceInfo) => {
-  console.log("Recording new device:", { email, deviceInfo }); // Debug log
-  
-  try {
-    // Ensure we have valid strings for all fields
-    const sanitizedDeviceInfo = {
-      browser: deviceInfo.browser || 'Unknown Browser',
-      os: deviceInfo.os || 'Unknown OS',
-      device: deviceInfo.device || 'unknown'
-    };
-
-    await pool.query(
-      'INSERT INTO tblknown_devices (email, browser, os, device, first_seen) VALUES (?, ?, ?, ?, NOW())',
-      [
-        email,
-        sanitizedDeviceInfo.browser,
-        sanitizedDeviceInfo.os,
-        sanitizedDeviceInfo.device
-      ]
-    );
-    console.log("Successfully recorded new device with info:", sanitizedDeviceInfo);
-  } catch (error) {
-    console.error("Error recording new device:", error);
-    throw error;
-  }
-};
-
-const recordNewLocation = async (email, location) => {
-  await pool.query(
-    'INSERT INTO tblknown_locations (email, location, first_seen) VALUES (?, ?, NOW())',
-    [email, location, new Date()]
-  );
-};
-
-// Modify the isTwoFARequired function
-const isTwoFARequired = async (email, req) => {
-  // Get device and location info
-  const deviceInfo = getDeviceInfo(req.headers['user-agent']);
-  const location = getLocationFromIP(req.ip);
-  
-  // Record new device and location immediately if not known
-  if (!(await isKnownDevice(email, deviceInfo))) {
-    console.log("2FA required: New device detected");
-    await recordNewDevice(email, deviceInfo);
-  }
-  
-  if (!(await isKnownLocation(email, location))) {
-    console.log("2FA required: New location detected");
-    await recordNewLocation(email, location);
-  }
-
-  // First check the 7-day verification requirement
+// Check if 2FA is required based on last verification
+const isTwoFARequired = async (email) => {
   const [result] = await pool.query(
     'SELECT last_verification FROM tbl2fa_verification WHERE email = ?',
     [email]
   );
   
+  if (!result.length) {
+    console.log("No previous 2FA verification found for:", email);
+    return true;
+  }
+  
+  const lastVerification = new Date(result[0].last_verification);
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const requiresRegularVerification = !result.length || new Date(result[0]?.last_verification) < sevenDaysAgo;
+  const nextVerificationDate = new Date(lastVerification.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  console.log("2FA Status for:", email);
+  console.log("Last verification:", lastVerification.toLocaleString());
+  console.log("Next verification required on:", nextVerificationDate.toLocaleString());
+  console.log("Current server time:", new Date().toLocaleString());
+  console.log("Days remaining:", Math.ceil((nextVerificationDate - Date.now()) / (1000 * 60 * 60 * 24)));
   
-  console.log("7-day verification required:", requiresRegularVerification);
-  console.log("Last verification timestamp:", result[0]?.last_verification);
-
-  // Now check for 7-day verification
-  if (requiresRegularVerification) {
-    console.log("2FA required: 7-day verification period expired");
-    return true;
-  }
-
-  // Check for suspicious activity (multiple failed login attempts)
-  const [failedAttempts] = await pool.query(
-    'SELECT COUNT(*) as count FROM tblfailedlogins WHERE email = ? AND lock_until > DATE_SUB(NOW(), INTERVAL 24 HOUR)',
-    [email]
-  );
-  
-  if (failedAttempts[0].count >= 3) {
-    console.log("2FA required: Suspicious activity detected");
-    return true;
-  }
-
-  return false;
+  return lastVerification < sevenDaysAgo;
 };
 
 // Update last 2FA verification timestamp
@@ -309,9 +169,6 @@ const updateLastTwoFAVerification = async (email) => {
 
 // Modify the login endpoint
 app.post("/login", loginLimiter, async (req, res) => {
-  console.log("Received User Agent:", req.headers['user-agent']); // Log the user agent
-  console.log("Request Headers:", req.headers); // Log all request headers
-  console.log("Request Body:", req.body); // Log the request body
   const { username, password, twoFACode, isResend } = req.body;
   const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
 
@@ -358,7 +215,7 @@ app.post("/login", loginLimiter, async (req, res) => {
 
         if (await bcrypt.compare(password.trim(), storedHash)) {
           // Check if 2FA is required
-          const requireTwoFA = await isTwoFARequired(username, req);
+          const requireTwoFA = await isTwoFARequired(username);
           
           // If 2FA is not required, complete login
           if (!requireTwoFA) {
@@ -424,28 +281,20 @@ app.post("/login", loginLimiter, async (req, res) => {
 
           // Send 2FA code via email
           try {
-            const reason = !(await isKnownDevice(username, getDeviceInfo(req.headers['user-agent']))) ? "new device" : 
-                          !(await isKnownLocation(username, getLocationFromIP(req.ip))) ? "new location" : 
-                          (await isTwoFARequired(username, req)) ? "periodic verification" :
-                          "suspicious activity";
-
-            const emailHtml = `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #004F39;">Del Monte Philippines</h2>
-                <p>Your ${isResend ? 'new ' : ''}verification code is:</p>
-                <h1 style="color: #004F39; font-size: 32px; letter-spacing: 5px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">${code}</h1>
-                <p>This code will expire in 10 minutes.</p>
-                <p>This verification was requested due to a login attempt from a ${reason}.</p>
-                <p style="color: #666; font-size: 12px; margin-top: 20px;">If you didn't request this code, please secure your account immediately.</p>
-              </div>
-            `;
-
             const info = await transporter.sendMail({
               from: `"Del Monte Philippines" <${process.env.SMTP_USER}>`,
               to: username,
               subject: isResend ? "Your New Login Verification Code" : "Your Login Verification Code",
               text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
-              html: emailHtml,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #004F39;">Del Monte Philippines</h2>
+                  <p>Your ${isResend ? 'new ' : ''}verification code is:</p>
+                  <h1 style="color: #004F39; font-size: 32px; letter-spacing: 5px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">${code}</h1>
+                  <p>This code will expire in 10 minutes.</p>
+                  <p style="color: #666; font-size: 12px; margin-top: 20px;">If you didn't request this code, please ignore this email.</p>
+                </div>
+              `,
             });
 
           } catch (error) {
