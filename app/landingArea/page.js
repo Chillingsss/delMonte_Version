@@ -106,7 +106,9 @@ export default function LandingArea() {
   const handleAboutClick = async () => {
     setIsAboutModalOpen(true);
     try {
-      const response = await axios.get("http://localhost:3003/landingArea");
+      const url = process.env.NODE_API_LANDING || "http://localhost:3003/landingArea";
+      console.log("URL: ", url);
+      const response = await axios.get(url);
       setCompanyProfile(response.data);
       console.log("Fetched data:", response.data); // ✅ Logs correct data immediately
     } catch (error) {
