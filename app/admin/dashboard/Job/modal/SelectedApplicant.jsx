@@ -40,6 +40,7 @@ import ExamResult from "./ExamResult";
 import JobOffer from "./JobOffer";
 import SetToInterviewModal from "../ViewApplicants/modal/SetToInterviewModal";
 import ConductInterview from "./ConductInterview";
+import MedicalCheckModal from "../Medical/modal/MedicalCheckModal";
 
 function SelectedApplicant({
   open,
@@ -98,11 +99,11 @@ function SelectedApplicant({
       if (status === 1) {
         if (
           alertMessage ===
-          "Are you sure you want to proceed to decision pending?"
+          "Are you sure you want to proceed to medical check?"
         ) {
-          await handleChangeStatus(candId, 13);
-          toast.success("Applicant proceeded to decision pending");
-          setStatus("Decision Pending");
+          await handleChangeStatus(candId, 17);
+          toast.success("Applicant proceeded to medical check");
+          setStatus("Medical Check");
           setIsJobOffer(0);
         } else if (
           alertMessage ===
@@ -149,7 +150,11 @@ function SelectedApplicant({
   };
 
   const handleShowBackgroundCheckAlert = () => {
-    handleShowAlert("Are you sure you want to proceed to decision pending?");
+    handleShowAlert("Are you sure you want to proceed to medical check?");
+  };
+
+  const handleShowMedicalAlert = () => {
+    handleShowAlert("Are you sure you want to proceed to medical check?");
   };
 
   const handleSetToInterview = () => {
@@ -234,6 +239,9 @@ function SelectedApplicant({
                     Background check
                   </Button>
                 )}
+                {status === "Medical Check" && (
+                  <MedicalCheckModal candId={candId} getCandidateProfile={getCandidateProfile} />
+                )}
                 {/* && isJobOffer === 0 */}
                 {status === "Decision Pending" && (
                   <JobOffer
@@ -269,7 +277,7 @@ function SelectedApplicant({
                               data.candidateInformation?.cand_profPic
                                 ? `${process.env.NEXT_PUBLIC_API_URL}uploads/${data.candidateInformation.cand_profPic}`
                                 : process.env.NEXT_PUBLIC_API_URL +
-                                  "images/emptyImage.jpg"
+                                "images/emptyImage.jpg"
                             }
                             alt="avatar"
                           />
@@ -315,12 +323,11 @@ function SelectedApplicant({
                             <div>
                               <p className="font-bold">Age:</p>
                               {data.candidateInformation
-                                ? `${
-                                    new Date().getFullYear() -
-                                    new Date(
-                                      data.candidateInformation.cand_dateofBirth
-                                    ).getFullYear()
-                                  } years old`
+                                ? `${new Date().getFullYear() -
+                                new Date(
+                                  data.candidateInformation.cand_dateofBirth
+                                ).getFullYear()
+                                } years old`
                                 : "N/A"}
                             </div>
 
@@ -356,7 +363,7 @@ function SelectedApplicant({
                               <p className="font-bold">Permanent address:</p>
                               {data.candidateInformation
                                 ? data.candidateInformation
-                                    .cand_permanentAddress
+                                  .cand_permanentAddress
                                 : "N/A"}
                             </div>
                           </CardContent>
@@ -381,7 +388,7 @@ function SelectedApplicant({
 
                               <TabsContent value={1}>
                                 {data.educationalBackground &&
-                                data.educationalBackground.length > 0 ? (
+                                  data.educationalBackground.length > 0 ? (
                                   <>
                                     <div className="w-full hidden lg:block">
                                       <Table className="w-full">
@@ -564,7 +571,7 @@ function SelectedApplicant({
 
                               <TabsContent value={4}>
                                 {data.employmentHistory &&
-                                data.employmentHistory.length > 0 ? (
+                                  data.employmentHistory.length > 0 ? (
                                   <>
                                     <div className="w-full ml-3 hidden lg:block">
                                       <Table className="w-full">
@@ -739,8 +746,8 @@ function SelectedApplicant({
                                 <AccordionTrigger>Education</AccordionTrigger>
                                 <AccordionContent>
                                   {data.criteria &&
-                                  data.criteria.education &&
-                                  data.criteria.education.length > 0 ? (
+                                    data.criteria.education &&
+                                    data.criteria.education.length > 0 ? (
                                     <>
                                       <div className="grid grid-cols-3 gap-4 my-3">
                                         <p className="col-span-2">
@@ -751,8 +758,8 @@ function SelectedApplicant({
                                             `flex justify-end` +
                                             (data.pointsByCategory.education
                                               .points >=
-                                            data.pointsByCategory.education
-                                              .maxPoints /
+                                              data.pointsByCategory.education
+                                                .maxPoints /
                                               2
                                               ? " text-green-500"
                                               : " text-red-500")
@@ -788,7 +795,7 @@ function SelectedApplicant({
                                             <Separator
                                               className={
                                                 index ===
-                                                data.criteria.education.length -
+                                                  data.criteria.education.length -
                                                   1
                                                   ? "hidden"
                                                   : ""
@@ -809,8 +816,8 @@ function SelectedApplicant({
                                 <AccordionTrigger>Skills</AccordionTrigger>
                                 <AccordionContent>
                                   {data.criteria &&
-                                  data.criteria.skills &&
-                                  data.criteria.skills.length > 0 ? (
+                                    data.criteria.skills &&
+                                    data.criteria.skills.length > 0 ? (
                                     <>
                                       <div className="grid grid-cols-3 gap-4 my-3">
                                         <p className="col-span-2">
@@ -821,8 +828,8 @@ function SelectedApplicant({
                                             `flex justify-end` +
                                             (data.pointsByCategory.skills
                                               .points >=
-                                            data.pointsByCategory.skills
-                                              .maxPoints /
+                                              data.pointsByCategory.skills
+                                                .maxPoints /
                                               2
                                               ? " text-green-500"
                                               : " text-red-500")
@@ -854,7 +861,7 @@ function SelectedApplicant({
                                             <Separator
                                               className={
                                                 index ===
-                                                data.criteria.skills.length - 1
+                                                  data.criteria.skills.length - 1
                                                   ? "hidden"
                                                   : ""
                                               }
@@ -874,8 +881,8 @@ function SelectedApplicant({
                                 <AccordionTrigger>Trainings</AccordionTrigger>
                                 <AccordionContent>
                                   {data.criteria &&
-                                  data.criteria.training &&
-                                  data.criteria.training.length > 0 ? (
+                                    data.criteria.training &&
+                                    data.criteria.training.length > 0 ? (
                                     <>
                                       <div className="grid grid-cols-3 gap-4 my-3">
                                         <p className="col-span-2">
@@ -886,8 +893,8 @@ function SelectedApplicant({
                                             `flex justify-end` +
                                             (data.pointsByCategory.training
                                               .points >=
-                                            data.pointsByCategory.training
-                                              .maxPoints /
+                                              data.pointsByCategory.training
+                                                .maxPoints /
                                               2
                                               ? " text-green-500"
                                               : " text-red-500")
@@ -914,7 +921,7 @@ function SelectedApplicant({
                                               </p>
                                               <div className="flex justify-end">
                                                 {training.meets_criteria ===
-                                                1 ? (
+                                                  1 ? (
                                                   <Check className="w-5 h-5 text-green-500" />
                                                 ) : (
                                                   <X className="w-5 h-5 text-red-500" />
@@ -924,7 +931,7 @@ function SelectedApplicant({
                                             <Separator
                                               className={
                                                 index ===
-                                                data.criteria.training.length -
+                                                  data.criteria.training.length -
                                                   1
                                                   ? "hidden"
                                                   : ""
@@ -947,8 +954,8 @@ function SelectedApplicant({
                                 </AccordionTrigger>
                                 <AccordionContent>
                                   {data.criteria &&
-                                  data.criteria.knowledge &&
-                                  data.criteria.knowledge.length > 0 ? (
+                                    data.criteria.knowledge &&
+                                    data.criteria.knowledge.length > 0 ? (
                                     <>
                                       <div className="grid grid-cols-3 gap-4 my-3">
                                         <p className="col-span-2">
@@ -959,8 +966,8 @@ function SelectedApplicant({
                                             `flex justify-end` +
                                             (data.pointsByCategory.knowledge
                                               .points >=
-                                            data.pointsByCategory.knowledge
-                                              .maxPoints /
+                                              data.pointsByCategory.knowledge
+                                                .maxPoints /
                                               2
                                               ? " text-green-500"
                                               : " text-red-500")
@@ -987,7 +994,7 @@ function SelectedApplicant({
                                               </p>
                                               <div className="flex justify-end">
                                                 {knowledge.meets_criteria ===
-                                                1 ? (
+                                                  1 ? (
                                                   <Check className="w-5 h-5 text-green-500" />
                                                 ) : (
                                                   <X className="w-5 h-5 text-red-500" />
@@ -997,7 +1004,7 @@ function SelectedApplicant({
                                             <Separator
                                               className={
                                                 index ===
-                                                data.criteria.knowledge.length -
+                                                  data.criteria.knowledge.length -
                                                   1
                                                   ? "hidden"
                                                   : ""
@@ -1018,8 +1025,8 @@ function SelectedApplicant({
                                 <AccordionTrigger>Experience</AccordionTrigger>
                                 <AccordionContent>
                                   {data.criteria &&
-                                  data.criteria.experience &&
-                                  data.criteria.experience.length > 0 ? (
+                                    data.criteria.experience &&
+                                    data.criteria.experience.length > 0 ? (
                                     <>
                                       <div className="grid grid-cols-3 gap-4 my-3">
                                         <p className="col-span-2">
@@ -1030,8 +1037,8 @@ function SelectedApplicant({
                                             `flex justify-end` +
                                             (data.pointsByCategory.experience
                                               .points >=
-                                            data.pointsByCategory.experience
-                                              .maxPoints /
+                                              data.pointsByCategory.experience
+                                                .maxPoints /
                                               2
                                               ? " text-green-500"
                                               : " text-red-500")
@@ -1060,7 +1067,7 @@ function SelectedApplicant({
                                               </p>
                                               <div className="flex justify-end">
                                                 {experience.meets_criteria ===
-                                                1 ? (
+                                                  1 ? (
                                                   <Check className="w-5 h-5 text-green-500" />
                                                 ) : (
                                                   <X className="w-5 h-5 text-red-500" />
@@ -1070,8 +1077,8 @@ function SelectedApplicant({
                                             <Separator
                                               className={
                                                 index ===
-                                                data.criteria.experience
-                                                  .length -
+                                                  data.criteria.experience
+                                                    .length -
                                                   1
                                                   ? "hidden"
                                                   : ""
@@ -1092,8 +1099,8 @@ function SelectedApplicant({
                           </TabsContent>
                           <TabsContent value="2">
                             {status !== "Pending" &&
-                            status !== "Process" &&
-                            status !== "Cancelled" ? (
+                              status !== "Process" &&
+                              status !== "Cancelled" ? (
                               <div className="my-3">
                                 <InterviewResult
                                   candId={candId}

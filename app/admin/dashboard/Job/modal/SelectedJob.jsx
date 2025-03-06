@@ -29,6 +29,7 @@ import JobOfferPage from "../JobOffer/JobOfferPage";
 import DecisionPendingPage from "../DecisionPending/DecisionPendingPage";
 import EmployedPage from "../Employed/EmployedPage";
 import ReapplyPage from "../Reapplied/ReapplyPage";
+import MedicalPage from "../Medical/MedicalPage";
 
 function SelectedJob({ open, onHide, jobId, getJobs }) {
   const [data, setData] = useState([]);
@@ -152,10 +153,11 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
                       <TabsTrigger value={3}>Interview</TabsTrigger>
                       <TabsTrigger value={4}>Exam</TabsTrigger>
                       <TabsTrigger value={5}>Background Check</TabsTrigger>
-                      <TabsTrigger value={6}>Decision Pending</TabsTrigger>
-                      <TabsTrigger value={7}>Offer</TabsTrigger>
-                      <TabsTrigger value={8}>Employed</TabsTrigger>
-                      <TabsTrigger value={9}>Reapplied</TabsTrigger>
+                      <TabsTrigger value={6}>Medical</TabsTrigger>
+                      <TabsTrigger value={7}>Decision Pending</TabsTrigger>
+                      <TabsTrigger value={8}>Offer</TabsTrigger>
+                      <TabsTrigger value={9}>Employed</TabsTrigger>
+                      <TabsTrigger value={10}>Reapplied</TabsTrigger>
                     </TabsList>
                   </ScrollArea>
                   <ScrollArea className="flex-grow overflow-y-auto">
@@ -172,22 +174,21 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
                       <ExamPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={5}>
-                      <BackgroundCheckPage
-                        handleChangeStatus={handleChangeStatus}
-                      />
+                      <BackgroundCheckPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={6}>
-                      <DecisionPendingPage
-                        handleChangeStatus={handleChangeStatus}
-                      />
+                      <MedicalPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={7}>
-                      <JobOfferPage handleChangeStatus={handleChangeStatus} />
+                      <DecisionPendingPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={8}>
-                      <EmployedPage handleChangeStatus={handleChangeStatus} />
+                      <JobOfferPage handleChangeStatus={handleChangeStatus} />
                     </TabsContent>
                     <TabsContent value={9}>
+                      <EmployedPage handleChangeStatus={handleChangeStatus} />
+                    </TabsContent>
+                    <TabsContent value={10}>
                       <ReapplyPage />
                     </TabsContent>
                   </ScrollArea>

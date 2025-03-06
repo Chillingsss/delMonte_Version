@@ -6,6 +6,14 @@ npx shadcn@latest add radio-group
 
 npm install next-auth bcryptjs cookie
 npm install express body-parser mysql2 bcrypt jsonwebtoken
+npm install nodemailer
+
+  const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null;
+      const userId = session?.user?.id || getUserIdFromCookie();
 
 
 // para ma add tanan
