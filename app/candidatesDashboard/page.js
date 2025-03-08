@@ -61,6 +61,7 @@ import { lineSpinner } from "ldrs";
 import Image from "next/image";
 import { MdRefresh } from "react-icons/md";
 import { FaLock } from "react-icons/fa";
+import SecuritySettingsModal from "./modal/securitySettings";
 
 export default function DashboardCandidates() {
   const { data: session, status } = useSession();
@@ -130,6 +131,8 @@ export default function DashboardCandidates() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isAppliedJobsModalOpen, setIsAppliedJobsModalOpen] = useState(false);
+  const [securitySettingModalOpen, setSecuritySettingModalOpen] =
+    useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -785,6 +788,10 @@ export default function DashboardCandidates() {
       await fetchJobs();
       setIsLoading(false);
     }, 2000);
+  };
+
+  const handleClickSecuritySettings = () => {
+    setSecuritySettingModalOpen(true);
   };
 
   return (
@@ -1720,7 +1727,9 @@ export default function DashboardCandidates() {
                     {isDarkMode ? "Light Mode" : "Dark Mode"}
                   </button>
 
-                  <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+                  <button
+                  onClick={() => handleClickSecuritySettings()}
+                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                       isDarkMode
                         ? "hover:bg-gray-700 text-gray-200"
                         : "hover:bg-gray-100 text-gray-700"
@@ -2081,6 +2090,12 @@ export default function DashboardCandidates() {
           fetchJobs={fetchJobs}
           fetchNotification={fetchNotification}
           onClose={() => setShowCancelModal(false)}
+        />
+      )}
+      {securitySettingModalOpen && (
+        <SecuritySettingsModal
+          isOpen={securitySettingModalOpen}
+          onClose={() => setSecuritySettingModalOpen(false)}
         />
       )}
 

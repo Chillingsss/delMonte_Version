@@ -72,6 +72,7 @@ const AdminActivityLogs = () => {
 
   const handleShowSelectedApplicant = (id, status, jobId) => {
     setSelectedApplicantId(id);
+    console.log("id: ", id);
     setShowSelectedApplicant(true);
     setStatusName(status);
     storeDataInSession("jobId", jobId);
