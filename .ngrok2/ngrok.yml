@@ -4,7 +4,10 @@ authtoken: 2sT6PUvCAXupnWbSEMIxJ1TcU8K_7XRMmV7J6Zv7jgDBMmW5
 tunnels:
   api:
     proto: http
-    addr: 80
+    addr: 3003
   login:
     proto: http
     addr: 3002
+
+
+# ngrok start --all --config C:\Users\ACER\delMonteV\.ngrok2\ngrok.yml

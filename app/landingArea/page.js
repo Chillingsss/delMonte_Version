@@ -10,6 +10,8 @@ import { getDataFromCookie } from "../utils/storageUtils";
 import { Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
 import { lineSpinner } from "ldrs";
 import Image from "next/image";
+import AboutUsModal from "./modal/AboutUsModal";
+
 
 const sliderImages = [
   {
@@ -44,8 +46,10 @@ export default function LandingArea() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [companyProfile, setCompanyProfile] = useState(null);
+
   let hideTimeout;
 
   useEffect(() => {
@@ -98,6 +102,25 @@ export default function LandingArea() {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
+
+  const handleAboutClick = async () => {
+    setIsAboutModalOpen(true);
+    try {
+      const url = process.env.NODE_API_LANDING || "http://localhost:3003/landingArea";
+      console.log("URL: ", url);
+      const response = await axios.get(url);
+      setCompanyProfile(response.data);
+      console.log("Fetched data:", response.data); // ✅ Logs correct data immediately
+    } catch (error) {
+      console.error("Error fetching company profile:", error.response ? error.response.data : error.message);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Updated company profile:", companyProfile);
+}, [companyProfile]); // ✅ Runs when companyProfile changes
+
+
 
   useEffect(() => {
     let userLevel =
@@ -163,6 +186,12 @@ export default function LandingArea() {
         />
 
         <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            onClick={handleAboutClick}
+            className="text-white hover:text-[#EAE9E7] transition-colors px-3 sm:px-4 py-2 text-base sm:text-lg"
+          >
+            About Us
+          </button>
           <button
             onClick={scrollToJobs}
             className="text-white hover:text-[#EAE9E7] transition-colors px-3 sm:px-4 py-2 text-base sm:text-lg"
@@ -335,6 +364,13 @@ export default function LandingArea() {
         <JobDetailsModal
           job={selectedJob}
           onCloses={() => setIsModalOpen(false)}
+        />
+      )}
+
+      {isAboutModalOpen && (
+        <AboutUsModal
+          onClose={() => setIsAboutModalOpen(false)}
+          companyProfile={companyProfile}
         />
       )}
     </div>
