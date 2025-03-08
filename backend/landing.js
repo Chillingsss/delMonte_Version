@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const db = require("./db"); // Assuming you have a db module to handle database connections
+const db = require("./db");
 
-const app = express(); // Initialize express app
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Allow JSON requests
+const app = express();
+app.use(cors());
+app.use(express.json());
 
 
 app.get('/landingArea', async (req, res) => {
@@ -12,7 +12,7 @@ app.get('/landingArea', async (req, res) => {
         const connection = await db.getConnection();
         console.log("Database Connected Successfully!");
         const [rows] = await connection.query(`SELECT * FROM companyprofile`);
-        connection.release(); // Release the connection
+        connection.release();
         console.log("Database Query Result:", rows);
         res.json(rows);
     } catch (error) {
@@ -21,8 +21,6 @@ app.get('/landingArea', async (req, res) => {
     }
 });
 
-
-// Start server on port 3000
 const PORT = 3003;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

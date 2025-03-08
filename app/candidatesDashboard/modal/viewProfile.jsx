@@ -14,7 +14,7 @@ import {
   getDataFromSession,
   getDataFromCookie,
 } from "@/app/utils/storageUtils";
-import { FaArrowRight, FaBars } from "react-icons/fa";
+import { FaArrowRight, FaBars, FaLock, FaUserLock } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { BsArrowReturnRight } from "react-icons/bs";
@@ -1146,6 +1146,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                       <Lock className="w-4 h-4 mr-2" />
                       Change Email
                     </button>
+                    
                   </div>
                 </div>
               )}

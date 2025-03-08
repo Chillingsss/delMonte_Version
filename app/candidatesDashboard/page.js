@@ -60,6 +60,7 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import { lineSpinner } from "ldrs";
 import Image from "next/image";
 import { MdRefresh } from "react-icons/md";
+import { FaLock } from "react-icons/fa";
 
 export default function DashboardCandidates() {
   const { data: session, status } = useSession();
@@ -1222,6 +1223,15 @@ export default function DashboardCandidates() {
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
                 </button>
 
+                <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+                    isDarkMode
+                      ? "hover:bg-gray-700 text-gray-200"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}>
+                    <FaLock className="w-4 h-4" />
+                    Security
+                </button>
+
                 <button
                   onClick={() => handleLogout()}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
@@ -1708,6 +1718,15 @@ export default function DashboardCandidates() {
                       className="w-4 h-4"
                     />
                     {isDarkMode ? "Light Mode" : "Dark Mode"}
+                  </button>
+
+                  <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+                      isDarkMode
+                        ? "hover:bg-gray-700 text-gray-200"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}>
+                      <FaLock className="w-4 h-4" />
+                      Security Settings
                   </button>
 
                   <button
