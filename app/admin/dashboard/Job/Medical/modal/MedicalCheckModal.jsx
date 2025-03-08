@@ -9,13 +9,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import ComboBox from "@/app/my_components/combo-box";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useSession } from "next-auth/react";
 import { getDataFromCookie } from '@/app/utils/storageUtils';
 
 
 const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [medicalClassification, setMedicalClassification] = useState([]);
+
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null; // Return null if userId is not found or tokenData is invalid
+  };
 
   const formSchema = z.object({
     medicalC: z.number().min(1, {
@@ -43,11 +53,12 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      // const tokenData = getDataFromCookie("auth_token");
+      const userId = session?.user?.id || getUserIdFromCookie();
+
       const jsonData = {
         medicalCId: values.medicalC,
         candId: candId,
-        hrId: 1,
+        hrId: userId,
       }
 
       console.log("jsonData", jsonData);

@@ -29,6 +29,7 @@ import { toast } from "sonner";
 function SelectedApplicant({ open, onHide, candId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
+  const [isMedicalChecked, setIsMedicalChecked] = useState(false);
 
   const getCandidateProfile = useCallback(async () => {
     setIsLoading(true);

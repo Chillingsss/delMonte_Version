@@ -54,8 +54,11 @@ function SelectedApplicant({
   const [data, setData] = useState([]);
   const [status, setStatus] = useState(statusName);
   const [isJobOffer, setIsJobOffer] = useState(0);
+  const [isMedicalChecked, setIsMedicalChecked] = useState(false);
+
 
   const getCandidateProfile = useCallback(async () => {
+    console.log("hello");
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
@@ -69,11 +72,12 @@ function SelectedApplicant({
       formData.append("operation", "getCandidateProfile");
       formData.append("json", JSON.stringify(jsonData));
       const res = await axios.post(url, formData);
-      console.log("RES DATA ni getCandidateProfile: ", res.data);
+      console.log("RES DATAAAAA getCandidateProfile: ", res.data);
       if (res.data !== 0) {
         setData(res.data);
         const jobOfferStatus = res.data.jobOffered;
         setIsJobOffer(jobOfferStatus.isJobOffered);
+        setIsMedicalChecked(res.data.medicalChecked.isMedicalChecked);
       }
     } catch (error) {
       toast.error("Network error");
@@ -112,6 +116,13 @@ function SelectedApplicant({
           await handleChangeStatus(candId, 7);
           toast.success("Applicant proceeded to background check");
           setStatus("Background Check");
+        } else if (
+          alertMessage ===
+          "Are you sure you want to proceed to decision pending?"
+        ) {
+          await handleChangeStatus(candId, 13);
+          toast.success("Applicant proceeded to decision pending");
+          setStatus("Decision Pending");
         } else if (
           alertMessage ===
           "Are you sure you want to send an email to this applicant?"
@@ -153,8 +164,8 @@ function SelectedApplicant({
     handleShowAlert("Are you sure you want to proceed to medical check?");
   };
 
-  const handleShowMedicalAlert = () => {
-    handleShowAlert("Are you sure you want to proceed to medical check?");
+  const handleShowDecisionPendingAlert = () => {
+    handleShowAlert("Are you sure you want to proceed to decision pending?");
   };
 
   const handleSetToInterview = () => {
@@ -239,9 +250,15 @@ function SelectedApplicant({
                     Background check
                   </Button>
                 )}
-                {status === "Medical Check" && (
+                {status === "Medical Check" && !isMedicalChecked ? (
                   <MedicalCheckModal candId={candId} getCandidateProfile={getCandidateProfile} />
-                )}
+                ) : null}
+                {status === "Medical Check" && isMedicalChecked ? (
+                  <Button onClick={() => handleShowDecisionPendingAlert()}>
+                    Proceed to decision pending
+                  </Button>
+                ) : null}
+
                 {/* && isJobOffer === 0 */}
                 {status === "Decision Pending" && (
                   <JobOffer
