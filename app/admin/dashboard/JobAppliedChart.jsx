@@ -29,7 +29,7 @@ const formatToJobMDate = (date) => {
 const JobAppliedChart = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [chartData, setChartData] = useState([])
-  const [filteredData, setFilteredData] = useState([]) // Store filtered data
+  const [filteredData, setFilteredData] = useState([]) 
 
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),

@@ -58,7 +58,6 @@ function SelectedApplicant({
 
 
   const getCandidateProfile = useCallback(async () => {
-    console.log("hello");
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";

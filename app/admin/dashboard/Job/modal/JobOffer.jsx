@@ -28,7 +28,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { getDataFromSession, retrieveData } from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
