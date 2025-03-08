@@ -30,8 +30,12 @@ import DecisionPendingPage from "../DecisionPending/DecisionPendingPage";
 import EmployedPage from "../Employed/EmployedPage";
 import ReapplyPage from "../Reapplied/ReapplyPage";
 import MedicalPage from "../Medical/MedicalPage";
+import { useSession } from "next-auth/react";
+import { getDataFromCookie } from '@/app/utils/storageUtils';
+
 
 function SelectedJob({ open, onHide, jobId, getJobs }) {
+  const { data: session } = useSession();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState(1);
@@ -73,13 +77,23 @@ function SelectedJob({ open, onHide, jobId, getJobs }) {
     }
   }, [getSelectedJobs, jobId, open]);
 
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null;
+  };
+
   const handleChangeStatus = async (id, status) => {
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+      const userId = session?.user?.id || getUserIdFromCookie();
       const jsonData = {
         jobId: getDataFromSession("jobId"),
         candId: id,
         status: status,
+        hrId: userId
       };
       console.log("jsonData: ", jsonData);
       const formData = new FormData();

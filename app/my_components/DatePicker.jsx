@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, ClockIcon } from "lucide-react";
-import { formatDate } from "../signup/page";
 
 const DatePicker = ({
   form,
@@ -27,9 +26,27 @@ const DatePicker = ({
   withTime = false,
   isRequired = false,
   labelDesign,
+  position = "bottom",
+  captionHidden = true,
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState("12:00");
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
+
+  // Adjust position based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640 && (position === "left" || position === "right")) {
+        setAdjustedPosition("bottom");
+      } else {
+        setAdjustedPosition(position);
+      }
+    };
+
+    handleResize(); // Run on mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [position]);
 
   const handleDateChange = (date) => {
     if (date) {
@@ -37,8 +54,8 @@ const DatePicker = ({
 
       if (withTime) {
         const [hours, minutes] = selectedTime.split(":");
-        date.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0); // Set seconds to 0
-        finalValue = format(date, "yyyy-MM-dd'T'HH:mm:ss"); // Format as HH:MM:SS
+        date.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0);
+        finalValue = format(date, "yyyy-MM-dd'T'HH:mm:ss");
       }
 
       form.setValue(name, finalValue);
@@ -55,8 +72,8 @@ const DatePicker = ({
       try {
         const date = new Date(form.getValues(name));
         const [hours, minutes] = time.split(":");
-        date.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0); // Set seconds to 0
-        form.setValue(name, format(date, "yyyy-MM-dd'T'HH:mm:ss")); // Format as HH:MM:SS
+        date.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0);
+        form.setValue(name, format(date, "yyyy-MM-dd'T'HH:mm:ss"));
       } catch (error) {
         console.error("Invalid time value:", error);
       }
@@ -72,6 +89,16 @@ const DatePicker = ({
     if (!pastAllowed && date < today) return true;
     return date > fiveYearsFromNow;
   };
+
+  // Map position string to Radix UI props
+  const positionMap = {
+    "top": { side: "top", align: "center" },
+    "bottom": { side: "bottom", align: "center" },
+    "left": { side: "left", align: "center" },
+    "right": { side: "right", align: "center" },
+  };
+
+  const { side, align } = positionMap[adjustedPosition] || positionMap["bottom"];
 
   return (
     <FormField
@@ -95,24 +122,27 @@ const DatePicker = ({
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className={`mr-2 h-4 w-4 ${labelDesign && "text-[#151513] group-hover:text-white"}`} />
+                  <CalendarIcon
+                    className={`mr-2 h-4 w-4 ${labelDesign && "text-[#151513] group-hover:text-white"}`}
+                  />
                   {field.value ? (
                     withTime ? (
-                      <span className="text-[#151513] group-hover:text-white">
+                      <span className={`${labelDesign && "text-[#151513] group-hover:text-white"}`}>
                         {format(new Date(field.value), "MMM dd, yyyy - h:mm a")}
                       </span>
                     ) : (
-                      <span className="text-[#151513] group-hover:text-white">
+                      <span className={`${labelDesign && "text-[#151513] group-hover:text-white"}`}>
                         {format(new Date(field.value), "MMM dd, yyyy")}
                       </span>
                     )
                   ) : (
-                    <span className={labelDesign && "text-[#151513] group-hover:text-white"}>Pick a date</span>
+                    <span className={labelDesign && "text-[#151513] group-hover:text-white"}>
+                      Pick a date
+                    </span>
                   )}
                 </Button>
-
               </PopoverTrigger>
-              <PopoverContent align="start" className="w-auto p-0">
+              <PopoverContent side={side} align={align} className="w-auto p-0">
                 {withTime && (
                   <div className="p-4 border-b">
                     <div className="flex items-center gap-2">
@@ -134,6 +164,7 @@ const DatePicker = ({
                   fromYear={1960}
                   toYear={addYears(new Date(), 5).getFullYear()}
                   disabled={disableDate}
+                  captionHidden={captionHidden}
                 />
               </PopoverContent>
             </Popover>

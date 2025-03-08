@@ -13,18 +13,19 @@ import { useSession } from "next-auth/react";
 import { getDataFromCookie } from '@/app/utils/storageUtils';
 
 
-const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
+const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, setStatus }) => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [medicalClassification, setMedicalClassification] = useState([]);
+
 
   const getUserIdFromCookie = () => {
     const tokenData = getDataFromCookie("auth_token");
     if (tokenData && tokenData.userId) {
       return tokenData.userId;
     }
-    return null; // Return null if userId is not found or tokenData is invalid
+    return null;
   };
 
   const formSchema = z.object({
@@ -69,6 +70,10 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
       const res = await axios.post(url, formData);
       console.log("res.data ni onSubmit: ", res);
       if (res.data === 1) {
+        if (values.medicalC <= 2) {
+          handleChangeStatus(candId, 13);
+          setStatus("Decision Pending");
+        }
         toast.success("Success!");
         getCandidateProfile();
         setIsOpen(false);
@@ -95,7 +100,7 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
       if (res.data !== 0) {
         const formattedMedicalC = res.data.map((item) => ({
           value: item.medicalC_id,
-          label: item.medicalC_name,
+          label: `${item.medicalC_type} - ${item.medicalC_name}`,
         }));
         setMedicalClassification(formattedMedicalC);
       } else {

@@ -175,6 +175,7 @@ const JobOffer = ({ candId, changeStatus, email }) => {
                           date < new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        captionHidden={false}
                       />
                     </PopoverContent>
                   </Popover>

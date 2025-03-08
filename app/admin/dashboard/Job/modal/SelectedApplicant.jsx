@@ -251,7 +251,12 @@ function SelectedApplicant({
                   </Button>
                 )}
                 {status === "Medical Check" && !isMedicalChecked ? (
-                  <MedicalCheckModal candId={candId} getCandidateProfile={getCandidateProfile} />
+                  <MedicalCheckModal
+                    candId={candId}
+                    getCandidateProfile={getCandidateProfile}
+                    handleChangeStatus={handleChangeStatus}
+                    setStatus={setStatus}
+                  />
                 ) : null}
                 {status === "Medical Check" && isMedicalChecked ? (
                   <Button onClick={() => handleShowDecisionPendingAlert()}>
