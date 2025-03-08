@@ -20,7 +20,8 @@ import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { getDataFromSession } from "@/app/utils/storageUtils";
 import axios from "axios";
 import Spinner from "@/components/ui/spinner";
-import { set } from "date-fns";
+import { useSession } from "next-auth/react";
+import { getDataFromCookie } from '@/app/utils/storageUtils';
 
 const SetToInterviewModal = ({
   datas,
@@ -33,6 +34,8 @@ const SetToInterviewModal = ({
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
+  const { data: session } = useSession();
+
 
   const formSchema = z.object({
     date: z.string().min(1, { message: "This field is required" }),
@@ -44,6 +47,14 @@ const SetToInterviewModal = ({
       date: "",
     },
   });
+
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null; // Return null if userId is not found or tokenData is invalid
+  };
 
   const onSubmit = async (values) => {
     setIsLoading(true);
@@ -62,11 +73,12 @@ const SetToInterviewModal = ({
             candEmail: data.cand_email,
           },
         ];
-
+      const userId = session?.user?.id || getUserIdFromCookie();
       const jsonData = {
         candidates: candidates,
         jobId: getDataFromSession("jobId"),
         date: values.date,
+        hrId: userId,
       };
       console.log("jsonData", jsonData);
       const formData = new FormData();
@@ -205,6 +217,7 @@ const SetToInterviewModal = ({
                             name={field.name}
                             label="Pick a date for interview"
                             pastAllowed={false}
+                            position="left"
                             withTime={true}
                           />
                         </FormItem>

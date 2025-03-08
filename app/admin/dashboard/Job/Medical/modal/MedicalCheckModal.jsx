@@ -9,13 +9,24 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import ComboBox from "@/app/my_components/combo-box";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useSession } from "next-auth/react";
 import { getDataFromCookie } from '@/app/utils/storageUtils';
 
 
-const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
+const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, setStatus }) => {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [medicalClassification, setMedicalClassification] = useState([]);
+
+
+  const getUserIdFromCookie = () => {
+    const tokenData = getDataFromCookie("auth_token");
+    if (tokenData && tokenData.userId) {
+      return tokenData.userId;
+    }
+    return null;
+  };
 
   const formSchema = z.object({
     medicalC: z.number().min(1, {
@@ -43,11 +54,12 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
-      // const tokenData = getDataFromCookie("auth_token");
+      const userId = session?.user?.id || getUserIdFromCookie();
+
       const jsonData = {
         medicalCId: values.medicalC,
         candId: candId,
-        hrId: 1,
+        hrId: userId,
       }
 
       console.log("jsonData", jsonData);
@@ -58,6 +70,10 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
       const res = await axios.post(url, formData);
       console.log("res.data ni onSubmit: ", res);
       if (res.data === 1) {
+        if (values.medicalC <= 2) {
+          handleChangeStatus(candId, 13);
+          setStatus("Decision Pending");
+        }
         toast.success("Success!");
         getCandidateProfile();
         setIsOpen(false);
@@ -84,7 +100,7 @@ const MedicalCheckModal = ({ candId, getCandidateProfile }) => {
       if (res.data !== 0) {
         const formattedMedicalC = res.data.map((item) => ({
           value: item.medicalC_id,
-          label: item.medicalC_name,
+          label: `${item.medicalC_type} - ${item.medicalC_name}`,
         }));
         setMedicalClassification(formattedMedicalC);
       } else {
