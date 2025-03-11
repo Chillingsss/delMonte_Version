@@ -1230,7 +1230,9 @@ export default function DashboardCandidates() {
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
                 </button>
 
-                <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+                <button
+                  onClick={() => handleClickSecuritySettings()}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
                     isDarkMode
                       ? "hover:bg-gray-700 text-gray-200"
                       : "hover:bg-gray-100 text-gray-700"

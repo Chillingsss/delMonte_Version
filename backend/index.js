@@ -133,76 +133,65 @@ transporter.verify(function (error, success) {
 });
 
 // Check if 2FA is required based on last verification
+// Check if 2FA is required based on tbl2fasetting
 const isTwoFARequired = async (email) => {
   const [result] = await pool.query(
-    'SELECT last_verification FROM tbl2fa_verification WHERE email = ?',
+    `SELECT setting_everylogs, setting_days, last_verification FROM tbl2fasetting WHERE setting_email = ?`,
     [email]
   );
-  
+
   if (!result.length) {
-    console.log("No previous 2FA verification found for:", email);
+    console.log("No 2FA settings found for:", email);
+    return false; // No 2FA required if there's no record
+  }
+
+  const { setting_everylogs, setting_days, last_verification } = result[0];
+
+  if (setting_everylogs === 1) {
+    console.log("2FA required for every login.");
+    return true; // Always require 2FA if setting is enabled
+  }
+
+  if (!last_verification) {
+    console.log("No previous verification found. 2FA required.");
     return true;
   }
-  
-  const lastVerification = new Date(result[0].last_verification);
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const nextVerificationDate = new Date(lastVerification.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  console.log("2FA Status for:", email);
-  console.log("Last verification:", lastVerification.toLocaleString());
-  console.log("Next verification required on:", nextVerificationDate.toLocaleString());
-  console.log("Current server time:", new Date().toLocaleString());
-  console.log("Days remaining:", Math.ceil((nextVerificationDate - Date.now()) / (1000 * 60 * 60 * 24)));
-  
-  return lastVerification < sevenDaysAgo;
+  const lastVerificationDate = new Date(last_verification);
+  const nextRequiredDate = new Date(lastVerificationDate);
+  nextRequiredDate.setDate(lastVerificationDate.getDate() + setting_days);
+
+  const now = new Date();
+  const remainingDays = Math.ceil((nextRequiredDate - now) / (1000 * 60 * 60 * 24)); // Convert ms to days
+
+  console.log(`2FA for ${email} required in ${remainingDays} days.`);
+
+  if (now >= nextRequiredDate) {
+    console.log("2FA is now required.");
+    return true;
+  }
+
+  console.log("2FA not required for this login.");
+  return false;
 };
 
-// Update last 2FA verification timestamp
-const updateLastTwoFAVerification = async (email) => {
-  await pool.query(
-    `INSERT INTO tbl2fa_verification (email, last_verification) 
-     VALUES (?, NOW()) 
-     ON DUPLICATE KEY UPDATE last_verification = NOW()`,
-    [email]
-  );
-};
+
+
+// // Update last 2FA verification timestamp
+// const updateLastTwoFAVerification = async (email) => {
+//   await pool.query(
+//     `INSERT INTO tbl2fa_verification (email, last_verification) 
+//      VALUES (?, NOW()) 
+//      ON DUPLICATE KEY UPDATE last_verification = NOW()`,
+//     [email]
+//   );
+// };
 
 // Modify the login endpoint
 app.post("/login", loginLimiter, async (req, res) => {
   const { username, password, twoFACode, isResend } = req.body;
-  const fakeHash = "$2b$10$ABCDEFGHIJKLMNOPQRSTUVWX0123456789abcdefghijklmn";
-
-  console.log("Received login request:", {
-    username,
-    password,
-    twoFACode,
-    isResend,
-  });
 
   try {
-    // Apply resend limiter only for resend requests
-    if (isResend) {
-      const limiterRes = await new Promise((resolve) => {
-        resendLimiter(req, res, resolve);
-      });
-      if (res.statusCode === 429) return; // Rate limit exceeded
-    }
-
-    // Check if user is locked out
-    const failedLoginData = await checkFailedAttempts(username);
-    if (
-      failedLoginData &&
-      failedLoginData.lock_until &&
-      new Date(failedLoginData.lock_until) > new Date()
-    ) {
-      const remainingTime = Math.ceil(
-        (new Date(failedLoginData.lock_until) - new Date()) / 60000
-      );
-      return res.status(403).json({
-        error: `Too many failed attempts. Try again in ${remainingTime} minutes.`,
-      });
-    }
-
     let userFound = false;
     for (const table of tables) {
       const user = await checkUser(table, username);
@@ -210,14 +199,11 @@ app.post("/login", loginLimiter, async (req, res) => {
         userFound = true;
         let storedHash = user[table.passCol];
 
-        if (storedHash.startsWith("$2y$"))
-          storedHash = "$2b$" + storedHash.slice(4);
+        if (storedHash.startsWith("$2y$")) storedHash = "$2b$" + storedHash.slice(4);
 
         if (await bcrypt.compare(password.trim(), storedHash)) {
-          // Check if 2FA is required
           const requireTwoFA = await isTwoFARequired(username);
-          
-          // If 2FA is not required, complete login
+
           if (!requireTwoFA) {
             await updateFailedAttempts(username, true);
             return res.json({
@@ -227,14 +213,11 @@ app.post("/login", loginLimiter, async (req, res) => {
                 email: username,
                 userLevel: user[table.userLevelCols],
               },
-              token: generateToken(
-                user[table.idCol],
-                user[table.userLevelCols]
-              ),
+              token: generateToken(user[table.idCol], user[table.userLevelCols]),
             });
           }
+          
 
-          // If 2FA code is provided, verify it
           if (twoFACode) {
             const [twoFAResult] = await pool.query(
               "SELECT * FROM tbl2fa WHERE email = ? AND code = ? AND expires_at > NOW()",
@@ -242,18 +225,9 @@ app.post("/login", loginLimiter, async (req, res) => {
             );
 
             if (!twoFAResult.length) {
-              return res
-                .status(401)
-                .json({ error: "Invalid or expired 2FA code" });
+              return res.status(401).json({ error: "Invalid or expired 2FA code" });
             }
 
-            // Clear the 2FA code after successful use
-            await pool.query("DELETE FROM tbl2fa WHERE email = ?", [username]);
-            
-            // Update last verification timestamp
-            await updateLastTwoFAVerification(username);
-
-            // Complete login
             await updateFailedAttempts(username, true);
             return res.json({
               user: {
@@ -262,59 +236,57 @@ app.post("/login", loginLimiter, async (req, res) => {
                 email: username,
                 userLevel: user[table.userLevelCols],
               },
-              token: generateToken(
-                user[table.idCol],
-                user[table.userLevelCols]
-              ),
+              token: generateToken(user[table.idCol], user[table.userLevelCols]),
             });
           }
 
-          // Generate and send 2FA code
           const code = generateTwoFACode();
           const expiryTime = new Date(Date.now() + TWO_FA_CODE_EXPIRY);
 
-          // Store 2FA code
           await pool.query(
             "INSERT INTO tbl2fa (email, code, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE code = ?, expires_at = ?",
             [username, code, expiryTime, code, expiryTime]
           );
 
-          // Send 2FA code via email
           try {
-            const info = await transporter.sendMail({
-              from: `"Del Monte Philippines" <${process.env.SMTP_USER}>`,
+            await transporter.sendMail({
+              from: `"Security Team" <${process.env.SMTP_USER}>`,
               to: username,
-              subject: isResend ? "Your New Login Verification Code" : "Your Login Verification Code",
+              subject: "🔐 Your Secure Login Verification Code",
               text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
               html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2 style="color: #004F39;">Del Monte Philippines</h2>
-                  <p>Your ${isResend ? 'new ' : ''}verification code is:</p>
-                  <h1 style="color: #004F39; font-size: 32px; letter-spacing: 5px; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">${code}</h1>
-                  <p>This code will expire in 10 minutes.</p>
-                  <p style="color: #666; font-size: 12px; margin-top: 20px;">If you didn't request this code, please ignore this email.</p>
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+                  <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #0A6338;">🔐 Security Verification</h2>
+                  </div>
+                  <p style="font-size: 16px; color: #333;">Hello,</p>
+                  <p style="font-size: 16px; color: #333;">Your verification code for secure login is:</p>
+                  <div style="text-align: center; margin: 20px 0;">
+                    <span style="font-size: 24px; font-weight: bold; color: #0A6338; padding: 10px 20px; border: 2px dashed #0A6338; border-radius: 5px; display: inline-block;">
+                      ${code}
+                    </span>
+                  </div>
+                  <p style="font-size: 16px; color: #333;">This code will expire in <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
+                  <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                  <p style="font-size: 14px; color: #777; text-align: center;">Need help? Contact our <a href="mailto:support@yourwebsite.com" style="color: #0A6338; text-decoration: none;">support team</a>.</p>
                 </div>
               `,
             });
-
+            
           } catch (error) {
-            console.error("Detailed email error:", error);
-            throw new Error("Failed to send 2FA code");
+            console.error("Failed to send 2FA code:", error);
+            throw new Error("Email delivery failed");
           }
 
           return res.status(200).json({
             message: "2FA code sent to your email.",
-            user: {
-              email: username,
-              twoFA: true,
-            },
+            user: { email: username, twoFA: true },
           });
         }
       }
     }
 
-    // Fake bcrypt compare to prevent enumeration attacks
-    if (!userFound) await bcrypt.compare(password.trim(), fakeHash);
+    if (!userFound) await bcrypt.compare(password.trim(), "$2b$10$FakeHashStringToPreventTimingAttacks");
 
     await updateFailedAttempts(username);
     res.status(401).json({ error: "Invalid credentials" });
@@ -323,5 +295,6 @@ app.post("/login", loginLimiter, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
