@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import ViewProfile from "./viewProfile";
+import { X } from "lucide-react";
 
 const JobDetailsModal = ({
   job,
@@ -342,16 +343,19 @@ const JobDetailsModal = ({
           isDarkMode ? "bg-[#1D1D1D] text-gray-200" : "bg-white text-black"
         }`}
       >
-        <div
-          className={`sticky top-0 left-0 right-0 ${
-            isDarkMode ? "bg-[#1D1D1D]" : "bg-white"
-          } z-10 pb-4 border-b ${
-            isDarkMode
-              ? "border-gray-700 text-gray-200"
-              : "border-gray-200 text-[#0A6338]"
-          } text-center`}
-        >
-          <h2 className="text-xl font-bold mb-4">{job.jobM_title}</h2>
+        <div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4">
+            <div className="w-8" /> {/* Spacer to help center the title */}
+            <h2 className="text-xl font-bold text-[#0A6338] flex-1 text-center">
+              {job.jobM_title}
+            </h2>
+            <button
+              onClick={onClosedd}
+              className="text-[#004F39] transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div
@@ -460,7 +464,7 @@ const JobDetailsModal = ({
             isDarkMode
               ? "bg-[#1D1D1D] border-gray-700"
               : "bg-white border-gray-200"
-          } flex justify-between`}
+          } flex justify-end`}
         >
           {Array.isArray(appliedJobs) &&
           appliedJobs.some(
@@ -523,18 +527,6 @@ const JobDetailsModal = ({
               Apply
             </button>
           )}
-
-          <button
-            onClick={onClosedd}
-            className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out hover:scale-110 hover:-translate-y-1 ${
-              isDarkMode ? "bg-gray-600 text-white" : "bg-gray-500 text-white"
-            }`}
-            style={{
-              boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
-            }}
-          >
-            Close
-          </button>
         </div>
       </div>
       <Toaster position="bottom-left" />

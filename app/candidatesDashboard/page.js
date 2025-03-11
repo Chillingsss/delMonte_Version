@@ -1818,7 +1818,9 @@ export default function DashboardCandidates() {
 
           {/* Loading Spinner */}
           {/* Loading Spinner */}
-          {isLoading && (
+          
+        </div>
+        {isLoading && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[100]">
               <l-line-spinner
                 size="40"
@@ -1828,8 +1830,6 @@ export default function DashboardCandidates() {
               ></l-line-spinner>
             </div>
           )}
-        </div>
-
         {/* Jobs Display */}
         {loading ? (
           <div className="flex items-center justify-center h-64 flex-col">
