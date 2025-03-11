@@ -452,7 +452,6 @@ export const DateRangePicker = ({
                     if (value?.from != null) {
                       const newRange = { from: value.from, to: value?.to };
                       setRange(newRange);
-                      onUpdate?.({ range: newRange, rangeCompare });
                     }
                   }}
                   selected={range}
