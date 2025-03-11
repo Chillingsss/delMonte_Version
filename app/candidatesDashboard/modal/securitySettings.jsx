@@ -126,7 +126,7 @@ const SecuritySettingsModal = ({ onClose }) => {
                       />
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      When enabled, you'll be required to enter a verification code every time you log in, providing
+                      When enabled, you&apos;ll be required to enter a verification code every time you log in, providing
                       maximum security for your account.
                     </p>
                   </div>
@@ -175,7 +175,7 @@ const SecuritySettingsModal = ({ onClose }) => {
                     {!settingEverylogs && settingDays !== null && (
                       <p className="text-sm text-amber-600 mt-2">
                         <InfoIcon className="h-4 w-4 inline mr-1" />
-                        You won't need to verify again on this device for the selected number of days.
+                        You won&apos;t need to verify again on this device for the selected number of days.
                       </p>
                     )}
                   </div>
