@@ -213,7 +213,7 @@ const DataTable = ({
     <div>
       <div className={`flex ${isMobile ? 'flex-col' : 'justify-between'} items-start sm:items-center mb-4`}>
         <div className="flex items-center gap-2 mb-2 sm:mb-0">
-          {title && <h2 className="text-lg font-bold">{title}</h2>}
+          {title && <h2 className="text-xl font-bold p-3">{title}</h2>}
           {add && add}
           {headerAction && headerAction}
         </div>
