@@ -176,7 +176,7 @@ const SecuritySettingsModal = ({ onClose }) => {
                     {settingEverylogs && (
                       <div className="mt-2 bg-green-500/10 dark:bg-green-500/5 text-green-700 dark:text-green-400 text-sm p-2 rounded-md border border-green-500/20 dark:border-green-500/10 pl-7">
                         <CheckCircle2 className="h-4 w-4 inline mr-1" />
-                        Maximum security enabled. You'll verify your identity on every login.
+                        Maximum security enabled. You&apos;ll verify your identity on every login.
                       </div>
                     )}
                   </div>
