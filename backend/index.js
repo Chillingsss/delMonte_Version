@@ -147,9 +147,15 @@ const isTwoFARequired = async (email) => {
 
   const { setting_everylogs, setting_days, last_verification } = result[0];
 
+  // If setting_everylogs is 0 and setting_days is NULL, no 2FA is required
+  if (setting_everylogs === 0 && setting_days === null) {
+    console.log("2FA not required as per settings.");
+    return false;
+  }
+
   if (setting_everylogs === 1) {
     console.log("2FA required for every login.");
-    return true; // Always require 2FA if setting is enabled
+    return true;
   }
 
   if (!last_verification) {
@@ -174,6 +180,7 @@ const isTwoFARequired = async (email) => {
   console.log("2FA not required for this login.");
   return false;
 };
+
 
 
 
