@@ -11,9 +11,19 @@ import ComboBox from "@/app/my_components/combo-box";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useSession } from "next-auth/react";
 import { getDataFromCookie } from '@/app/utils/storageUtils';
+import { PenBoxIcon } from 'lucide-react';
 
 
-const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, setStatus }) => {
+const MedicalCheckModal = ({
+  candId,
+  getCandidateProfile,
+  handleChangeStatus,
+  setStatus,
+  isButton = true,
+  isUpdate = false,
+  medicalC = 0,
+  medicalMId = null,
+}) => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,25 +42,23 @@ const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, se
     medicalC: z.number().min(1, {
       message: "This field is required",
     }),
-    // points: z
-    //   .string()
-    //   .min(1, {
-    //     message: "This field is required",
-    //   })
-    //   .refine((value) => !isNaN(Number(value)), {
-    //     message: "Points must be a number",
-    //   }),
   });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      medicalC: 0,
+      medicalC: medicalC,
       candId: candId,
     },
   });
 
   const onSubmit = async (values) => {
+    if(isUpdate && values.medicalC === medicalC) {
+      toast.info("No changes made");
+      setIsOpen(false);
+      return;
+      
+    }
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
@@ -60,17 +68,19 @@ const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, se
         medicalCId: values.medicalC,
         candId: candId,
         hrId: userId,
+        medicalMId: medicalMId,
       }
 
-      console.log("jsonData", jsonData);
+      console.log("jsonData", JSON.stringify(jsonData));
 
       const formData = new FormData();
-      formData.append("operation", "addMedicalMaster");
+      formData.append("operation", isUpdate ? "updateMedicalMaster" : "addMedicalMaster");
       formData.append("json", JSON.stringify(jsonData));
+      console.log("formData", Object.fromEntries(formData.entries()));
       const res = await axios.post(url, formData);
       console.log("res.data ni onSubmit: ", res);
       if (res.data === 1) {
-        if (values.medicalC <= 2) {
+        if (values.medicalC <= 2 && !isUpdate) {
           handleChangeStatus(candId, 13);
           setStatus("Decision Pending");
         }
@@ -124,8 +134,12 @@ const MedicalCheckModal = ({ candId, getCandidateProfile, handleChangeStatus, se
   return (
     <div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger>
-          <Button>Medical Check</Button>
+        <DialogTrigger asChild>
+          {isButton ? (
+            <Button>Medical Check</Button>
+          ) : (
+            <PenBoxIcon className="ml-2 w-4 h-4 hover:cursor-pointer" onClick={() => setIsOpen(true)} />
+          )}
         </DialogTrigger>
         <DialogContent>
           <DialogTitle>Medical Check</DialogTitle>
