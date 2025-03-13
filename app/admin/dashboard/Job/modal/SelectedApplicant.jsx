@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
-import { Check, X } from "lucide-react";
+import { Check, PenBoxIcon, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import InterviewResult from "./InterviewResult";
@@ -55,6 +55,7 @@ function SelectedApplicant({
   const [status, setStatus] = useState(statusName);
   const [isJobOffer, setIsJobOffer] = useState(0);
   const [isMedicalChecked, setIsMedicalChecked] = useState(false);
+  const [medicalClass, setMedicalClass] = useState([]);
 
 
   const getCandidateProfile = useCallback(async () => {
@@ -77,6 +78,8 @@ function SelectedApplicant({
         const jobOfferStatus = res.data.jobOffered;
         setIsJobOffer(jobOfferStatus.isJobOffered);
         setIsMedicalChecked(res.data.medicalChecked.isMedicalChecked);
+        setMedicalClass(res.data.medicalClassification);
+
       }
     } catch (error) {
       toast.error("Network error");
@@ -255,6 +258,7 @@ function SelectedApplicant({
                     getCandidateProfile={getCandidateProfile}
                     handleChangeStatus={handleChangeStatus}
                     setStatus={setStatus}
+                    
                   />
                 ) : null}
                 {status === "Medical Check" && isMedicalChecked ? (
@@ -262,7 +266,6 @@ function SelectedApplicant({
                     Proceed to decision pending
                   </Button>
                 ) : null}
-
                 {/* && isJobOffer === 0 */}
                 {status === "Decision Pending" && (
                   <JobOffer
@@ -292,6 +295,27 @@ function SelectedApplicant({
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:col-span-3">
                     <Card className="w-full lg:col-span-2">
                       <CardHeader className="flex flex-col items-center">
+                        <div className="flex justify-start items-start w-full mb-2">
+                          {isMedicalChecked ?
+                            <>
+                              <Badge className="mr-auto" variant={medicalClass.medicalC_id >= 2 ? "destructive" : ""}>
+                                {medicalClass.medicalC_name}
+                                <MedicalCheckModal
+                                  candId={candId}
+                                  getCandidateProfile={getCandidateProfile}
+                                  handleChangeStatus={handleChangeStatus}
+                                  setStatus={setStatus}
+                                  isButton={false}
+                                  isUpdate={true}
+                                  medicalC={medicalClass.medicalC_id}
+                                  medicalMId={medicalClass.medicalM_id}
+                                />
+                              </Badge>
+                            </>
+
+                            : <div></div>
+                          }
+                        </div>
                         <Avatar className="w-32 h-32">
                           <AvatarImage
                             src={
