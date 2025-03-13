@@ -215,7 +215,7 @@ const SecuritySettingsModal = ({ onClose }) => {
                         disabled={settingEverylogs}
                         className="grid grid-cols-2 sm:grid-cols-3 gap-2"
                       >
-                        {[2, 3, 4, 5, 6, 7].map((day) => (
+                        {[1, 2, 3, 4, 5, 6, 7].map((day) => (  // Added 1 to the array
                           <div
                             key={day}
                             className={cn(
@@ -245,7 +245,7 @@ const SecuritySettingsModal = ({ onClose }) => {
                     {!settingEverylogs && settingDays !== null && (
                       <p className="text-sm text-amber-600 dark:text-amber-400 mt-3 pl-7 flex items-start gap-1.5 bg-amber-500/10 dark:bg-amber-500/5 p-2 rounded-md border border-amber-500/20 dark:border-amber-500/10">
                         <InfoIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                        <span>You won&apos;t need to verify again on this device for {settingDays} days.</span>
+                        <span>You won't need to verify again on this device for {settingDays} {settingDays === 1 ? "day" : "days"}.</span>
                       </p>
                     )}
                   </div>
