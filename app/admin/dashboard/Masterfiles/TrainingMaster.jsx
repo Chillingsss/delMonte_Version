@@ -67,6 +67,7 @@ const TrainingMaster = () => {
 
   const columns = [
     { header: "Training", accessor: "perT_name", sortable: true },
+    { header: "Percentage", accessor: "perT_percentage", sortable: true },
     {
       header: "Actions",
       cell: (row) => (
@@ -75,6 +76,7 @@ const TrainingMaster = () => {
             data={data}
             id={row.perT_id}
             currentName={row.perT_name}
+            currentPercent={row.perT_percentage}
             getData={getData}
           />
           <Trash2 className="h-5 w-5 cursor-pointer" onClick={() => handleRemoveList(row.perT_id)} />
