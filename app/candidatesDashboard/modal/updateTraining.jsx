@@ -12,19 +12,22 @@ import { Toaster, toast } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import stringSimilarity from "string-similarity";
 
-const performSemanticAnalysis = (text1, text2, threshold) => {
-  // Calculate cosine similarity using string-similarity
-  const similarity = stringSimilarity.compareTwoStrings(text1, text2);
-  const similarityScore = parseFloat((similarity * 100).toFixed(2));
+const performSemanticAnalysis = async (text1, text2, threshold) => {
+  const response = await fetch('/api/semanticAnalysis', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ text1, text2, threshold }),
+  });
 
-  // Determine match quality based on provided threshold
-  let matchQuality = similarityScore >= threshold ? "Acceptable Match" : "Poor Match";
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Error response:", errorText);
+    throw new Error(`Failed to perform semantic analysis: ${errorText}`);
+  }
 
-  return {
-    score: similarityScore,
-    matchQuality,
-    threshold: threshold
-  };
+  return await response.json();
 };
 
 const UpdateTraining = ({
@@ -240,7 +243,7 @@ const UpdateTraining = ({
 
       // Perform semantic analysis for image vs title with dynamic threshold
       console.log('\n=== Detailed Semantic Analysis: Image vs Title ===');
-      const imageVsTitleAnalysis = performSemanticAnalysis(
+      const imageVsTitleAnalysis = await performSemanticAnalysis(
         normalizedTextFromImage, 
         normalizedTrainingTitle,
         data.perT_percentage
@@ -261,7 +264,7 @@ const UpdateTraining = ({
 
       // Perform semantic analysis for title vs name with dynamic threshold
       console.log('\n=== Detailed Semantic Analysis: Title vs Name ===');
-      const titleVsNameAnalysis = performSemanticAnalysis(
+      const titleVsNameAnalysis = await performSemanticAnalysis(
         normalizedTrainingTitle, 
         normalizedTrainingName,
         data.perT_percentage
