@@ -932,7 +932,7 @@ export default function DashboardCandidates() {
               // ref={dropdownNotificationRefMobile}
               className={`absolute w-64 right-0 z-10 top-14 ${
                 isDarkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-2xl transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-2`}
+              } rounded-lg shadow-2xl`}
             >
               {/* Header */}
               <div className="p-4 border-b border-gray-200">
@@ -1431,7 +1431,7 @@ export default function DashboardCandidates() {
               <div
                 className={`absolute top-14 w-96 right-0 z-50 ${
                   isDarkMode ? "bg-gray-800" : "bg-white"
-                } rounded-lg shadow-2xl transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-top-2`}
+                } rounded-lg shadow-2xl`}
               >
                 {/* Header */}
                 <div className="p-4 border-b border-gray-200">

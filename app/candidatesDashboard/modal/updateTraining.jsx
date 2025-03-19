@@ -10,24 +10,24 @@ import {
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 import Tesseract from "tesseract.js";
-import stringSimilarity from "string-similarity";
 
 const performSemanticAnalysis = async (text1, text2, threshold) => {
-  const response = await fetch('/api/semanticAnalysis', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ text1, text2, threshold }),
-  });
+  try {
+    const response = await axios.post('/api/semanticAnalysis', {
+      text1,
+      text2,
+      threshold,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Error response:", errorText);
-    throw new Error(`Failed to perform semantic analysis: ${errorText}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error response:", error.response?.data || error.message);
+    throw new Error(`Failed to perform semantic analysis: ${error.response?.data || error.message}`);
   }
-
-  return await response.json();
 };
 
 const UpdateTraining = ({
