@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { getDataFromSession } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 import axios from "axios";
@@ -18,6 +18,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   const [showSelectedApplicant, setShowSelectedApplicant] = useState(false);
   const [selectedApplicantId, setSelectedApplicantId] = useState(0);
   const [statusName, setStatusName] = useState("");
+  const hasCalculated = useRef(false); // Track if scores have been calculated
 
   const handleShowSelectedApplicant = (id, statusName) => {
     if (statusName === "Pending") {
@@ -31,7 +32,6 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   };
 
   const handleCloseSelectedApplicant = () => {
-    // getPendingDetails();
     setShowSelectedApplicant(false);
   };
 
@@ -40,7 +40,6 @@ const ViewApplicants = ({ handleChangeStatus }) => {
     getJobQualifications();
   }, []);
 
-  // Fetch candidates and passing percentage
   const getPendingDetails = async () => {
     setIsLoading(true);
     try {
@@ -51,6 +50,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
       const response = await axios.post(url, formData);
       setCandidates(response.data.candidates || []);
       setPassingPercentage(response.data.passingPercentage[0]?.passing_percentage || 0);
+      hasCalculated.current = false; // Reset calculation flag when new data is fetched
     } catch (error) {
       toast.error("Network error");
       console.error("Error fetching candidates:", error);
@@ -59,7 +59,6 @@ const ViewApplicants = ({ handleChangeStatus }) => {
     }
   };
 
-  // Fetch job qualifications
   const getJobQualifications = async () => {
     setIsLoading(true);
     try {
@@ -69,6 +68,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
       formData.append("json", JSON.stringify({ jobId: getDataFromSession("jobId") }));
       const response = await axios.post(url, formData);
       setJobQualifications(response.data || []);
+      hasCalculated.current = false; // Reset calculation flag when new data is fetched
     } catch (error) {
       toast.error("Failed to fetch job qualifications");
       console.error("Error fetching job qualifications:", error);
@@ -83,15 +83,16 @@ const ViewApplicants = ({ handleChangeStatus }) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ resume, jobDescription }),
     });
-
     const data = await response.json();
-    console.log("Similarity Score:", data.similarity);
     return data.similarity;
   }
 
-  // Calculate the total score for each candidate
   const calculateScores = useCallback(async () => {
-    // setIsLoading(true);
+    if (hasCalculated.current || candidates.length === 0 || !jobQualifications) {
+      return; // Skip if already calculated or data is missing
+    }
+
+    setIsLoading(true);
     try {
       let updatedCandidates = [];
 
@@ -103,24 +104,21 @@ const ViewApplicants = ({ handleChangeStatus }) => {
           for (const jobItem of jobItems || []) {
             for (const candItem of candItems || []) {
               const similarity = await getSimilarityScore(jobItem[jobItemName], candItem[candItemName]);
-
               if (similarity >= 0.75) {
-                totalPoints += jobItem[pointsKey]; // Add points only when similarity is 1
-                break; // Stop checking once a match is found
+                totalPoints += jobItem[pointsKey];
+                break;
               }
             }
-            maxPoints += jobItem[pointsKey]; // Ensure maxPoints is counted correctly
+            maxPoints += jobItem[pointsKey];
           }
         };
 
-        // Calculate scores for each category
         await calculateSimilarity(jobQualifications.jobEducation, candidate.courses, "jeduc_points", "course_categoryName", "course_categoryName");
         await calculateSimilarity(jobQualifications.jobSkills, candidate.skills, "jskills_points", "perS_name", "perS_name");
         await calculateSimilarity(jobQualifications.jobTrainings, candidate.trainings, "jtrng_points", "perT_name", "perT_name");
         await calculateSimilarity(jobQualifications.jobKnowledge, candidate.knowledge, "jknow_points", "knowledge_name", "knowledge_name");
         await calculateSimilarity(jobQualifications.jobExperience, candidate.employmentHistory, "jwork_points", "jwork_responsibilities", "empH_positionName");
 
-        // Calculate final percentage
         const percentage = maxPoints > 0 ? ((totalPoints / maxPoints) * 100).toFixed(2) : 0;
 
         updatedCandidates.push({
@@ -132,6 +130,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
       }
 
       setCandidates(updatedCandidates);
+      hasCalculated.current = true; // Mark as calculated
     } catch (error) {
       console.error("Error calculating scores:", error);
     } finally {
@@ -140,33 +139,28 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   }, [candidates, jobQualifications]);
 
   useEffect(() => {
-    if (candidates.length > 0 && jobQualifications) {
-      calculateScores();
-    }
-  }, [calculateScores, candidates.length, jobQualifications]);
+    calculateScores();
+  }, [calculateScores]);
 
   const columns = [
     { header: "Full Name", accessor: "FullName" },
     {
       header: "Total Points",
       accessor: (row) => `${row.totalPoints || "Calculating"}/${row.maxPoints || ""}`,
-      className: (row) =>
-        `${row.percentage >= passingPercentage ? "text-green-500" : "text-gray-500"}`,
+      className: (row) => `${row.percentage >= passingPercentage ? "text-green-500" : "text-gray-500"}`,
       hiddenOnMobile: true,
     },
     {
       header: "Percentage",
       accessor: "percentage",
-      className: (row) =>
-        `${row.percentage >= passingPercentage ? "text-green-500" : "text-gray-500"}`,
+      className: (row) => `${row.percentage >= passingPercentage ? "text-green-500" : "text-gray-500"}`,
       sortable: true,
     },
     { header: "Date", accessor: "Date", sortable: true, hiddenOnMobile: true },
     {
       header: "Status",
       accessor: "status_name",
-      className: (row) =>
-        `${row.status_name === "Pending" || row.status_name === "Processed" ? "text-green-500" : "text-gray-500"}`,
+      className: (row) => `${row.status_name === "Pending" || row.status_name === "Processed" ? "text-green-500" : "text-gray-500"}`,
     },
   ];
 
@@ -185,9 +179,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
             columns={columns}
             data={candidates}
             itemsPerPage={5}
-            onRowClick={(row) =>
-              handleShowSelectedApplicant(row.cand_id, row.status_name)
-            }
+            onRowClick={(row) => handleShowSelectedApplicant(row.cand_id, row.status_name)}
             headerAction={
               <div className="flex">
                 <SetToInterviewModal
@@ -195,9 +187,7 @@ const ViewApplicants = ({ handleChangeStatus }) => {
                   passingPercentage={passingPercentage}
                   getPendingCandidates={getPendingDetails}
                 />
-                <PotentialCandidatesModal
-                  passingPercentage={passingPercentage}
-                />
+                <PotentialCandidatesModal passingPercentage={passingPercentage} />
               </div>
             }
           />
