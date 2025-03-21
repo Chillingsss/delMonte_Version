@@ -181,19 +181,6 @@ const isTwoFARequired = async (email) => {
   return false;
 };
 
-
-
-
-// // Update last 2FA verification timestamp
-// const updateLastTwoFAVerification = async (email) => {
-//   await pool.query(
-//     `INSERT INTO tbl2fa_verification (email, last_verification) 
-//      VALUES (?, NOW()) 
-//      ON DUPLICATE KEY UPDATE last_verification = NOW()`,
-//     [email]
-//   );
-// };
-
 // Modify the login endpoint
 app.post("/login", loginLimiter, async (req, res) => {
   const { username, password, twoFACode, isResend } = req.body;
@@ -223,7 +210,6 @@ app.post("/login", loginLimiter, async (req, res) => {
               token: generateToken(user[table.idCol], user[table.userLevelCols]),
             });
           }
-          
 
           if (twoFACode) {
             const [twoFAResult] = await pool.query(
@@ -257,29 +243,65 @@ app.post("/login", loginLimiter, async (req, res) => {
 
           try {
             await transporter.sendMail({
-              from: `"Security Team" <${process.env.SMTP_USER}>`,
+              from: `"Del Monte Philippines Security" <${process.env.SMTP_USER}>`,
               to: username,
-              subject: "🔐 Your Secure Login Verification Code",
+              subject: "🔒 Del Monte Philippines Security Verification",
               text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
               html: `
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-                  <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #0A6338;">🔐 Security Verification</h2>
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0;">
+                  <div style="background-color: #ffffff; padding: 40px 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h1 style="color: #0A6338; font-size: 24px; margin: 0 0 20px 0; text-align: center;">Security Verification Code</h1>
+                    
+                    <p style="color: #333333; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                      Hello,
+                    </p>
+                    
+                    <p style="color: #333333; font-size: 16px; line-height: 1.5; margin: 0 0 20px 0;">
+                      You've requested a verification code for secure access to your Del Monte Philippines account. Please use the code below:
+                    </p>
+
+                    <!-- Verification Code Box -->
+                    <div style="background-color: #f8f9fa; border: 2px solid #0A6338; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
+                      <div style="font-size: 32px; font-weight: bold; color: #0A6338; letter-spacing: 5px;">
+                        ${code}
+                      </div>
+                      <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+                        This code will expire in <span style="color: #0A6338; font-weight: bold;">10 minutes</span>
+                      </p>
+                    </div>
+
+                    <p style="color: #666666; font-size: 14px; line-height: 1.5; margin: 0 0 20px 0;">
+                      If you didn't request this code, please ignore this email. Your account security is important to us.
+                    </p>
+
+                    <!-- Security Notice -->
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #0A6338; padding: 15px; margin: 20px 0;">
+                      <p style="color: #666666; font-size: 14px; margin: 0;">
+                        For security reasons, never share this code with anyone. Del Monte Philippines will never ask for your verification code through other channels.
+                      </p>
+                    </div>
                   </div>
-                  <p style="font-size: 16px; color: #333;">Hello,</p>
-                  <p style="font-size: 16px; color: #333;">Your verification code for secure login is:</p>
-                  <div style="text-align: center; margin: 20px 0;">
-                    <span style="font-size: 24px; font-weight: bold; color: #0A6338; padding: 10px 20px; border: 2px dashed #0A6338; border-radius: 5px; display: inline-block;">
-                      ${code}
-                    </span>
+
+                  <!-- Footer -->
+                  <div style="padding: 20px; text-align: center;">
+                    <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0;">
+                      Need assistance? Contact our support team:
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                      <a href="mailto:support@delmontephil.com" style="color: #0A6338; text-decoration: none; font-weight: bold;">support@delmontephil.com</a>
+                    </div>
+                    <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                      <p style="color: #999999; font-size: 12px; margin: 0;">
+                        &copy; ${new Date().getFullYear()} Del Monte Philippines, Inc. All rights reserved.
+                      </p>
+                      <p style="color: #999999; font-size: 12px; margin: 5px 0 0 0;">
+                        JY Campos Centre, 9th Avenue corner 30th Street, Bonifacio Global City, Taguig City, Philippines
+                      </p>
+                    </div>
                   </div>
-                  <p style="font-size: 16px; color: #333;">This code will expire in <strong>10 minutes</strong>. If you did not request this, please ignore this email.</p>
-                  <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-                  <p style="font-size: 14px; color: #777; text-align: center;">Need help? Contact our <a href="mailto:support@yourwebsite.com" style="color: #0A6338; text-decoration: none;">support team</a>.</p>
                 </div>
               `,
             });
-            
           } catch (error) {
             console.error("Failed to send 2FA code:", error);
             throw new Error("Email delivery failed");
@@ -302,6 +324,5 @@ app.post("/login", loginLimiter, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

@@ -45,30 +45,22 @@ const UpdateTraining = ({
     perT_id: train?.training_perTId || "",
     perT_name: train?.perT_name || "",
     perT_percentage: train?.perT_percentage,
-    training_title: "",
     image: null,
     training_image: train?.training_image || "",
   });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("appearance");
-    if (savedTheme === "dark") return true;
-    if (savedTheme === "light") return false;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem("appearance");
+      return savedTheme === "dark";
+    }
+    return false;
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
     const updateTheme = () => {
       const savedTheme = localStorage.getItem("appearance");
-      if (savedTheme === "dark") {
-        setIsDarkMode(true);
-      } else if (savedTheme === "light") {
-        setIsDarkMode(false);
-      } else {
-        setIsDarkMode(mediaQuery.matches);
-      }
+      setIsDarkMode(savedTheme === "dark");
     };
 
     // Set initial theme
@@ -80,26 +72,21 @@ const UpdateTraining = ({
         updateTheme();
       }
     };
-    window.addEventListener("storage", handleStorageChange);
-
-    // Listen for changes in system preference
-    const handleMediaQueryChange = (e) => {
-      const savedTheme = localStorage.getItem("appearance");
-      if (savedTheme === "system") {
-        setIsDarkMode(e.matches);
-      }
-    };
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
+    if (typeof window !== 'undefined') {
+      window.addEventListener("storage", handleStorageChange);
+    }
 
     // Cleanup
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener("storage", handleStorageChange);
+      }
     };
   }, []);
 
   const [isNewTraining, setIsNewTraining] = useState(true); // Track if adding a new training
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -111,7 +98,6 @@ const UpdateTraining = ({
           perT_id: "",
           perT_name: "",
           perT_percentage: 60,
-          training_title: "",
           image: null,
           training_image: "",
         });
@@ -122,13 +108,12 @@ const UpdateTraining = ({
           perT_id: train.training_perTId || "",
           perT_name: train.perT_name || "",
           perT_percentage: train.perT_percentage || 60,
+          image: null,
           training_image: train.training_image || "",
-          training_title: "",
         });
       }
     }
   }, [showModal, train, isNewTraining]);
-  // console.log("Training:", data);
 
   useEffect(() => {
     if (selectedTraining) {
@@ -137,8 +122,8 @@ const UpdateTraining = ({
         perT_id: selectedTraining.training_perTId || "",
         perT_name: selectedTraining.perT_name || "",
         perT_percentage: selectedTraining.perT_percentage || 60,
+        image: null,
         training_image: selectedTraining.training_image || "",
-        training_title: "",
       });
       setIsNewTraining(false); // Set to false when editing
     }
@@ -203,15 +188,11 @@ const UpdateTraining = ({
 
   const handleSave = async () => {
     setLoading(true);
+    setProgress(0);
     try {
+      // Simulate progress for different stages
+      setProgress(10); // Starting
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
       const userId = session?.user?.id;
 
       console.log("User ID:", userId);
@@ -232,50 +213,37 @@ const UpdateTraining = ({
 
       let textFromImage = "";
       if (data.image) {
+        setProgress(30); // Image processing started
         textFromImage = await processImage(data.image);
+        setProgress(50); // Image processing complete
       } else if (train?.training_image) {
+        setProgress(30);
         textFromImage = await processImage(train?.training_image);
+        setProgress(50);
       }
 
       const normalizedTextFromImage = textFromImage.trim().toLowerCase();
-      const normalizedTrainingTitle = data.training_title.trim().toLowerCase();
       const normalizedTrainingName = data.perT_name.trim().toLowerCase();
 
-      // Perform semantic analysis for image vs title with dynamic threshold
-      console.log('\n=== Detailed Semantic Analysis: Image vs Title ===');
-      const imageVsTitleAnalysis = await performSemanticAnalysis(
+      setProgress(60); // Starting semantic analysis
+
+      // Perform semantic analysis for image vs name with dynamic threshold
+      console.log('\n=== Detailed Semantic Analysis: Image vs Training Name ===');
+      const imageVsNameAnalysis = await performSemanticAnalysis(
         normalizedTextFromImage, 
-        normalizedTrainingTitle,
+        normalizedTrainingName,
         data.perT_percentage
       );
-      console.log('Match Quality:', imageVsTitleAnalysis.matchQuality);
-      console.log('Cosine Score:', imageVsTitleAnalysis.score + '%');
+      console.log('Match Quality:', imageVsNameAnalysis.matchQuality);
+      console.log('Cosine Score:', imageVsNameAnalysis.score + '%');
       console.log('Required Percentage:', data.perT_percentage + '%');
 
       // Use cosine similarity with dynamic threshold for validation
       if (
         data.image &&
-        parseFloat(imageVsTitleAnalysis.score) < data.perT_percentage
+        parseFloat(imageVsNameAnalysis.score) < data.perT_percentage
       ) {
-        toast.error(`The certificate image does not match the training title (Similarity: ${imageVsTitleAnalysis.score}%, Required: ${data.perT_percentage}%)`);
-        setLoading(false);
-        return;
-      }
-
-      // Perform semantic analysis for title vs name with dynamic threshold
-      console.log('\n=== Detailed Semantic Analysis: Title vs Name ===');
-      const titleVsNameAnalysis = await performSemanticAnalysis(
-        normalizedTrainingTitle, 
-        normalizedTrainingName,
-        data.perT_percentage
-      );
-      console.log('Match Quality:', titleVsNameAnalysis.matchQuality);
-      console.log('Cosine Score:', titleVsNameAnalysis.score + '%');
-      console.log('Required Percentage:', data.perT_percentage + '%');
-
-      // Use cosine similarity with dynamic threshold for title vs name validation
-      if (parseFloat(titleVsNameAnalysis.score) < data.perT_percentage) {
-        toast.error(`The training title does not match the selected training (Similarity: ${titleVsNameAnalysis.score}%, Required: ${data.perT_percentage}%)`);
+        toast.error(`The certificate image does not match the selected training (Similarity: ${imageVsNameAnalysis.score}%, Required: ${data.perT_percentage}%)`);
         setLoading(false);
         return;
       }
@@ -297,6 +265,8 @@ const UpdateTraining = ({
 
       console.log("Update Training:", updatedData);
 
+      setProgress(80); // Uploading data
+
       const formData = new FormData();
       formData.append("operation", "updateCandidateTraining");
       formData.append("json", JSON.stringify(updatedData));
@@ -311,9 +281,12 @@ const UpdateTraining = ({
         },
       });
 
+      setProgress(90);
+
       console.log("Response:", response.data);
 
       if (response.data === 1) {
+        setProgress(100);
         console.log("Training updated successfully.");
         toast.success("Training updated successfully.");
         if (fetchProfile) {
@@ -332,6 +305,7 @@ const UpdateTraining = ({
       toast.error("An error occurred while updating the training.");
     } finally {
       setLoading(false);
+      setProgress(0);
     }
   };
 
@@ -419,28 +393,6 @@ const UpdateTraining = ({
             />
           )}
           {error && <p className="text-red-500 text-sm">{error}</p>}
-        </div>
-
-        <div className="mb-4">
-          <label
-            className={`block ${
-              isDarkMode ? "text-white" : "text-gray-600"
-            } text-sm font-normal`}
-          >
-            Training Title:
-          </label>
-          <input
-            type="text"
-            name="training_title"
-            value={data.training_title}
-            onChange={handleChange}
-            className={`w-full p-2 border ${
-              isDarkMode
-                ? "border-gray-500 text-white"
-                : "border-gray-300 text-black"
-            } bg-transparent rounded`}
-            placeholder="Enter Training Title"
-          />
         </div>
 
         <div className="mb-4">
@@ -553,13 +505,77 @@ const UpdateTraining = ({
         </div>
 
         {loading && (
-          <div className="flex justify-center items-center mt-4">
-            <div className="w-8 h-8 border-4 border-t-transparent border-green-500 rounded-full animate-spin"></div>
-            <p className="ml-2 text-green-500">Processing image...</p>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`p-6 rounded-lg shadow-xl w-96 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+              <div className="space-y-6">
+                {/* Progress Steps */}
+                <div className="flex justify-between mb-4">
+                  {['Upload', 'Process', 'Analyze', 'Save'].map((step, index) => {
+                    const stepProgress = Math.floor(progress / 25);
+                    return (
+                      <div key={step} className="flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                          ${index <= stepProgress 
+                            ? 'border-blue-500 bg-blue-500 text-white' 
+                            : isDarkMode 
+                              ? 'border-gray-600 text-gray-400' 
+                              : 'border-gray-300 text-gray-400'}`}>
+                          {index < stepProgress ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <span>{index + 1}</span>
+                          )}
+                        </div>
+                        <span className={`text-xs mt-1 ${
+                          index <= stepProgress 
+                            ? 'text-blue-500' 
+                            : isDarkMode 
+                              ? 'text-gray-400' 
+                              : 'text-gray-500'
+                        }`}>
+                          {step}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="relative pt-1">
+                  <div className={`overflow-hidden h-2 text-xs flex rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                    <div 
+                      style={{ width: `${progress}%` }}
+                      className="transition-all duration-500 ease-out shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
+                    />
+                  </div>
+                  <div className={`flex justify-between text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <span>{progress}% Complete</span>
+                    <span>{100 - progress}% Remaining</span>
+                  </div>
+                </div>
+
+                {/* Loading Animation */}
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                </div>
+
+                {/* Status Message */}
+                <div className={`text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {progress < 25 && "Preparing upload..."}
+                  {progress >= 25 && progress < 50 && "Processing image..."}
+                  {progress >= 50 && progress < 75 && "Analyzing content..."}
+                  {progress >= 75 && "Saving changes..."}
+                </div>
+              </div>
+            </div>
           </div>
         )}
+        <Toaster position="bottom-left" />{/* Add Toaster component */}
       </div>
-      <Toaster position="bottom-left" /> {/* Add Toaster component */}
     </div>
   );
 };

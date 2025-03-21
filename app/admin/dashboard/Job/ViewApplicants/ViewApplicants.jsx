@@ -78,6 +78,8 @@ const ViewApplicants = ({ handleChangeStatus }) => {
   };
 
   async function getSimilarityScore(resume, jobDescription) {
+    console.log("resume: ", resume);
+    console.log("jobDescription: ", jobDescription);
     const response = await fetch("/api/semanticpoints", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

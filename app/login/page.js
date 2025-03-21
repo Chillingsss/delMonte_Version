@@ -455,6 +455,9 @@ export default function Login(user) {
                     <div className="text-center text-gray-600">
                       Move the slider to {targetNumber}
                     </div>
+                    <div className="text-center text-lg font-bold text-gray-700">
+                      {sliderPosition}
+                    </div>
                     <div className="relative">
                       <input
                         type="range"
@@ -475,9 +478,7 @@ export default function Login(user) {
                         <span>100</span>
                       </div>
                     </div>
-                    <div className="text-center text-lg font-bold text-gray-700">
-                      {sliderPosition}
-                    </div>
+                    
                     {captchaVerified && (
                       <div className="text-green-600 text-center font-semibold">
                         ✓ Verification successful
