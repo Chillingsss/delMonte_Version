@@ -505,35 +505,47 @@ const UpdateTraining = ({
         </div>
 
         {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`p-6 rounded-lg shadow-xl w-96 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[4px] flex items-center justify-center z-50">
+            <div className={`p-6 rounded-2xl shadow-xl w-96 border ${isDarkMode ? 'bg-gray-900 text-white border-gray-800' : 'bg-white text-gray-800 border-gray-200'} transform transition-all duration-300 scale-100 hover:scale-[1.02]`}>
               <div className="space-y-6">
+                {/* Header */}
+                <div className="text-center">
+                  <h3 className={`font-semibold text-xl tracking-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Processing Your Request</h3>
+                  <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Please wait a moment</p>
+                </div>
+
                 {/* Progress Steps */}
-                <div className="flex justify-between mb-4">
+                <div className="relative flex justify-between mb-4">
+                  <div className={`absolute top-3 left-0 right-0 h-1 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
+                  <div 
+                    className="absolute top-3 left-0 h-1 rounded-full bg-[#004F39] transition-all duration-700 ease-out"
+                    style={{ width: `${Math.min(100, (progress / 100) * 100)}%` }}
+                  ></div>
+
                   {['Upload', 'Process', 'Analyze', 'Save'].map((step, index) => {
                     const stepProgress = Math.floor(progress / 25);
                     return (
-                      <div key={step} className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                      <div key={step} className="flex flex-col items-center relative z-10">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm
                           ${index <= stepProgress 
-                            ? 'border-blue-500 bg-blue-500 text-white' 
+                            ? 'bg-[#004F39] text-white border-2 border-[#00634A] scale-110' 
                             : isDarkMode 
-                              ? 'border-gray-600 text-gray-400' 
-                              : 'border-gray-300 text-gray-400'}`}>
+                              ? 'bg-gray-800 border border-gray-700 text-gray-400' 
+                              : 'bg-white border border-gray-200 text-gray-500'}`}>
                           {index < stepProgress ? (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                             </svg>
                           ) : (
-                            <span>{index + 1}</span>
+                            <span className="font-medium text-sm">{index + 1}</span>
                           )}
                         </div>
-                        <span className={`text-xs mt-1 ${
+                        <span className={`text-xs mt-1 font-medium tracking-wide ${
                           index <= stepProgress 
-                            ? 'text-blue-500' 
+                            ? 'text-[#004F39]' 
                             : isDarkMode 
-                              ? 'text-gray-400' 
-                              : 'text-gray-500'
+                              ? 'text-gray-500' 
+                              : 'text-gray-600'
                         }`}>
                           {step}
                         </span>
@@ -544,31 +556,30 @@ const UpdateTraining = ({
 
                 {/* Progress Bar */}
                 <div className="relative pt-1">
-                  <div className={`overflow-hidden h-2 text-xs flex rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div className={`overflow-hidden h-2 text-xs flex rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     <div 
                       style={{ width: `${progress}%` }}
-                      className="transition-all duration-500 ease-out shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
+                      className="transition-all duration-700 ease-out shadow-md flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#004F39] rounded-full"
                     />
                   </div>
-                  <div className={`flex justify-between text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <span>{progress}% Complete</span>
-                    <span>{100 - progress}% Remaining</span>
+                  <div className="flex justify-between text-xs mt-2 font-medium tracking-tight">
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{progress}% Complete</span>
+                    <span className={isDarkMode ? 'text-gray-500' : 'text-gray-500'}>{100 - progress}% Left</span>
                   </div>
                 </div>
 
-                {/* Loading Animation */}
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
-                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-
-                {/* Status Message */}
-                <div className={`text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {progress < 25 && "Preparing upload..."}
-                  {progress >= 25 && progress < 50 && "Processing image..."}
-                  {progress >= 50 && progress < 75 && "Analyzing content..."}
-                  {progress >= 75 && "Saving changes..."}
+                {/* Loading Animation & Status Message */}
+                <div className={`flex items-center justify-center space-x-3 py-3 px-4 rounded-lg ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'} transition-all duration-300`}>
+                  <div className="relative w-5 h-5">
+                    <div className="w-5 h-5 rounded-full border-2 border-[#004F39] border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-0 w-5 h-5 rounded-full border-2 border-[#004F39] border-t-transparent animate-spin opacity-50" style={{ animationDuration: '1.5s' }}></div>
+                  </div>
+                  <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    {progress < 25 && "Preparing upload..."}
+                    {progress >= 25 && progress < 50 && "Processing image..."}
+                    {progress >= 50 && progress < 75 && "Analyzing content..."}
+                    {progress >= 75 && "Saving changes..."}
+                  </div>
                 </div>
               </div>
             </div>
