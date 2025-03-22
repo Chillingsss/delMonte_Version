@@ -11,6 +11,7 @@ import { getDataFromCookie } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 import DatePicker from "react-datepicker";
+import Tesseract from "tesseract.js";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,6 +26,26 @@ const CustomOption = (props) => {
       {props.children}
     </components.Option>
   );
+};
+
+// Add this function at the top level, after the imports
+const performSemanticAnalysis = async (text1, text2, threshold) => {
+  try {
+    const response = await axios.post('/api/semanticAnalysis', {
+      text1,
+      text2,
+      threshold,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error response:", error.response?.data || error.message);
+    throw new Error(`Failed to perform semantic analysis: ${error.response?.data || error.message}`);
+  }
 };
 
 const UpdateEducBac = ({
@@ -108,6 +129,25 @@ const UpdateEducBac = ({
     };
   }, []);
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setData({ ...data, image: file });
+    }
+  };
+
+  const processImage = async (file) => {
+    try {
+      const result = await Tesseract.recognize(file, "eng", {
+        logger: (info) => console.log(info),
+      });
+      return result.data.text;
+    } catch (error) {
+      console.error("Error processing image:", error);
+      throw new Error("Error processing image");
+    }
+  };
+
   console.log("selectedEducation:", selectedEducation);
 
   const [errors, setErrors] = useState({
@@ -126,6 +166,12 @@ const UpdateEducBac = ({
     courseTypes: "",
     courseCategory: "",
   });
+
+  // Add these new state variables
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [diploma, setDiploma] = useState(null);
+  const [matchThreshold] = useState(60); // Default threshold for matching
 
   useEffect(() => {
     if (showModalUpdateEduc) {
@@ -203,8 +249,20 @@ const UpdateEducBac = ({
     }));
   };
 
+  // Add this function to handle diploma upload
+  const handleDiplomaUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDiploma(file);
+    }
+  };
+
   const handleSave = async () => {
+    setLoading(true);
+    setProgress(0);
     try {
+      setProgress(10);
+      
       const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
       const getUserIdFromCookie = () => {
         const tokenData = getDataFromCookie("auth_token");
@@ -226,6 +284,7 @@ const UpdateEducBac = ({
         )
       ) {
         toast.error("Please choose the existing course from the dropdown.");
+        setLoading(false);
         return;
       }
 
@@ -240,6 +299,7 @@ const UpdateEducBac = ({
         toast.error(
           "Please choose the existing institution from the dropdown."
         );
+        setLoading(false);
         return;
       }
 
@@ -254,6 +314,7 @@ const UpdateEducBac = ({
         toast.error(
           "Please choose the existing course category from the dropdown."
         );
+        setLoading(false);
         return;
       }
 
@@ -268,9 +329,51 @@ const UpdateEducBac = ({
         toast.error(
           "Please choose the existing course type from the dropdown."
         );
+        setLoading(false);
         return;
       }
 
+      // If there's a diploma to process
+      if (diploma) {
+        setProgress(20);
+        // Process the diploma image with OCR
+        const textFromDiploma = await processImage(diploma);
+        setProgress(40);
+
+        // Get the selected course name
+        const selectedCourseName = data.customCourse || 
+          courses.find(c => c.courses_id === data.courses_id)?.courses_name || '';
+
+        if (!selectedCourseName) {
+          toast.error("Please select or enter a course first");
+          setLoading(false);
+          return;
+        }
+
+        // Perform semantic analysis
+        console.log('\n=== Detailed Semantic Analysis: Diploma vs Course ===');
+        const diplomaAnalysis = await performSemanticAnalysis(
+          textFromDiploma.trim().toLowerCase(),
+          selectedCourseName.trim().toLowerCase(),
+          matchThreshold
+        );
+        setProgress(60);
+
+        console.log('Match Quality:', diplomaAnalysis.matchQuality);
+        console.log('Cosine Score:', diplomaAnalysis.score + '%');
+        console.log('Required Percentage:', matchThreshold + '%');
+
+        // Check if the match meets the threshold
+        if (parseFloat(diplomaAnalysis.score) < matchThreshold) {
+          toast.error(`The diploma does not match the selected course (Similarity: ${diplomaAnalysis.score}%, Required: ${matchThreshold}%)`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setProgress(80);
+
+      // Prepare the form data as before
       const updatedData = {
         candidateId: userId,
         educationalBackground: [
@@ -300,20 +403,28 @@ const UpdateEducBac = ({
             customCourseCategory: data.customCourseCategory,
             customCourseType: data.customCourseType,
             customInstitution: data.customInstitution,
+            diploma: diploma ? diploma.name : null,
           },
         ],
       };
-
 
       const formData = new FormData();
       formData.append("operation", "updateEducationalBackground");
       formData.append("json", JSON.stringify(updatedData));
 
+      // Append diploma if exists
+      if (diploma) {
+        formData.append("diploma", diploma);
+      }
+
+      // Make the API call
       const response = await axios.post(url, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      setProgress(100);
 
       if (response.data === 1) {
         toast.success("Educational background updated successfully");
@@ -334,19 +445,21 @@ const UpdateEducBac = ({
         }
       } else if (response.data === -1) {
         toast.error("Educational background already exists.");
-      }else {
+      } else {
         console.error(
           "Failed to update educational background:",
           response.data
         );
-        toast.error("Failed to update educational background."); // This will now use react-hot-toast
+        toast.error("Failed to update educational background.");
       }
     } catch (error) {
       console.error("Error updating educational background:", error);
-      toast.error("Error updating educational background: " + error.message); // This will now use react-hot-toast
+      toast.error("Error updating educational background: " + error.message);
+    } finally {
+      setLoading(false);
+      setProgress(0);
+      setShowModalUpdateEduc(false);
     }
-
-    setShowModalUpdateEduc(false);
   };
 
   const getSelectedOption = (options, value) =>
@@ -863,6 +976,28 @@ const UpdateEducBac = ({
           />
         </div>
 
+        <div className="mb-4">
+          <label className={`block text-sm font-normal ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+            Upload Diploma:
+          </label>
+          <div className="relative w-full">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleDiplomaUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className={`flex items-center justify-center w-full p-3 border-2 border-dashed ${
+              isDarkMode ? "border-gray-500" : "border-gray-300"
+            } rounded-lg hover:bg-gray-100 transition-all cursor-pointer`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              <span className="ml-2">{diploma ? diploma.name : "Upload Diploma"}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-4 flex justify-end">
           <button
             className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
@@ -879,6 +1014,106 @@ const UpdateEducBac = ({
         </div>
       </div>
       <Toaster position="bottom-left" />
+
+      {/* Add loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`p-6 rounded-lg shadow-xl w-96 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+            <div className="space-y-6">
+              {/* Progress Steps */}
+              <div className="flex justify-between mb-4">
+                {['Upload', 'Process', 'Analyze', 'Save'].map((step, index) => {
+                  const stepProgress = Math.floor(progress / 25);
+                  return (
+                    <div key={step} className="flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                        ${index <= stepProgress 
+                          ? 'border-blue-500 bg-blue-500 text-white' 
+                          : isDarkMode 
+                            ? 'border-gray-600 text-gray-400' 
+                            : 'border-gray-300 text-gray-400'}`}>
+                        {index < stepProgress ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
+                      </div>
+                      <span className={`text-xs mt-1 ${
+                        index <= stepProgress 
+                          ? 'text-blue-500' 
+                          : isDarkMode 
+                            ? 'text-gray-400' 
+                            : 'text-gray-500'
+                      }`}>
+                        {step}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Progress Bar */}
+              <div className="relative pt-1">
+                <div className={`overflow-hidden h-2 text-xs flex rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div 
+                    style={{ width: `${progress}%` }}
+                    className="transition-all duration-500 ease-out shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
+                  />
+                </div>
+                <div className={`flex justify-between text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span>{progress}% Complete</span>
+                  <span>{100 - progress}% Remaining</span>
+                </div>
+              </div>
+
+              {/* Loading Animation */}
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
+                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+
+              {/* Status Message */}
+              <div className={`text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {progress < 25 && "Preparing upload..."}
+                {progress >= 25 && progress < 50 && "Processing image..."}
+                {progress >= 50 && progress < 75 && "Analyzing content..."}
+                {progress >= 75 && "Saving changes..."}
+              </div>
+
+              {/* Detailed Progress Info */}
+              <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>Data Validation:</div>
+                  <div className="text-right">{progress >= 10 ? '✓ Complete' : 'Pending'}</div>
+                  
+                  <div>Image Processing:</div>
+                  <div className="text-right">
+                    {progress >= 40 ? '✓ Complete' : progress >= 20 ? 'Processing...' : 'Pending'}
+                  </div>
+                  
+                  <div>Content Analysis:</div>
+                  <div className="text-right">
+                    {progress >= 60 ? '✓ Complete' : progress >= 40 ? 'Analyzing...' : 'Pending'}
+                  </div>
+                  
+                  <div>Database Update:</div>
+                  <div className="text-right">
+                    {progress >= 80 ? '✓ Complete' : progress >= 60 ? 'Updating...' : 'Pending'}
+                  </div>
+                  
+                  <div>Finalizing:</div>
+                  <div className="text-right">
+                    {progress === 100 ? '✓ Complete' : progress >= 80 ? 'Finalizing...' : 'Pending'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

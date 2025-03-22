@@ -178,6 +178,10 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
   const [selectedResumeImage, setSelectedResumeImage] = useState(null);
   const [resumeZoomLevel, setResumeZoomLevel] = useState(1);
 
+  const [selectedDiplomaImage, setSelectedDiplomaImage] = useState(null);
+  const [isDiplomaImageModalOpen, setIsDiplomaImageModalOpen] = useState(false);
+  const [diplomaZoomLevel, setDiplomaZoomLevel] = useState(1);
+
   const handleEditClick = (education, index) => {
     setSelectedEducation(education);
     setSelectedIndex(index);
@@ -2370,6 +2374,28 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                       </p>
                     </div>
 
+                    {/* Add Diploma Image Display */}
+                    {education.educ_diploma_path && (
+                      <div className="mt-4">
+                        <label
+                          className={`block text-gray-600 text-sm font-normal ${
+                            isDarkMode ? "text-white" : ""
+                          }`}
+                        >
+                          Diploma:
+                        </label>
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL}uploads/diplomas/${education.educ_diploma_path}`}
+                          alt="Diploma"
+                          className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => {
+                            setSelectedDiplomaImage(education.educ_diploma_path);
+                            setIsDiplomaImageModalOpen(true);
+                          }}
+                        />
+                      </div>
+                    )}
+
                     {/* Modal */}
                     {selectedIndex === index && showModalUpdateEduc && (
                       <div className="col-span-1 md:col-span-2 mt-4">
@@ -3468,6 +3494,15 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
     }
   };
 
+  // Add this function to handle diploma image zoom
+  const handleDiplomaZoom = (direction) => {
+    if (direction === "in" && diplomaZoomLevel < 3) {
+      setDiplomaZoomLevel((prev) => prev + 0.25);
+    } else if (direction === "out" && diplomaZoomLevel > 0.5) {
+      setDiplomaZoomLevel((prev) => prev - 0.25);
+    }
+  };
+
   // useEffect(() => {
   //   const handleClickOutside = (event) => {
   //     const dropdown = document.getElementById("upload-options");
@@ -3800,6 +3835,96 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 e.stopPropagation();
                 setIsResumeImageModalOpen(false);
                 setResumeZoomLevel(1); // Reset zoom when closing
+              }}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Diploma Image Modal */}
+      {isDiplomaImageModalOpen && selectedDiplomaImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+          onClick={() => {
+            setIsDiplomaImageModalOpen(false);
+            setDiplomaZoomLevel(1); // Reset zoom when closing
+          }}
+        >
+          <div className="relative max-w-6xl max-h-[90vh] p-2">
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_URL}uploads/diplomas/${selectedDiplomaImage}`}
+              alt="Diploma"
+              className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
+              style={{ transform: `scale(${diplomaZoomLevel})` }}
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-black bg-opacity-50 p-2 rounded-lg">
+              <button
+                className="text-white hover:text-green-400 disabled:text-gray-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDiplomaZoom("out");
+                }}
+                disabled={diplomaZoomLevel <= 0.5}
+                title="Zoom Out"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 12H4"
+                  />
+                </svg>
+              </button>
+
+              <span className="text-white text-sm">
+                {(diplomaZoomLevel * 100).toFixed(0)}%
+              </span>
+
+              <button
+                className="text-white hover:text-green-400 disabled:text-gray-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDiplomaZoom("in");
+                }}
+                disabled={diplomaZoomLevel >= 3}
+                title="Zoom In"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Close button */}
+            <button
+              className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDiplomaImageModalOpen(false);
+                setDiplomaZoomLevel(1); // Reset zoom when closing
               }}
             >
               <X className="w-6 h-6" />
