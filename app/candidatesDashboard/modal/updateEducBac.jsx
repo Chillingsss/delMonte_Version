@@ -61,6 +61,7 @@ const UpdateEducBac = ({
   fetchInstitutions,
   fetchCourseTypes,
   fetchCourseCategorys,
+  profile,
 }) => {
   const { data: session } = useSession();
   const [pageNumber, setPageNumber] = useState({
@@ -171,10 +172,15 @@ const UpdateEducBac = ({
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [diploma, setDiploma] = useState(null);
-  const [matchThreshold] = useState(60); // Default threshold for matching
 
-  // Add this new state for animated progress
-  const [animatedProgress, setAnimatedProgress] = useState(0);
+  // Function to get the passing percentage for the selected course
+  const getPassingPercentage = useCallback(() => {
+    if (data.courses_id) {
+      const selectedCourse = courses.find(course => course.courses_id === data.courses_id);
+      return selectedCourse?.courses_passpercentage || 60; // fallback to 60 if not found
+    }
+    return 60; // default value if no course is selected
+  }, [data.courses_id, courses]);
 
   useEffect(() => {
     if (showModalUpdateEduc) {
@@ -260,95 +266,261 @@ const UpdateEducBac = ({
     }
   };
 
-  // Add this useEffect to handle the progress animation
-  useEffect(() => {
-    let animationFrame;
-    let startTime;
-    
-    const animate = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      
-      // Calculate the progress based on elapsed time (3 seconds total duration)
-      const duration = 3000; // 3 seconds
-      const newProgress = Math.min((elapsed / duration) * progress, progress);
-      
-      setAnimatedProgress(Math.round(newProgress));
-      
-      if (newProgress < progress) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-    
-    if (loading && progress > 0) {
-      animationFrame = requestAnimationFrame(animate);
-    }
-    
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-      }
-    };
-  }, [loading, progress]);
-
   const handleSave = async () => {
     setLoading(true);
     setProgress(0);
     try {
-      setProgress(10); // Start
+      setProgress(10);
       
-      // Validation checks
-      setProgress(20);
-      
+      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+      const getUserIdFromCookie = () => {
+        const tokenData = getDataFromCookie("auth_token");
+        if (tokenData && tokenData.userId) {
+          return tokenData.userId;
+        }
+        return null; // Return null if userId is not found or tokenData is invalid
+      };
+      const userId = session?.user?.id || getUserIdFromCookie();
+
+      // console.log("User ID:", userId);
+
+      if (
+        data.customCourse &&
+        courses.some(
+          (course) =>
+            course.courses_name.toLowerCase() ===
+            data.customCourse.toLowerCase()
+        )
+      ) {
+        toast.error("Please choose the existing course from the dropdown.");
+        setLoading(false);
+        return;
+      }
+
+      if (
+        data.customInstitution &&
+        institutions.some(
+          (institution) =>
+            institution.institution_name.toLowerCase() ===
+            data.customInstitution.toLowerCase()
+        )
+      ) {
+        toast.error(
+          "Please choose the existing institution from the dropdown."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (
+        data.customCourseCategory &&
+        courseCategory.some(
+          (category) =>
+            category.course_categoryName.toLowerCase() ===
+            data.customCourseCategory.toLowerCase()
+        )
+      ) {
+        toast.error(
+          "Please choose the existing course category from the dropdown."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (
+        data.customCourseType &&
+        courseTypes.some(
+          (type) =>
+            type.crs_type_name.toLowerCase() ===
+            data.customCourseType.toLowerCase()
+        )
+      ) {
+        toast.error(
+          "Please choose the existing course type from the dropdown."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // If there's a diploma to process
       if (diploma) {
-        setProgress(30); // Start diploma processing
+        setProgress(20);
         const textFromDiploma = await processImage(diploma);
-        setProgress(40); // Finished OCR
-        
-        const selectedCourseName = data.customCourse || 
-          courses.find(c => c.courses_id === data.courses_id)?.courses_name || '';
-        
-        if (!selectedCourseName) {
+        setProgress(50);
+
+        // Get the selected course name and passing percentage
+        const selectedCourse = data.customCourse ? 
+          { courses_name: data.customCourse, courses_passpercentage: 60 } : // default for custom courses
+          courses.find(c => c.courses_id === data.courses_id);
+
+        if (!selectedCourse) {
           toast.error("Please select or enter a course first");
           setLoading(false);
           return;
         }
-        
-        setProgress(50); // Start semantic analysis
+
+        const coursePassingPercent = selectedCourse.courses_passpercentage;
+
+        // Perform semantic analysis for course
+        console.log('\n=== Detailed Semantic Analysis: Diploma vs Course ===');
         const diplomaAnalysis = await performSemanticAnalysis(
           textFromDiploma.trim().toLowerCase(),
-          selectedCourseName.trim().toLowerCase(),
-          matchThreshold
+          selectedCourse.courses_name.trim().toLowerCase(),
+          coursePassingPercent
         );
-        setProgress(60); // Finished analysis
-        
-        if (parseFloat(diplomaAnalysis.score) < matchThreshold) {
-          toast.error(`The diploma does not match the selected course (Similarity: ${diplomaAnalysis.score}%, Required: ${matchThreshold}%)`);
+        setProgress(60);
+
+        console.log('Match Quality:', diplomaAnalysis.matchQuality);
+        console.log('Cosine Score:', diplomaAnalysis.score + '%');
+        console.log('Required Percentage:', coursePassingPercent + '%');
+
+        // Check if the match meets the threshold
+        if (parseFloat(diplomaAnalysis.score) < coursePassingPercent) {
+          toast.error(`The diploma does not match the selected course (Similarity: ${diplomaAnalysis.score}%, Required: ${coursePassingPercent}%)`);
           setLoading(false);
           return;
         }
+
+        // Perform semantic analysis for candidate's name
+        const candidateName = `${profile.candidateInformation.cand_firstname} ${profile.candidateInformation.cand_lastname}`.toLowerCase();
+        
+        console.log('\n=== Detailed Name Analysis ===');
+        // Split the diploma text into words and look for name matches
+        const diplomaWords = textFromDiploma.toLowerCase().split(/\s+/);
+        const nameWords = candidateName.split(/\s+/);
+        
+        // Count how many name parts are found in the diploma text
+        let matchedNameParts = 0;
+        nameWords.forEach(namePart => {
+          if (diplomaWords.includes(namePart)) {
+            matchedNameParts++;
+          }
+        });
+
+        // Calculate name match percentage
+        const nameMatchPercentage = (matchedNameParts / nameWords.length) * 100;
+
+        console.log('Name Parts Found:', matchedNameParts);
+        console.log('Total Name Parts:', nameWords.length);
+        console.log('Name Match Percentage:', nameMatchPercentage + '%');
+
+        if (nameMatchPercentage < coursePassingPercent) {
+          toast.error(`The diploma does not match the candidate's name (Match: ${nameMatchPercentage.toFixed(1)}%, Required: ${coursePassingPercent}%)`);
+          setLoading(false);
+          return;
+        }
+
+        // Perform semantic analysis for institution using same threshold
+        const selectedInstitutionName = data.customInstitution || 
+          institutions.find(i => i.institution_id === data.institution_id)?.institution_name || '';
+
+        if (selectedInstitutionName) {
+          console.log('\n=== Detailed Semantic Analysis: Diploma vs Institution ===');
+          const institutionAnalysis = await performSemanticAnalysis(
+            textFromDiploma.trim().toLowerCase(),
+            selectedInstitutionName.trim().toLowerCase(),
+            coursePassingPercent
+          );
+
+          console.log('Institution Match Quality:', institutionAnalysis.matchQuality);
+          console.log('Institution Cosine Score:', institutionAnalysis.score + '%');
+
+          if (parseFloat(institutionAnalysis.score) < coursePassingPercent) {
+            toast.error(`The diploma does not match the selected institution (Similarity: ${institutionAnalysis.score}%, Required: ${coursePassingPercent}%)`);
+            setLoading(false);
+            return;
+          }
+        }
       }
-      
-      setProgress(70); // Prepare data for save
-      
-      // Prepare the form data
+
       setProgress(80);
-      
+
+      // Prepare the form data as before
+      const updatedData = {
+        candidateId: userId,
+        educationalBackground: [
+          {
+            educId: data.educ_back_id || null,
+            courseId:
+              data.courses_id ||
+              (data.customCourse ? "custom" : selectedEducation.courses_id),
+            institutionId:
+              data.institution_id ||
+              (data.customInstitution
+                ? "custom"
+                : selectedEducation.institution_id),
+            courseDateGraduated:
+              data.educ_dategraduate || selectedEducation.educ_dategraduate,
+            courseCategoryId:
+              data.course_category_id ||
+              (data.customCourseCategory
+                ? "custom"
+                : selectedEducation.course_category_id),
+            courseTypeId:
+              data.course_type_id ||
+              (data.customCourseType
+                ? "custom"
+                : selectedEducation.course_type_id),
+            customCourse: data.customCourse,
+            customCourseCategory: data.customCourseCategory,
+            customCourseType: data.customCourseType,
+            customInstitution: data.customInstitution,
+            diploma: diploma ? diploma.name : null,
+          },
+        ],
+      };
+
+      const formData = new FormData();
+      formData.append("operation", "updateEducationalBackground");
+      formData.append("json", JSON.stringify(updatedData));
+
+      // Append diploma if exists
+      if (diploma) {
+        formData.append("diploma", diploma);
+      }
+
       // Make the API call
-      setProgress(90);
-      
-      // Handle response
+      const response = await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       setProgress(100);
-      
+
+      if (response.data === 1) {
+        toast.success("Educational background updated successfully");
+        if (fetchProfile) {
+          fetchProfile();
+        }
+        if (fetchCourses) {
+          fetchCourses();
+        }
+        if (fetchInstitutions) {
+          fetchInstitutions();
+        }
+        if (fetchCourseTypes) {
+          fetchCourseTypes();
+        }
+        if (fetchCourseCategorys) {
+          fetchCourseCategorys();
+        }
+      } else if (response.data === -1) {
+        toast.error("Educational background already exists.");
+      } else {
+        console.error(
+          "Failed to update educational background:",
+          response.data
+        );
+        toast.error("Failed to update educational background.");
+      }
     } catch (error) {
       console.error("Error updating educational background:", error);
       toast.error("Error updating educational background: " + error.message);
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setProgress(0);
-        setShowModalUpdateEduc(false);
-      }, 500); // Small delay to show 100% completion
+      setLoading(false);
+      setProgress(0);
+      setShowModalUpdateEduc(false);
     }
   };
 
@@ -587,20 +759,6 @@ const UpdateEducBac = ({
     };
   }, []);
 
-  // Add this helper function for detailed progress messages
-  const getDetailedProgressMessage = (progress) => {
-    if (progress < 10) return "Initializing...";
-    if (progress < 20) return "Validating input data...";
-    if (progress < 30) return "Processing diploma image...";
-    if (progress < 40) return "Extracting text from image...";
-    if (progress < 50) return "Analyzing text content...";
-    if (progress < 60) return "Comparing with course data...";
-    if (progress < 70) return "Validating matches...";
-    if (progress < 80) return "Preparing data for upload...";
-    if (progress < 90) return "Uploading to server...";
-    return "Finalizing changes...";
-  };
-
   return (
     <div className={`modal ${showModalUpdateEduc ? "block" : "hidden"}`}>
       <div
@@ -676,7 +834,7 @@ const UpdateEducBac = ({
           )}
         </div>
 
-        <div className={`mb-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+        {/* <div className={`mb-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
           <label
             className={`block text-gray-600 text-sm font-normal ${
               isDarkMode ? "text-white" : "text-gray-800"
@@ -792,7 +950,7 @@ const UpdateEducBac = ({
           {errors.customCourseType && (
             <p className="text-sm text-red-500">{errors.customCourseType}</p>
           )}
-        </div>
+        </div> */}
 
         <div className={`mb-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
           <label
@@ -921,35 +1079,47 @@ const UpdateEducBac = ({
 
       {/* Add loading overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`p-6 rounded-lg shadow-xl w-96 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[4px] flex items-center justify-center z-50">
+          <div className={`p-6 rounded-2xl shadow-xl w-96 border ${isDarkMode ? 'bg-gray-900 text-white border-gray-800' : 'bg-white text-gray-800 border-gray-200'} transform transition-all duration-300 scale-100 hover:scale-[1.02]`}>
             <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center">
+                <h3 className={`font-semibold text-xl tracking-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Processing Your Request</h3>
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Please wait while we handle your task</p>
+              </div>
+
               {/* Progress Steps */}
-              <div className="flex justify-between mb-4">
+              <div className="relative flex justify-between mb-4">
+                <div className={`absolute top-3 left-0 right-0 h-1 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
+                <div 
+                  className="absolute top-3 left-0 h-1 rounded-full bg-[#004F39] transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(100, (progress / 100) * 100)}%` }}
+                ></div>
+
                 {['Upload', 'Process', 'Analyze', 'Save'].map((step, index) => {
-                  const stepProgress = Math.floor(animatedProgress / 25);
+                  const stepProgress = Math.floor(progress / 25);
                   return (
-                    <div key={step} className="flex flex-col items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                    <div key={step} className="flex flex-col items-center relative z-10">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm
                         ${index <= stepProgress 
-                          ? 'border-blue-500 bg-blue-500 text-white' 
+                          ? 'bg-[#004F39] text-white border-2 border-[#00634A] scale-110' 
                           : isDarkMode 
-                            ? 'border-gray-600 text-gray-400' 
-                            : 'border-gray-300 text-gray-400'}`}>
+                            ? 'bg-gray-800 border border-gray-700 text-gray-400' 
+                            : 'bg-white border border-gray-200 text-gray-500'}`}>
                         {index < stepProgress ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                           </svg>
                         ) : (
-                          <span>{index + 1}</span>
+                          <span className="font-medium text-sm">{index + 1}</span>
                         )}
                       </div>
-                      <span className={`text-xs mt-1 ${
+                      <span className={`text-xs mt-1 font-medium tracking-wide ${
                         index <= stepProgress 
-                          ? 'text-blue-500' 
+                          ? 'text-[#004F39]' 
                           : isDarkMode 
-                            ? 'text-gray-400' 
-                            : 'text-gray-500'
+                            ? 'text-gray-500' 
+                            : 'text-gray-600'
                       }`}>
                         {step}
                       </span>
@@ -959,37 +1129,31 @@ const UpdateEducBac = ({
               </div>
 
               {/* Progress Bar */}
-              <div className="relative pt-1">
-                <div className={`overflow-hidden h-2 text-xs flex rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+              <div className="pt-1">
+                <div className={`overflow-hidden h-2 text-xs flex rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                   <div 
-                    style={{ width: `${animatedProgress}%` }}
-                    className="transition-all duration-300 shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
+                    style={{ width: `${progress}%` }}
+                    className="transition-all duration-700 ease-out shadow-md flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#004F39] rounded-full"
                   />
                 </div>
-                <div className={`flex justify-between text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <span>{animatedProgress}% Complete</span>
-                  <span>{100 - animatedProgress}% Remaining</span>
+                <div className="flex justify-between text-xs mt-2 font-medium tracking-tight">
+                  <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{progress}% Complete</span>
+                  <span className={isDarkMode ? 'text-gray-500' : 'text-gray-500'}>{100 - progress}% Left</span>
                 </div>
               </div>
 
-              {/* Loading Animation */}
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
-                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-
-              {/* Status Message */}
-              <div className={`text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {animatedProgress < 25 && "Preparing upload..."}
-                {animatedProgress >= 25 && animatedProgress < 50 && "Processing image..."}
-                {animatedProgress >= 50 && animatedProgress < 75 && "Analyzing content..."}
-                {animatedProgress >= 75 && "Saving changes..."}
-              </div>
-
-              {/* Detailed Progress Message */}
-              <div className={`text-center text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-                {getDetailedProgressMessage(animatedProgress)}
+              {/* Status Message with Icon */}
+              <div className={`flex items-center justify-center space-x-3 py-3 px-4 rounded-lg ${isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'} transition-all duration-300`}>
+                <div className="relative w-5 h-5">
+                  <div className="w-5 h-5 rounded-full border-2 border-[#004F39] border-t-transparent animate-spin"></div>
+                  <div className="absolute inset-0 w-5 h-5 rounded-full border-2 border-[#004F39] border-t-transparent animate-spin opacity-50" style={{ animationDuration: '1.5s' }}></div>
+                </div>
+                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                  {progress < 25 && "Preparing upload..."}
+                  {progress >= 25 && progress < 50 && "Processing data..."}
+                  {progress >= 50 && progress < 75 && "Analyzing content..."}
+                  {progress >= 75 && "Finalizing results..."}
+                </div>
               </div>
             </div>
           </div>

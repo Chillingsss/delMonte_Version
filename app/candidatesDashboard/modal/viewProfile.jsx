@@ -2263,6 +2263,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                 fetchInstitutions={fetchInstitutions}
                 fetchCourseTypes={fetchCourseTypes}
                 fetchCourseCategorys={fetchCourseCategorys}
+                profile={profile}
               />
             )}
 
