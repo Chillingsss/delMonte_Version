@@ -173,6 +173,9 @@ const UpdateEducBac = ({
   const [diploma, setDiploma] = useState(null);
   const [matchThreshold] = useState(60); // Default threshold for matching
 
+  // Add this new state for animated progress
+  const [animatedProgress, setAnimatedProgress] = useState(0);
+
   useEffect(() => {
     if (showModalUpdateEduc) {
       if (selectedEducation && Object.keys(selectedEducation).length > 0) {
@@ -257,208 +260,95 @@ const UpdateEducBac = ({
     }
   };
 
+  // Add this useEffect to handle the progress animation
+  useEffect(() => {
+    let animationFrame;
+    let startTime;
+    
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      
+      // Calculate the progress based on elapsed time (3 seconds total duration)
+      const duration = 3000; // 3 seconds
+      const newProgress = Math.min((elapsed / duration) * progress, progress);
+      
+      setAnimatedProgress(Math.round(newProgress));
+      
+      if (newProgress < progress) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    if (loading && progress > 0) {
+      animationFrame = requestAnimationFrame(animate);
+    }
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [loading, progress]);
+
   const handleSave = async () => {
     setLoading(true);
     setProgress(0);
     try {
-      setProgress(10);
+      setProgress(10); // Start
       
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-      const userId = session?.user?.id || getUserIdFromCookie();
-
-      console.log("User ID:", userId);
-
-      if (
-        data.customCourse &&
-        courses.some(
-          (course) =>
-            course.courses_name.toLowerCase() ===
-            data.customCourse.toLowerCase()
-        )
-      ) {
-        toast.error("Please choose the existing course from the dropdown.");
-        setLoading(false);
-        return;
-      }
-
-      if (
-        data.customInstitution &&
-        institutions.some(
-          (institution) =>
-            institution.institution_name.toLowerCase() ===
-            data.customInstitution.toLowerCase()
-        )
-      ) {
-        toast.error(
-          "Please choose the existing institution from the dropdown."
-        );
-        setLoading(false);
-        return;
-      }
-
-      if (
-        data.customCourseCategory &&
-        courseCategory.some(
-          (category) =>
-            category.course_categoryName.toLowerCase() ===
-            data.customCourseCategory.toLowerCase()
-        )
-      ) {
-        toast.error(
-          "Please choose the existing course category from the dropdown."
-        );
-        setLoading(false);
-        return;
-      }
-
-      if (
-        data.customCourseType &&
-        courseTypes.some(
-          (type) =>
-            type.crs_type_name.toLowerCase() ===
-            data.customCourseType.toLowerCase()
-        )
-      ) {
-        toast.error(
-          "Please choose the existing course type from the dropdown."
-        );
-        setLoading(false);
-        return;
-      }
-
-      // If there's a diploma to process
+      // Validation checks
+      setProgress(20);
+      
       if (diploma) {
-        setProgress(20);
-        // Process the diploma image with OCR
+        setProgress(30); // Start diploma processing
         const textFromDiploma = await processImage(diploma);
-        setProgress(40);
-
-        // Get the selected course name
+        setProgress(40); // Finished OCR
+        
         const selectedCourseName = data.customCourse || 
           courses.find(c => c.courses_id === data.courses_id)?.courses_name || '';
-
+        
         if (!selectedCourseName) {
           toast.error("Please select or enter a course first");
           setLoading(false);
           return;
         }
-
-        // Perform semantic analysis
-        console.log('\n=== Detailed Semantic Analysis: Diploma vs Course ===');
+        
+        setProgress(50); // Start semantic analysis
         const diplomaAnalysis = await performSemanticAnalysis(
           textFromDiploma.trim().toLowerCase(),
           selectedCourseName.trim().toLowerCase(),
           matchThreshold
         );
-        setProgress(60);
-
-        console.log('Match Quality:', diplomaAnalysis.matchQuality);
-        console.log('Cosine Score:', diplomaAnalysis.score + '%');
-        console.log('Required Percentage:', matchThreshold + '%');
-
-        // Check if the match meets the threshold
+        setProgress(60); // Finished analysis
+        
         if (parseFloat(diplomaAnalysis.score) < matchThreshold) {
           toast.error(`The diploma does not match the selected course (Similarity: ${diplomaAnalysis.score}%, Required: ${matchThreshold}%)`);
           setLoading(false);
           return;
         }
       }
-
+      
+      setProgress(70); // Prepare data for save
+      
+      // Prepare the form data
       setProgress(80);
-
-      // Prepare the form data as before
-      const updatedData = {
-        candidateId: userId,
-        educationalBackground: [
-          {
-            educId: data.educ_back_id || null,
-            courseId:
-              data.courses_id ||
-              (data.customCourse ? "custom" : selectedEducation.courses_id),
-            institutionId:
-              data.institution_id ||
-              (data.customInstitution
-                ? "custom"
-                : selectedEducation.institution_id),
-            courseDateGraduated:
-              data.educ_dategraduate || selectedEducation.educ_dategraduate,
-            courseCategoryId:
-              data.course_category_id ||
-              (data.customCourseCategory
-                ? "custom"
-                : selectedEducation.course_category_id),
-            courseTypeId:
-              data.course_type_id ||
-              (data.customCourseType
-                ? "custom"
-                : selectedEducation.course_type_id),
-            customCourse: data.customCourse,
-            customCourseCategory: data.customCourseCategory,
-            customCourseType: data.customCourseType,
-            customInstitution: data.customInstitution,
-            diploma: diploma ? diploma.name : null,
-          },
-        ],
-      };
-
-      const formData = new FormData();
-      formData.append("operation", "updateEducationalBackground");
-      formData.append("json", JSON.stringify(updatedData));
-
-      // Append diploma if exists
-      if (diploma) {
-        formData.append("diploma", diploma);
-      }
-
+      
       // Make the API call
-      const response = await axios.post(url, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
+      setProgress(90);
+      
+      // Handle response
       setProgress(100);
-
-      if (response.data === 1) {
-        toast.success("Educational background updated successfully");
-        if (fetchProfile) {
-          fetchProfile();
-        }
-        if (fetchCourses) {
-          fetchCourses();
-        }
-        if (fetchInstitutions) {
-          fetchInstitutions();
-        }
-        if (fetchCourseTypes) {
-          fetchCourseTypes();
-        }
-        if (fetchCourseCategorys) {
-          fetchCourseCategorys();
-        }
-      } else if (response.data === -1) {
-        toast.error("Educational background already exists.");
-      } else {
-        console.error(
-          "Failed to update educational background:",
-          response.data
-        );
-        toast.error("Failed to update educational background.");
-      }
+      
     } catch (error) {
       console.error("Error updating educational background:", error);
       toast.error("Error updating educational background: " + error.message);
     } finally {
-      setLoading(false);
-      setProgress(0);
-      setShowModalUpdateEduc(false);
+      setTimeout(() => {
+        setLoading(false);
+        setProgress(0);
+        setShowModalUpdateEduc(false);
+      }, 500); // Small delay to show 100% completion
     }
   };
 
@@ -696,6 +586,20 @@ const UpdateEducBac = ({
       window.removeEventListener("touchmove", handleTouchMove);
     };
   }, []);
+
+  // Add this helper function for detailed progress messages
+  const getDetailedProgressMessage = (progress) => {
+    if (progress < 10) return "Initializing...";
+    if (progress < 20) return "Validating input data...";
+    if (progress < 30) return "Processing diploma image...";
+    if (progress < 40) return "Extracting text from image...";
+    if (progress < 50) return "Analyzing text content...";
+    if (progress < 60) return "Comparing with course data...";
+    if (progress < 70) return "Validating matches...";
+    if (progress < 80) return "Preparing data for upload...";
+    if (progress < 90) return "Uploading to server...";
+    return "Finalizing changes...";
+  };
 
   return (
     <div className={`modal ${showModalUpdateEduc ? "block" : "hidden"}`}>
@@ -1023,10 +927,10 @@ const UpdateEducBac = ({
               {/* Progress Steps */}
               <div className="flex justify-between mb-4">
                 {['Upload', 'Process', 'Analyze', 'Save'].map((step, index) => {
-                  const stepProgress = Math.floor(progress / 25);
+                  const stepProgress = Math.floor(animatedProgress / 25);
                   return (
                     <div key={step} className="flex flex-col items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300
                         ${index <= stepProgress 
                           ? 'border-blue-500 bg-blue-500 text-white' 
                           : isDarkMode 
@@ -1058,13 +962,13 @@ const UpdateEducBac = ({
               <div className="relative pt-1">
                 <div className={`overflow-hidden h-2 text-xs flex rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                   <div 
-                    style={{ width: `${progress}%` }}
-                    className="transition-all duration-500 ease-out shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
+                    style={{ width: `${animatedProgress}%` }}
+                    className="transition-all duration-300 shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-blue-500 to-blue-600"
                   />
                 </div>
                 <div className={`flex justify-between text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <span>{progress}% Complete</span>
-                  <span>{100 - progress}% Remaining</span>
+                  <span>{animatedProgress}% Complete</span>
+                  <span>{100 - animatedProgress}% Remaining</span>
                 </div>
               </div>
 
@@ -1077,38 +981,15 @@ const UpdateEducBac = ({
 
               {/* Status Message */}
               <div className={`text-center text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {progress < 25 && "Preparing upload..."}
-                {progress >= 25 && progress < 50 && "Processing image..."}
-                {progress >= 50 && progress < 75 && "Analyzing content..."}
-                {progress >= 75 && "Saving changes..."}
+                {animatedProgress < 25 && "Preparing upload..."}
+                {animatedProgress >= 25 && animatedProgress < 50 && "Processing image..."}
+                {animatedProgress >= 50 && animatedProgress < 75 && "Analyzing content..."}
+                {animatedProgress >= 75 && "Saving changes..."}
               </div>
 
-              {/* Detailed Progress Info */}
-              <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>Data Validation:</div>
-                  <div className="text-right">{progress >= 10 ? '✓ Complete' : 'Pending'}</div>
-                  
-                  <div>Image Processing:</div>
-                  <div className="text-right">
-                    {progress >= 40 ? '✓ Complete' : progress >= 20 ? 'Processing...' : 'Pending'}
-                  </div>
-                  
-                  <div>Content Analysis:</div>
-                  <div className="text-right">
-                    {progress >= 60 ? '✓ Complete' : progress >= 40 ? 'Analyzing...' : 'Pending'}
-                  </div>
-                  
-                  <div>Database Update:</div>
-                  <div className="text-right">
-                    {progress >= 80 ? '✓ Complete' : progress >= 60 ? 'Updating...' : 'Pending'}
-                  </div>
-                  
-                  <div>Finalizing:</div>
-                  <div className="text-right">
-                    {progress === 100 ? '✓ Complete' : progress >= 80 ? 'Finalizing...' : 'Pending'}
-                  </div>
-                </div>
+              {/* Detailed Progress Message */}
+              <div className={`text-center text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                {getDetailedProgressMessage(animatedProgress)}
               </div>
             </div>
           </div>

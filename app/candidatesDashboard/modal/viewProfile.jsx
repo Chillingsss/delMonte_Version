@@ -2372,29 +2372,31 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
                       >
                         {education.educ_dategraduate || "N/A"}
                       </p>
+
+                      {/* Add Diploma Image Display */}
+                      {education.educ_diploma_path && (
+                        <div className="mt-4">
+                          <label
+                            className={`block text-gray-600 text-sm font-normal ${
+                              isDarkMode ? "text-white" : ""
+                            }`}
+                          >
+                            Diploma:
+                          </label>
+                          <img
+                            src={`${process.env.NEXT_PUBLIC_API_URL}uploads/diplomas/${education.educ_diploma_path}`}
+                            alt="Diploma"
+                            className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              setSelectedDiplomaImage(education.educ_diploma_path);
+                              setIsDiplomaImageModalOpen(true);
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
 
-                    {/* Add Diploma Image Display */}
-                    {education.educ_diploma_path && (
-                      <div className="mt-4">
-                        <label
-                          className={`block text-gray-600 text-sm font-normal ${
-                            isDarkMode ? "text-white" : ""
-                          }`}
-                        >
-                          Diploma:
-                        </label>
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}uploads/diplomas/${education.educ_diploma_path}`}
-                          alt="Diploma"
-                          className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => {
-                            setSelectedDiplomaImage(education.educ_diploma_path);
-                            setIsDiplomaImageModalOpen(true);
-                          }}
-                        />
-                      </div>
-                    )}
+                    
 
                     {/* Modal */}
                     {selectedIndex === index && showModalUpdateEduc && (
