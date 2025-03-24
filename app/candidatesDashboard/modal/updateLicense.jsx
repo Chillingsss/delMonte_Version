@@ -76,6 +76,18 @@ const UpdateLicense = ({
   }, []);
 
   const [error, setError] = useState(""); // State for error message
+  const [formValid, setFormValid] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setFormValid(
+      data.license_id && 
+      data.license_number?.trim() &&
+      data.license_master_name &&
+      data.license_type_name &&
+      !error
+    );
+  }, [data, error]);
 
   useEffect(() => {
     if (selectedLicense) {
@@ -231,11 +243,13 @@ const UpdateLicense = ({
       formData.append("operation", "updateCandidateLicense");
       formData.append("json", JSON.stringify(updatedLicense));
 
+      setLoading(true);
       const response = await axios.post(url, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      setLoading(false);
 
       if (response.data === 1) {
         console.log("License updated successfully.");
@@ -450,8 +464,14 @@ const UpdateLicense = ({
             Cancel
           </button>
           <button
+            className={`px-4 py-2 rounded ${
+              formValid
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={!formValid}
+            title={!formValid ? "Please fill in all required fields" : ""}
           >
             Save
           </button>

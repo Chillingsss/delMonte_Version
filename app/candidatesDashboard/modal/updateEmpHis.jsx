@@ -34,6 +34,8 @@ const UpdateEmpHis = ({
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
+  const [formValid, setFormValid] = useState(false);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -86,6 +88,15 @@ const UpdateEmpHis = ({
       });
     }
   }, [employment]);
+
+  useEffect(() => {
+    setFormValid(
+      data.empH_positionName?.trim() &&
+      data.empH_companyName?.trim() &&
+      data.empH_startdate &&
+      data.empH_enddate
+    );
+  }, [data]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -323,8 +334,14 @@ const UpdateEmpHis = ({
               Cancel
             </button>
             <button
+              className={`px-4 py-2 rounded ${
+                formValid
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              disabled={!formValid}
+              title={!formValid ? "Please fill in all required fields" : ""}
             >
               Save
             </button>

@@ -223,6 +223,16 @@ const UpdateSkill = ({
     );
   }, [skills, data.skillId, selectedSkill]);
 
+  const [formValid, setFormValid] = useState(false);
+
+  useEffect(() => {
+    setFormValid(
+      (data.skills_id || data.customSkill) &&
+      !error &&
+      !isNewSkill
+    );
+  }, [data, error, isNewSkill]);
+
   return (
     <div className={`modal ${showModal ? "block" : "hidden"}`}>
       <div
@@ -284,16 +294,22 @@ const UpdateSkill = ({
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end mt-4">
           <button
-            onClick={() => setShowModal(false)}
             className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+            onClick={() => setShowModal(false)}
           >
             Cancel
           </button>
           <button
+            className={`px-4 py-2 rounded ${
+              formValid
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={!formValid}
+            title={!formValid ? "Please select a skill and skill level" : ""}
           >
             Save
           </button>
