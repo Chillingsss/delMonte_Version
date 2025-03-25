@@ -18,11 +18,11 @@ import { FaArrowRight, FaBars, FaLock, FaUserLock } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { BsArrowReturnRight } from "react-icons/bs";
-import UpdateEducBac from "./updateEducBac";
-import UpdateSkill from "./updateSkill";
-import UpdateTraining from "./updateTraining";
-import UpdateKnowledge from "./updateKnowledge";
-import UpdateLicense from "./updateLicense";
+import UpdateEducBac from "./update/updateEducBac";
+import UpdateSkill from "./update/updateSkill";
+import UpdateTraining from "./update/updateTraining";
+import UpdateKnowledge from "./update/updateKnowledge";
+import UpdateLicense from "./update/updateLicense";
 import {
   MoreHoriz,
   Edit,
@@ -33,14 +33,14 @@ import {
   CheckIcon,
 } from "lucide-react";
 import { Check, X } from "lucide-react";
-import UpdateEmpHis from "./updateEmpHis";
+import UpdateEmpHis from "./update/updateEmpHis";
 import { Toaster, toast } from "react-hot-toast";
 import ConfirmationModal from "../components/ConfirmationModal";
 import VerificationEmailUpdate from "./verificationEmailUpdate";
-import UpdateEmailPassword from "./updatePassword";
-import UpdateResume from "./updateResume";
-import UpdatePassword from "./updatePassword";
-import UpdateEmail from "./updateEmail";
+import UpdateEmailPassword from "./update/updatePassword";
+import UpdateResume from "./update/updateResume";
+import UpdatePassword from "./update/updatePassword";
+import UpdateEmail from "./update/updateEmail";
 import DatePicker from "react-datepicker";
 import { endOfDay } from "date-fns";
 import Image from "next/image";

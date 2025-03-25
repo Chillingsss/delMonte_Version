@@ -155,7 +155,7 @@ const SecuritySettingsModal = ({ onClose }) => {
 								</div>
 							) : (
 								<>
-									<Alert className="bg-blue-500/10 dark:bg-blue-500/5 border-blue-500/20 dark:border-blue-500/10 transition-all duration-300 hover:bg-blue-500/15 dark:hover:bg-blue-500/10">
+									<Alert className="bg-blue-500/10 dark:bg-blue-500/5 border-blue-500/20 dark:border-blue-500/10 transition-all duration-300">
 										<div className="flex gap-2">
 											<InfoIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
 											<AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
@@ -200,7 +200,7 @@ const SecuritySettingsModal = ({ onClose }) => {
 									<Separator className="my-6" />
 
 									{/* Switch for Every Login */}
-									<div className="space-y-3 transition-all duration-300 hover:bg-secondary/50 dark:hover:bg-secondary/20 p-3 rounded-lg -mx-3">
+									<div className="space-y-3 transition-all duration-300 p-3 rounded-lg -mx-3">
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<ShieldCheck className="h-5 w-5 text-primary" />
@@ -235,7 +235,7 @@ const SecuritySettingsModal = ({ onClose }) => {
 										className={`transition-all duration-300 ${
 											settingEverylogs
 												? "opacity-50 pointer-events-none filter blur-[0.3px]"
-												: "opacity-100 hover:bg-secondary/50 dark:hover:bg-secondary/20"
+												: "opacity-100"
 										} p-3 rounded-lg -mx-3`}
 									>
 										<div className="flex items-center justify-between mb-2">
@@ -314,11 +314,13 @@ const SecuritySettingsModal = ({ onClose }) => {
 
 									<Separator className="my-6" />
 
-									<Alert className="bg-secondary/50 dark:bg-secondary/30 border-secondary transition-all duration-300 hover:bg-secondary/70 dark:hover:bg-secondary/40">
+									<Alert className="bg-green-500/10 dark:bg-green-500/10 border-green-500/20">
 										<AlertDescription className="text-sm flex gap-2">
-											<ShieldCheck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-											<div>
-												<strong className="text-primary">Security Tip:</strong>{" "}
+											<ShieldCheck className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0 mt-0.5" />
+											<div className="text-green-700 dark:text-green-400">
+												<strong className="text-green-700 dark:text-green-400">
+													Security Tip:
+												</strong>{" "}
 												For the highest level of protection, we recommend
 												enabling 2FA for every login. If you choose a validity
 												duration, select the shortest period that works for your
