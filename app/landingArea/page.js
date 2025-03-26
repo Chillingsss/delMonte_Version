@@ -213,12 +213,12 @@ export default function LandingArea() {
 						width={55}
 						height={55}
 						alt="Del Monte Logo"
-						className="h-14 w-auto transition-transform hover:scale-105"
+						className="h-20 w-auto transition-transform hover:scale-105"
 					/>
 				</Link>
 
 				{/* Desktop Menu */}
-				<div className="hidden md:flex items-center gap-6">
+				<div className="hidden md:flex items-center gap-3">
 					<button
 						onClick={handleAboutClick}
 						className="text-white hover:text-[#EAE9E7] transition-all px-4 py-2 text-base relative group flex items-center gap-2"
@@ -229,7 +229,7 @@ export default function LandingArea() {
 					</button>
 					<button
 						onClick={scrollToJobs}
-						className="text-white hover:text-[#EAE9E7] transition-all px-4 py-2 text-base relative group flex items-center gap-2"
+						className="text-white hover:text-[#EAE9E7] transition-all px-4 py-2 text-base relative group flex items-center gap-2 mr-3"
 					>
 						<Briefcase className="w-5 h-5" />
 						Jobs
@@ -256,9 +256,7 @@ export default function LandingArea() {
 						<div className="w-6 relative flex justify-center items-center">
 							<span
 								className={`w-6 h-0.5 bg-current absolute transform transition-all duration-300 ease-in-out ${
-									isMobileMenuOpen
-										? "rotate-45"
-										: "-translate-y-2"
+									isMobileMenuOpen ? "rotate-45" : "-translate-y-2"
 								}`}
 							></span>
 							<span
@@ -268,9 +266,7 @@ export default function LandingArea() {
 							></span>
 							<span
 								className={`w-6 h-0.5 bg-current absolute transform transition-all duration-300 ease-in-out ${
-									isMobileMenuOpen
-										? "-rotate-45"
-										: "translate-y-2"
+									isMobileMenuOpen ? "-rotate-45" : "translate-y-2"
 								}`}
 							></span>
 						</div>
