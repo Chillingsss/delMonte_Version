@@ -454,7 +454,8 @@ export default function Login(user) {
 								loading ||
 								captchaLoading ||
 								!username.trim() ||
-								!password.trim()
+								!password.trim() ||
+								(showCaptcha && !captchaVerified)
 									? "bg-gray-400 opacity-70 cursor-not-allowed flex items-center justify-center text-white"
 									: "bg-[#004F39] hover:bg-green-800 text-green-100"
 							}`}
@@ -462,7 +463,8 @@ export default function Login(user) {
 								loading ||
 								captchaLoading ||
 								!username.trim() ||
-								!password.trim()
+								!password.trim() ||
+								(showCaptcha && !captchaVerified)
 							}
 						>
 							{loading || captchaLoading ? (
