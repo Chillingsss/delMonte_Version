@@ -22,6 +22,7 @@ import { IoLogoGoogle } from "react-icons/io";
 import { lineSpinner } from "ldrs";
 import { Eye, EyeOff, XCircle } from "lucide-react";
 import TwoFactorAuthModal from "../components/TwoFactorAuthModal";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Login(user) {
 	const { data: session } = useSession();
@@ -30,15 +31,12 @@ export default function Login(user) {
 	const [loading, setLoading] = useState(false);
 	const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 	const router = useRouter();
-	const [captchaType, setCaptchaType] = useState("slider"); // 'slider', 'puzzle', or 'image'
 	const [captchaVerified, setCaptchaVerified] = useState(false);
-	const [sliderPosition, setSliderPosition] = useState(0);
-	const [targetNumber, setTargetNumber] = useState(0);
 	const [showCaptcha, setShowCaptcha] = useState(false);
 	const [buttonText, setButtonText] = useState("Log In");
 	const [captchaLoading, setCaptchaLoading] = useState(false);
 	const usernameRef = useRef(null);
-	const captchaInputRef = useRef(null);
+	const captchaRef = useRef(null);
 	const [isRedirecting, setIsRedirecting] = useState(false);
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const [showTwoFAInput, setShowTwoFAInput] = useState(false);
@@ -87,75 +85,8 @@ export default function Login(user) {
 		}
 	}, []);
 
-	const generateCaptcha = useCallback(() => {
-		// Generate random target number between 40-60
-		setTargetNumber(Math.floor(Math.random() * 21) + 40);
-		setCaptchaVerified(false);
-		setSliderPosition(0);
-	}, []);
-
-	useEffect(() => {
-		generateCaptcha();
-	}, [generateCaptcha]);
-
-	const handleSliderChange = (e) => {
-		const value = parseInt(e.target.value);
-		setSliderPosition(value);
-	};
-
-	const handleSliderComplete = () => {
-		if (sliderPosition === targetNumber) {
-			setCaptchaVerified(true);
-			toast.success("CAPTCHA verified successfully!");
-		} else {
-			setCaptchaVerified(false);
-			toast.error("Please match the exact number");
-			setSliderPosition(0);
-		}
-	};
-
-	const showErrorToast = (message) => {
-		toast(message, {
-			duration: 4000,
-			position: "bottom-left",
-			style: {
-				background: "#004F39", // Darker green for contrast
-				color: "#F8FAFC", // Light text for readability
-				borderRadius: "10px",
-				padding: "12px 16px",
-				fontSize: "14px",
-				fontWeight: "500",
-				border: "1px solid #DC2626", // Red border for error emphasis
-				boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
-			},
-		});
-	};
-
-	const sanitizeInput = (input) => {
-		return input.replace(/[^\w@.#$!%*?&-]/gi, ""); // Allow common special characters
-	};
-
-	const isValidEmail = (email) => {
-		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Standard email regex
-	};
-
-	const isValidPassword = (password) => {
-		return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-			password
-		);
-	};
-
-	const isDomainValid = async (email) => {
-		const domain = email.split("@")[1];
-		try {
-			const response = await fetch(
-				`https://dns.google/resolve?name=${domain}&type=MX`
-			);
-			const data = await response.json();
-			return data.Answer?.length > 0; // If MX records exist, it's a valid email domain
-		} catch {
-			return false;
-		}
+	const handleCaptchaChange = (value) => {
+		setCaptchaVerified(!!value);
 	};
 
 	const handleLogin = async (e) => {
@@ -196,9 +127,6 @@ export default function Login(user) {
 		setPassword(sanitizedPassword);
 		setShowCaptcha(true);
 		setCaptchaVerified(false);
-		setSliderPosition(0);
-		// Generate new target number when showing CAPTCHA
-		setTargetNumber(Math.floor(Math.random() * 21) + 40);
 		setCaptchaLoading(false);
 	};
 
@@ -206,7 +134,7 @@ export default function Login(user) {
 		e.preventDefault();
 
 		if (!captchaVerified) {
-			showErrorToast("Please complete the CAPTCHA verification");
+			showErrorToast("Please complete the reCAPTCHA verification");
 			return;
 		}
 
@@ -242,9 +170,6 @@ export default function Login(user) {
 					setPassword("");
 					setShowCaptcha(true);
 					setCaptchaVerified(false);
-					setSliderPosition(0);
-					// Generate new target number
-					setTargetNumber(Math.floor(Math.random() * 21) + 40);
 					// Reset password field visibility
 					setShowNewPassword(false);
 					setShowCaptcha(false);
@@ -258,8 +183,6 @@ export default function Login(user) {
 			setPassword("");
 			setShowCaptcha(true);
 			setCaptchaVerified(false);
-			setSliderPosition(0);
-			setTargetNumber(Math.floor(Math.random() * 21) + 40);
 			setShowNewPassword(false);
 		} finally {
 			setLoading(false);
@@ -369,6 +292,50 @@ export default function Login(user) {
 		setShowCaptcha(false);
 	};
 
+	const sanitizeInput = (input) => {
+		return input.replace(/[^\w@.#$!%*?&-]/gi, ""); // Allow common special characters
+	};
+
+	const isValidEmail = (email) => {
+		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Standard email regex
+	};
+
+	const isValidPassword = (password) => {
+		return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+			password
+		);
+	};
+
+	const isDomainValid = async (email) => {
+		const domain = email.split("@")[1];
+		try {
+			const response = await fetch(
+				`https://dns.google/resolve?name=${domain}&type=MX`
+			);
+			const data = await response.json();
+			return data.Answer?.length > 0; // If MX records exist, it's a valid email domain
+		} catch {
+			return false;
+		}
+	};
+
+	const showErrorToast = (message) => {
+		toast(message, {
+			duration: 4000,
+			position: "bottom-left",
+			style: {
+				background: "#004F39", // Darker green for contrast
+				color: "#F8FAFC", // Light text for readability
+				borderRadius: "10px",
+				padding: "12px 16px",
+				fontSize: "14px",
+				fontWeight: "500",
+				border: "1px solid #DC2626", // Red border for error emphasis
+				boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
+			},
+		});
+	};
+
 	return (
 		<div className="min-h-screen bg-[#EAE9E7] flex items-center justify-center px-4">
 			<div className="bg-[#EAE9E7] p-8 rounded-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
@@ -470,39 +437,12 @@ export default function Login(user) {
 									<h3 className="text-lg font-semibold text-gray-700 mb-3">
 										Verify that you are human
 									</h3>
-									<div className="space-y-4">
-										<div className="text-center text-gray-600">
-											Move the slider to {targetNumber}
-										</div>
-										<div className="text-center text-lg font-bold text-gray-700">
-											{sliderPosition}
-										</div>
-										<div className="relative">
-											<input
-												type="range"
-												min="0"
-												max="100"
-												value={sliderPosition}
-												onChange={handleSliderChange}
-												onMouseUp={handleSliderComplete}
-												onTouchEnd={handleSliderComplete}
-												className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-												style={{
-													background: `linear-gradient(to right, #004F39 0%, #004F39 ${sliderPosition}%, #e5e7eb ${sliderPosition}%, #e5e7eb 100%)`,
-												}}
-											/>
-											<div className="absolute top-4 w-full flex justify-between text-xs text-gray-500">
-												<span>0</span>
-												<span>50</span>
-												<span>100</span>
-											</div>
-										</div>
-
-										{captchaVerified && (
-											<div className="text-green-600 text-center font-semibold">
-												✓ Verification successful
-											</div>
-										)}
+									<div className="flex justify-center">
+										<ReCAPTCHA
+											ref={captchaRef}
+											sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+											onChange={handleCaptchaChange}
+										/>
 									</div>
 								</div>
 							</div>
@@ -511,11 +451,19 @@ export default function Login(user) {
 						<button
 							type="submit"
 							className={`w-full py-3 rounded-lg transition duration-200 slide-up ${
-								(loading || captchaLoading || !username.trim() || !password.trim())
-								? 'bg-gray-400 opacity-70 cursor-not-allowed flex items-center justify-center text-white'
-								: 'bg-[#004F39] hover:bg-green-800 text-green-100'
+								loading ||
+								captchaLoading ||
+								!username.trim() ||
+								!password.trim()
+									? "bg-gray-400 opacity-70 cursor-not-allowed flex items-center justify-center text-white"
+									: "bg-[#004F39] hover:bg-green-800 text-green-100"
 							}`}
-							disabled={loading || captchaLoading || !username.trim() || !password.trim()}
+							disabled={
+								loading ||
+								captchaLoading ||
+								!username.trim() ||
+								!password.trim()
+							}
 						>
 							{loading || captchaLoading ? (
 								<l-line-spinner
@@ -526,13 +474,11 @@ export default function Login(user) {
 								></l-line-spinner>
 							) : (
 								<div className="flex items-center justify-center">
-									{showTwoFAInput ? (
-										"Verifying..."
-									) : showCaptcha ? (
-										"Continue"
-									) : (
-										"Log In"
-									)}
+									{showTwoFAInput
+										? "Verifying..."
+										: showCaptcha
+										? "Continue"
+										: "Log In"}
 								</div>
 							)}
 						</button>
