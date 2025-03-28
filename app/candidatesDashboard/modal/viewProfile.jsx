@@ -44,6 +44,7 @@ import UpdateEmail from "./update/updateEmail";
 import DatePicker from "react-datepicker";
 import { endOfDay } from "date-fns";
 import Image from "next/image";
+import { FileText } from 'lucide-react';
 
 const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 	const { data: session } = useSession();
@@ -2636,7 +2637,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 														})
 													}
 													dateFormat="yyyy-MM-dd"
-													className={`w-full mt-2 border-b-2 pb-2 bg-transparent px-2 py-2 ${
+													className={`w-full mt-2 border-b-2 pb-2 bg-transparent px-2 py-2 z-50 ${
 														isDarkMode
 															? "border-gray-400 text-white"
 															: "border-black"
@@ -3392,30 +3393,66 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 										</div>
 
 										<div
-											className={`bg-gray-200 p-4 rounded-lg  shadow-lg ${
+											className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
 												isDarkMode
 													? "bg-gray-700 text-white"
 													: "bg-gray-200 text-black"
 											}`}
 										>
-											{res.canres_image && (
+											{res.canres_file && (
 												<div className="mt-4">
 													<label
-														className={`block text-sm font-normal ${
+														className={`block text-sm font-normal mb-2 ${
 															isDarkMode ? "text-white" : "text-gray-600"
 														}`}
 													>
-														Resume Image:
+														Resume File:
 													</label>
-													<img
-														src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_image}`}
-														alt={res.canres_name}
-														className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
-														onClick={() => {
-															setSelectedResumeImage(res.canres_image);
-															setIsResumeImageModalOpen(true);
-														}}
-													/>
+													{getFileType(res.canres_file) === 'image' ? (
+														// Image Preview
+														<img
+															src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
+															alt={res.canres_name}
+															className="mt-2 max-w-full h-auto rounded-lg shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+															onClick={() => {
+																setSelectedResumeImage(res.canres_file);
+																setIsResumeImageModalOpen(true);
+															}}
+														/>
+													) : getFileType(res.canres_file) === 'pdf' ? (
+														// PDF Preview
+														<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
+															<iframe
+																src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
+																className="w-full h-full"
+																title="PDF Resume"
+															/>
+														</div>
+													) : getFileType(res.canres_file) === 'document' ? (
+														// Document Preview using Google Docs Viewer
+														<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
+															<iframe
+																src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+																	`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`
+																)}`}
+																className="w-full h-full"
+																title="Document Resume"
+															/>
+														</div>
+													) : (
+														// Fallback for unsupported file types
+														<div className="flex items-center space-x-2">
+															<FileText className="w-6 h-6" />
+															<a
+																href={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-blue-500 hover:text-blue-700 underline"
+															>
+																Download Resume
+															</a>
+														</div>
+													)}
 												</div>
 											)}
 										</div>
@@ -3482,38 +3519,18 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 		}
 	};
 
-	// useEffect(() => {
-	//   const handleClickOutside = (event) => {
-	//     const dropdown = document.getElementById("upload-options");
-	//     if (
-	//       dropdown &&
-	//       !dropdown.contains(event.target) &&
-	//       !event.target.closest("button")
-	//     ) {
-	//       dropdown.classList.add("hidden");
-	//     }
-	//   };
-
-	//   document.addEventListener("mousedown", handleClickOutside);
-	//   return () => {
-	//     document.removeEventListener("mousedown", handleClickOutside);
-	//   };
-	// }, []);
-
-	// useEffect(() => {
-	//   let objectUrl = null; // Ensure it always exists
-
-	//   const candidatePic = editData.candidateInformation?.cand_profPic ?? null;
-	//   if (candidatePic instanceof File) {
-	//     objectUrl = URL.createObjectURL(candidatePic);
-	//   }
-
-	//   return () => {
-	//     if (objectUrl) {
-	//       URL.revokeObjectURL(objectUrl);
-	//     }
-	//   };
-	// }, [editData.candidateInformation?.cand_profPic]);
+	// Add this helper function near the top of your component
+	const getFileType = (filename) => {
+		const extension = filename.split('.').pop().toLowerCase();
+		if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+			return 'image';
+		} else if (extension === 'pdf') {
+			return 'pdf';
+		} else if (['doc', 'docx'].includes(extension)) {
+			return 'document';
+		}
+		return 'unknown';
+	};
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">

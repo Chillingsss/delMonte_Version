@@ -227,11 +227,13 @@ const UpdateSkill = ({
 
   useEffect(() => {
     setFormValid(
-      (data.skills_id || data.customSkill) &&
-      !error &&
-      !isNewSkill
+      // Enable save if either:
+      // 1. A skill is selected from the dropdown (data.skillId), or
+      // 2. A valid custom skill is entered (data.skillId === "custom" && data.customSkill)
+      (data.skillId && data.skillId !== "custom") ||
+      (data.skillId === "custom" && data.customSkill && !error)
     );
-  }, [data, error, isNewSkill]);
+  }, [data, error]);
 
   return (
     <div className={`modal ${showModal ? "block" : "hidden"}`}>
