@@ -24,6 +24,7 @@ import {
   retrieveData,
 } from "@/app/utils/storageUtils";
 import Spinner from "@/components/ui/spinner";
+import HRMaster from "./Masterfiles/HRMaster";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +46,7 @@ export default function Page() {
     { view: <InterviewCategoryMaster /> },
     { view: <InterviewCriteriaMaster /> },
     { view: <GeneralExam /> },
+    { view: <HRMaster /> },
   ];
 
   const router = useRouter();
