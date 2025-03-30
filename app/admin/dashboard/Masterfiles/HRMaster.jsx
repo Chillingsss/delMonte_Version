@@ -2,6 +2,7 @@ import DataTable from '@/app/my_components/DataTable';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
+import AddHRMaster from './modal/AddMasterfileForms/AddHRMaster';
 
 const HRMaster = () => {
   const [data, setData] = useState([]);
@@ -9,8 +10,11 @@ const HRMaster = () => {
 
   const addColumn = (values, newId) => {
     setData([...data, {
+      fullName: values.fullName,
+      hr_contactNo: values.contactNo,
+      hr_email: values.email,
+      hr_createdAt: new Date().toLocaleString(),
       institution_id: newId,
-      institution_name: values.institutionName
     }]);
   }
 
@@ -61,6 +65,7 @@ const HRMaster = () => {
 
   const columns = [
     { header: "Name", accessor: "fullName", sortable: true },
+    { header: "Role", accessor: "UserL_description", sortable: true },
     { header: "Contact Number", accessor: "hr_contactNo" },
     { header: "Email", accessor: "hr_email", },
     { header: "Date Created", accessor: "hr_createdAt", sortable: true },
@@ -108,18 +113,16 @@ const HRMaster = () => {
 
   return (
     <DataTable
-      title="Institution"
+      title="Human Resource"
       data={data}
       columns={columns}
       autoIndex={true}
-    // add={
-    //   <AddInstitution
-    //     title="institution"
-    //     subject="institution"
-    //     getData={getData}
-    //     data={data}
-    //     addColumn={addColumn}
-    //   />}
+      add={
+        <AddHRMaster
+          getData={getData}
+          data={data}
+          addColumn={addColumn}
+        />}
     />
   )
 }
