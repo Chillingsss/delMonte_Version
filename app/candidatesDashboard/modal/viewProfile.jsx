@@ -3,17 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
-import {
-	retrieveDataFromCookie,
-	retrieveDataFromSession,
-	storeDataInCookie,
-	storeDataInSession,
-	removeDataFromCookie,
-	removeDataFromSession,
-	retrieveData,
-	getDataFromSession,
-	getDataFromCookie,
-} from "@/app/utils/storageUtils";
+import { getDataFromCookie } from "@/app/utils/storageUtils";
 import { FaArrowRight, FaBars, FaLock, FaUserLock } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
 import { FaRegCheckCircle } from "react-icons/fa";
@@ -44,7 +34,8 @@ import UpdateEmail from "./update/updateEmail";
 import DatePicker from "react-datepicker";
 import { endOfDay } from "date-fns";
 import Image from "next/image";
-import { FileText } from 'lucide-react';
+import { FileText, Download } from "lucide-react";
+import mammoth from "mammoth";
 
 const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 	const { data: session } = useSession();
@@ -105,7 +96,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 			mediaQuery.removeEventListener("change", handleMediaQueryChange);
 		};
 	}, []);
-
+	const [showResumeModal, setShowResumeModal] = useState(false);
+	const [selectedResume, setSelectedResume] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [activeSection, setActiveSection] = useState("Personal Information");
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -150,9 +142,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 	const [showLicenseModal, setShowLicenseModal] = useState(false);
 	const [licenses, setLicense] = useState([]);
 	const [licenseType, setLicenseType] = useState([]);
-
-	const [selectedResume, setSelectedResume] = useState(null);
-	const [showResumeModal, setShowResumeModal] = useState(false);
 	const [resumes, setResumes] = useState([]);
 
 	const [selectedIndex, setSelectedIndex] = useState(null);
@@ -3408,7 +3397,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 													>
 														Resume File:
 													</label>
-													{getFileType(res.canres_file) === 'image' ? (
+													{getFileType(res.canres_file) === "image" ? (
 														// Image Preview
 														<img
 															src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
@@ -3419,7 +3408,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 																setIsResumeImageModalOpen(true);
 															}}
 														/>
-													) : getFileType(res.canres_file) === 'pdf' ? (
+													) : getFileType(res.canres_file) === "pdf" ? (
 														// PDF Preview
 														<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
 															<iframe
@@ -3428,7 +3417,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 																title="PDF Resume"
 															/>
 														</div>
-													) : getFileType(res.canres_file) === 'document' ? (
+													) : getFileType(res.canres_file) === "document" ? (
 														// Document Preview using Google Docs Viewer
 														<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
 															<iframe
@@ -3437,6 +3426,13 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 																)}`}
 																className="w-full h-full"
 																title="Document Resume"
+															/>
+														</div>
+													) : getFileType(res.canres_file) === "docx" ? (
+														// DOCX Preview using Mammoth
+														<div className="mt-2 w-full rounded-lg shadow-md p-4 bg-white">
+															<DocxPreview
+																fileUrl={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
 															/>
 														</div>
 													) : (
@@ -3521,15 +3517,125 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 	// Add this helper function near the top of your component
 	const getFileType = (filename) => {
-		const extension = filename.split('.').pop().toLowerCase();
-		if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
-			return 'image';
-		} else if (extension === 'pdf') {
-			return 'pdf';
-		} else if (['doc', 'docx'].includes(extension)) {
-			return 'document';
+		const extension = filename.split(".").pop().toLowerCase();
+		if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
+			return "image";
+		} else if (extension === "pdf") {
+			return "pdf";
+		} else if (extension === "docx") {
+			return "docx";
+		} else if (extension === "doc") {
+			return "document";
 		}
-		return 'unknown';
+		return "unknown";
+	};
+
+	const openResumeModal = (resume) => {
+		setSelectedResume(resume);
+		setShowResumeModal(true);
+	};
+
+	const closeResumeModal = () => {
+		setShowResumeModal(false);
+		setSelectedResume(null);
+	};
+
+	// Add a new function to convert DOCX to text
+	const convertDocxToText = async (fileUrl) => {
+		try {
+			console.log("Fetching DOCX from:", fileUrl);
+			const response = await fetch(fileUrl);
+
+			if (!response.ok) {
+				console.error(
+					"Failed to fetch DOCX file:",
+					response.status,
+					response.statusText
+				);
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const arrayBuffer = await response.arrayBuffer();
+			console.log("File size:", arrayBuffer.byteLength, "bytes");
+
+			if (arrayBuffer.byteLength === 0) {
+				throw new Error("Empty file received");
+			}
+
+			const result = await mammoth.extractRawText({ arrayBuffer });
+
+			if (!result.value) {
+				throw new Error("No text content extracted");
+			}
+
+			console.log("Text extraction successful, length:", result.value.length);
+			return result.value;
+		} catch (error) {
+			console.error("Detailed error in convertDocxToText:", error);
+			if (error.messages) {
+				console.error("Mammoth messages:", error.messages);
+			}
+			throw error; // Propagate the error to be handled by the component
+		}
+	};
+
+	// Add a new DocxPreview component
+	const DocxPreview = ({ fileUrl }) => {
+		const [text, setText] = useState("");
+		const [loading, setLoading] = useState(true);
+		const [error, setError] = useState(null);
+
+		useEffect(() => {
+			const loadDocx = async () => {
+				try {
+					setLoading(true);
+					setError(null);
+					const extractedText = await convertDocxToText(fileUrl);
+
+					if (!extractedText || extractedText.trim().length === 0) {
+						throw new Error("No text content found in document");
+					}
+
+					setText(extractedText);
+				} catch (error) {
+					console.error("Error in DocxPreview:", error);
+					setError(error.message || "Failed to load document");
+					setText("");
+				} finally {
+					setLoading(false);
+				}
+			};
+
+			loadDocx();
+		}, [fileUrl]);
+
+		if (loading) {
+			return (
+				<div className="flex items-center justify-center py-4">
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+					<span className="ml-2">Loading document...</span>
+				</div>
+			);
+		}
+
+		if (error) {
+			return (
+				<div className="text-center py-4 text-red-500">
+					<div className="mb-2">Error: {error}</div>
+					<div className="text-sm">
+						Please ensure the document is a valid DOCX file and try again.
+					</div>
+				</div>
+			);
+		}
+
+		return (
+			<div className="prose max-w-none dark:prose-invert">
+				<div className="whitespace-pre-wrap font-sans p-4 bg-white dark:bg-gray-800 rounded-lg">
+					{text || "No content available"}
+				</div>
+			</div>
+		);
 	};
 
 	return (
@@ -3925,6 +4031,41 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 						>
 							<X className="w-6 h-6" />
 						</button>
+					</div>
+				</div>
+			)}
+
+			{showResumeModal && selectedResume && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="bg-white dark:bg-gray-800 rounded-lg w-3/4 h-3/4 p-6 relative">
+						<button
+							onClick={closeResumeModal}
+							className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+						>
+							<X className="h-6 w-6" />
+						</button>
+						<div className="flex flex-col h-full">
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-xl font-semibold dark:text-white">
+									Resume Preview
+								</h3>
+								<a
+									href={selectedResume.resumeUrl}
+									download
+									className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+								>
+									<Download className="h-4 w-4" />
+									Download
+								</a>
+							</div>
+							<div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+								<div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+									<pre className="whitespace-pre-wrap font-sans text-gray-800 dark:text-gray-200">
+										{selectedResume.resumeText}
+									</pre>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			)}
