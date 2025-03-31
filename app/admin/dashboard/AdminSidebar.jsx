@@ -1,53 +1,16 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { useSession, signOut } from "next-auth/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  BookOpen,
-  Brain,
-  Briefcase,
-  Building,
-  CircleUser,
-  FileCheck,
-  FileCheck2,
-  FileText,
-  GraduationCap,
-  Home,
-  Lightbulb,
-  LogOut,
-  Menu,
-  Settings,
-  Settings2,
-  Users,
-  ChevronDown,
-  Clipboard,
-  ListCheck,
-  Layers,
-} from "lucide-react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { PopoverClose } from "@radix-ui/react-popover";
+import { BookOpen, Brain, Briefcase, Building, CircleUser, FileCheck, FileCheck2, FileText, GraduationCap, Home, Lightbulb, LogOut, Menu, Settings, Settings2, Users, ChevronDown, Clipboard, ListCheck, Layers, UserCog } from "lucide-react";
 
 function AdminSidebar({ changeView, changeMasterFile }) {
   const { data: session, status } = useSession();
@@ -98,6 +61,11 @@ function AdminSidebar({ changeView, changeMasterFile }) {
       name: "General Exam",
       icon: <Clipboard className="h-5 w-5" />,
       index: 12,
+    }, 
+    {
+      name: "Human Resources",
+      icon: <UserCog className="h-5 w-5" />,
+      index: 13,
     },
   ];
   const handleChangeView = (index) => {
@@ -162,11 +130,10 @@ function AdminSidebar({ changeView, changeMasterFile }) {
                   <div
                     key={index}
                     href="#"
-                    className={`flex p-3 items-center gap-2 cursor-pointer text-lg font-semibold md:text-base rounded-md ${
-                      index === view
+                    className={`flex p-3 items-center gap-2 cursor-pointer text-lg font-semibold md:text-base rounded-md ${index === view
                         ? "bg-accent text-primary transition-all duration-450 ease-in-out"
                         : "text-tertiary"
-                    }`}
+                      }`}
                     onClick={() => handleChangeView(index)}
                   >
                     {tab.icon}
@@ -254,11 +221,10 @@ function AdminSidebar({ changeView, changeMasterFile }) {
                   <TooltipTrigger asChild>
                     <div
                       href="#"
-                      className={`flex h-9 w-9  ${
-                        view === index
+                      className={`flex h-9 w-9  ${view === index
                           ? "bg-primary text-black hover:text-white transition-all duration-500 ease-in-out"
                           : "bg-transparent transition-colors text-white hover:text-black"
-                      } items-center justify-center rounded-lg hover:bg-primary transition-colors md:h-8 md:w-8 cursor-pointer`}
+                        } items-center justify-center rounded-lg hover:bg-primary transition-colors md:h-8 md:w-8 cursor-pointer`}
                       onClick={() => handleChangeView(index)}
                     >
                       {tab.icon}
@@ -271,11 +237,10 @@ function AdminSidebar({ changeView, changeMasterFile }) {
                 <Popover key={index}>
                   <PopoverTrigger asChild>
                     <div
-                      className={`flex h-9 w-9 ${
-                        view >= 2 && view <= 9
+                      className={`flex h-9 w-9 ${view >= 2 && view <= 9
                           ? "bg-primary text-black hover:text-white transition-all duration-500 ease-in-out"
                           : "bg-transparent transition-colors text-white hover:text-black"
-                      } items-center justify-center rounded-lg hover:bg-primary transition-colors md:h-8 md:w-8 cursor-pointer`}
+                        } items-center justify-center rounded-lg hover:bg-primary transition-colors md:h-8 md:w-8 cursor-pointer`}
                     >
                       {tab.icon}
                     </div>

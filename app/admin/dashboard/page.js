@@ -24,6 +24,7 @@ import {
   retrieveData,
 } from "@/app/utils/storageUtils";
 import Spinner from "@/components/ui/spinner";
+import HRMaster from "./Masterfiles/HRMaster";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,49 +46,50 @@ export default function Page() {
     { view: <InterviewCategoryMaster /> },
     { view: <InterviewCriteriaMaster /> },
     { view: <GeneralExam /> },
+    { view: <HRMaster /> },
   ];
 
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const authToken = getDataFromCookie("auth_token");
+  useEffect(() => {
+    const authToken = getDataFromCookie("auth_token");
 
-  //   if (status === "unauthenticated" && !authToken) {
-  //     router.push("/");
-  //   }
-  // }, [status, router]);
+    if (status === "unauthenticated" && !authToken) {
+      router.push("/");
+    }
+  }, [status, router]);
 
-  // useEffect(() => {
-  //   const getUserLevelFromCookie = () => {
-  //     const tokenData = getDataFromCookie("auth_token");
-  //     return tokenData?.userLevel || null;
-  //   };
+  useEffect(() => {
+    const getUserLevelFromCookie = () => {
+      const tokenData = getDataFromCookie("auth_token");
+      return tokenData?.userLevel || null;
+    };
 
-  //   const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
+    const userLevel = session?.user?.userLevel || getUserLevelFromCookie();
 
-  //   if (!userLevel) {
-  //     console.log("No valid session or cookie found. Redirecting to login...");
-  //     router.replace("/"); // Redirect to login if both are missing
-  //     return;
-  //   }
+    if (!userLevel) {
+      console.log("No valid session or cookie found. Redirecting to login...");
+      router.replace("/"); // Redirect to login if both are missing
+      return;
+    }
 
-  //   if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
-  //     router.replace("/candidatesDashboard");
-  //   } else if (
-  //     userLevel === "100.0" &&
-  //     router.pathname !== "/admin/dashboard"
-  //   ) {
-  //     router.replace("/admin/dashboard");
-  //   } else if (userLevel === "50.0" && router.pathname !== "/manager/dashboard") {
-  //     router.replace("/manager/dashboard");
-  //   } else if (userLevel === "20.0" && router.pathname !== "/supervisor/dashboard") {
-  //     router.replace("/supervisor/dashboard");
-  //   } else if (userLevel === "10.0" && router.pathname !== "/analyst/dashboard") {
-  //     router.replace("/analyst/dashboard");
-  //   } else {
-  //     router.replace("/");
-  //   }
-  // }, [session, router]);
+    if (userLevel === "1.0" && router.pathname !== "/candidatesDashboard") {
+      router.replace("/candidatesDashboard");
+    } else if (
+      userLevel === "100.0" &&
+      router.pathname !== "/admin/dashboard"
+    ) {
+      router.replace("/admin/dashboard");
+    } else if (userLevel === "50.0" && router.pathname !== "/manager/dashboard") {
+      router.replace("/manager/dashboard");
+    } else if (userLevel === "20.0" && router.pathname !== "/supervisor/dashboard") {
+      router.replace("/supervisor/dashboard");
+    } else if (userLevel === "10.0" && router.pathname !== "/analyst/dashboard") {
+      router.replace("/analyst/dashboard");
+    } else {
+      router.replace("/");
+    }
+  }, [session, router]);
 
   const handleChangeView = (index) => {
     setViewIndex(index);
