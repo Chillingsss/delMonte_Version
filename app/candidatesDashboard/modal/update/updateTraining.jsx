@@ -14,7 +14,7 @@ import Tesseract from "tesseract.js";
 const performSemanticAnalysis = async (text1, text2, threshold) => {
 	try {
 		const response = await axios.post(
-			"/api/semanticAnalysis",
+			"/api/semanticAnalysisTraining",
 			{
 				text1,
 				text2,
@@ -140,10 +140,10 @@ const UpdateTraining = ({
 
 	useEffect(() => {
 		setFormValid(
-			data.perT_name?.trim() && 
-			data.perT_id?.trim() && 
-			data.image && 
-			!loading
+			data.perT_name?.trim() &&
+				(data.perT_id ? true : false) &&
+				data.image &&
+				!loading
 		);
 	}, [data, loading]);
 
@@ -522,12 +522,16 @@ const UpdateTraining = ({
 						type="button"
 						className={`px-4 py-2 rounded ${
 							formValid
-								? 'bg-blue-500 text-white hover:bg-blue-600'
-								: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+								? "bg-blue-500 text-white hover:bg-blue-600"
+								: "bg-gray-300 text-gray-500 cursor-not-allowed"
 						}`}
 						onClick={handleSave}
 						disabled={!formValid}
-						title={!formValid ? "Please fill in all required fields including certificate" : ""}
+						title={
+							!formValid
+								? "Please fill in all required fields including certificate"
+								: ""
+						}
 					>
 						{loading ? "Saving..." : "Save"}
 					</button>

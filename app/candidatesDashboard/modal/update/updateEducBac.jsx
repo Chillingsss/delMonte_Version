@@ -32,7 +32,7 @@ const CustomOption = (props) => {
 const performSemanticAnalysis = async (text1, text2, threshold) => {
 	try {
 		const response = await axios.post(
-			"/api/semanticAnalysis",
+			"/api/semanticAnalysisEduc",
 			{
 				text1,
 				text2,
@@ -158,8 +158,6 @@ const UpdateEducBac = ({
 			throw new Error("Error processing image");
 		}
 	};
-
-	console.log("selectedEducation:", selectedEducation);
 
 	const [errors, setErrors] = useState({
 		customCourse: "",
