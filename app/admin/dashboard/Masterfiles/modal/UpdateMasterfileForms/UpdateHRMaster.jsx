@@ -174,7 +174,9 @@ const UpdateHRMaster = ({ data, id, getData, firstName, middleName, lastname, co
               </Form>
               <div className="flex justify-end mt-4 gap-2">
                 <Button type="button" onClick={onClose} variant="outline">Cancel</Button>
-                <Button type="submit">Update</Button>
+                <Button type="submit" disabled={isSubmit}>
+                  {isSubmit && <Spinner />} {isSubmit ? 'Submitting...' : 'Update'}
+                </Button>
               </div>
             </form>
           </>

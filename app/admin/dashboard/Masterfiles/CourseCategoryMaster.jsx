@@ -39,7 +39,7 @@ const CourseCategoryMaster = () => {
     handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import AddHRMaster from './modal/AddMasterfileForms/AddHRMaster';
 import { Trash2, Edit2 } from 'lucide-react';
 import UpdateHRMaster from './modal/UpdateMasterfileForms/UpdateHRMaster';
+import ShowAlert from '@/components/ui/show-alert';
 
 const HRMaster = () => {
   const [data, setData] = useState([]);
@@ -26,15 +27,35 @@ const HRMaster = () => {
     setIsUpdateOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const handleShowAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
+  const handleCloseAlert = (status) => {
+    if (status === 1) {
+      handleDelete(selectedId);
+    }
+    setShowAlert(false);
+  };
+  const handleRemoveList = (id) => {
+    setSelectedId(id);
+    handleShowAlert("This action cannot be undone. It will permanently delete the item and remove it from your list");
+  };
+
+  const handleDelete = async () => {
     setIsLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL + 'admin.php';
       const formData = new FormData();
-      formData.append("operation", "deleteInstitution");
-      formData.append("json", JSON.stringify({ institutionId: id }));
-
+      const jsonData = { hrId: selectedId };
+      console.log(JSON.stringify(jsonData));
+      formData.append("operation", "deleteHR");
+      formData.append("json", JSON.stringify(jsonData));
       const res = await axios.post(url, formData);
+      console.log("res.data ni handleDelete: ", res.data);
       if (res.data === -1) {
         toast.error("Failed to delete, there's a transaction using this HR");
       } else if (res.data === 1) {
@@ -64,7 +85,7 @@ const HRMaster = () => {
           <button onClick={() => handleUpdateClick(row)}>
             <Edit2 className="h-5 w-5 cursor-pointer" />
           </button>
-          <Trash2 className="h-5 w-5 cursor-pointer" onClick={() => handleDelete(row.institution_id)} />
+          <Trash2 className="h-5 w-5 cursor-pointer" onClick={() => handleRemoveList(row.hr_id)} />
         </div>
       ),
     },
@@ -115,6 +136,7 @@ const HRMaster = () => {
           onClose={() => setIsUpdateOpen(false)}
         />
       )}
+      <ShowAlert open={showAlert} onHide={handleCloseAlert} message={alertMessage} />
     </>
   );
 };
