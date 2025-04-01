@@ -1,7 +1,8 @@
-import { Edit, Lock, Plus, Settings, Trash2, X } from "lucide-react";
+import { Edit, Lock, Plus, Settings, Trash2, X, Check } from "lucide-react";
 import React from "react";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import UpdateEmpHis from "../update/updateEmpHis";
+import DatePicker from "react-datepicker";
 
 const EmploymentHistory = ({
 	profile,

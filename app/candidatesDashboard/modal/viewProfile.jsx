@@ -4,36 +4,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import { getDataFromCookie } from "@/app/utils/storageUtils";
-import { FaArrowRight, FaBars, FaLock, FaUserLock } from "react-icons/fa";
 import { HiMiniBarsArrowDown } from "react-icons/hi2";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { BsArrowReturnRight } from "react-icons/bs";
-import UpdateEducBac from "./update/updateEducBac";
-import UpdateSkill from "./update/updateSkill";
-import UpdateTraining from "./update/updateTraining";
-import UpdateKnowledge from "./update/updateKnowledge";
-import UpdateLicense from "./update/updateLicense";
-import {
-	MoreHoriz,
-	Edit,
-	Trash2,
-	Plus,
-	Settings,
-	Lock,
-	CheckIcon,
-} from "lucide-react";
 import { Check, X } from "lucide-react";
-import UpdateEmpHis from "./update/updateEmpHis";
 import { Toaster, toast } from "react-hot-toast";
-import ConfirmationModal from "../components/ConfirmationModal";
-import VerificationEmailUpdate from "./verificationEmailUpdate";
-import UpdateEmailPassword from "./update/updatePassword";
-import UpdateResume from "./update/updateResume";
-import UpdatePassword from "./update/updatePassword";
-import UpdateEmail from "./update/updateEmail";
-import DatePicker from "react-datepicker";
-import { endOfDay } from "date-fns";
-import Image from "next/image";
 import { FileText, Download } from "lucide-react";
 import mammoth from "mammoth";
 import PersonalInformation from "./profile/Personalinformation";
