@@ -1,8 +1,9 @@
-import { Edit, Lock, Plus, Settings, Trash2, X } from "lucide-react";
+import { Edit, Plus, Trash2, X } from "lucide-react";
 import React from "react";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import UpdateResume from "../update/updateResume";
 import { FileText, Download } from "lucide-react";
+import mammoth from "mammoth";
 
 const Resume = ({
 	profile,
@@ -22,10 +23,184 @@ const Resume = ({
 	setIsResumeImageModalOpen,
 	showResumeModal,
 	setShowResumeModal,
-	getFileType,
-	DocxPreview,
 }) => {
 	console.log("Profile:", profile);
+
+	const getFileType = (filename) => {
+		const extension = filename.split(".").pop().toLowerCase();
+		if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
+			return "image";
+		} else if (extension === "pdf") {
+			return "pdf";
+		} else if (extension === "docx") {
+			return "docx";
+		} else if (extension === "doc") {
+			return "document";
+		}
+		return "unknown";
+	};
+
+	// Add a new function to convert DOCX to text
+	const convertDocxToText = async (fileUrl) => {
+		try {
+			console.log("Fetching DOCX from:", fileUrl);
+			const response = await fetch(fileUrl, {
+				credentials: "include",
+				headers: {
+					Accept:
+						"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+				},
+			});
+
+			if (!response.ok) {
+				console.error(
+					"Failed to fetch DOCX file:",
+					response.status,
+					response.statusText
+				);
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const arrayBuffer = await response.arrayBuffer();
+			console.log("File size:", arrayBuffer.byteLength, "bytes");
+
+			if (arrayBuffer.byteLength === 0) {
+				throw new Error("Empty file received");
+			}
+
+			const result = await mammoth.extractRawText({ arrayBuffer });
+
+			if (!result.value) {
+				throw new Error("No text content extracted");
+			}
+
+			console.log("Text extraction successful, length:", result.value.length);
+			return result.value;
+		} catch (error) {
+			console.error("Detailed error in convertDocxToText:", error);
+			if (error.messages) {
+				console.error("Mammoth messages:", error.messages);
+			}
+			throw error; // Propagate the error to be handled by the component
+		}
+	};
+
+	// Add a new DocxPreview component
+	const DocxPreview = ({ fileUrl }) => {
+		const [text, setText] = React.useState("");
+		const [loading, setLoading] = React.useState(true);
+		const [error, setError] = React.useState(null);
+
+		React.useEffect(() => {
+			const loadDocx = async () => {
+				try {
+					setLoading(true);
+					setError(null);
+					const extractedText = await convertDocxToText(fileUrl);
+
+					if (!extractedText || extractedText.trim().length === 0) {
+						throw new Error("No text content found in document");
+					}
+
+					setText(extractedText);
+				} catch (error) {
+					console.error("Error in DocxPreview:", error);
+					setError(error.message || "Failed to load document");
+					setText("");
+				} finally {
+					setLoading(false);
+				}
+			};
+
+			loadDocx();
+		}, [fileUrl]);
+
+		if (loading) {
+			return (
+				<div
+					className={`flex items-center justify-center py-4 ${
+						isDarkMode ? "text-white" : "text-gray-900"
+					}`}
+				>
+					<div
+						className={`animate-spin rounded-full h-8 w-8 border-b-2 ${
+							isDarkMode ? "border-white" : "border-gray-900"
+						}`}
+					></div>
+					<span className="ml-2">Loading document...</span>
+				</div>
+			);
+		}
+
+		if (error) {
+			return (
+				<div
+					className={`text-center py-4 ${
+						isDarkMode ? "text-red-400" : "text-red-500"
+					}`}
+				>
+					<div className="mb-2">Error: {error}</div>
+					<div
+						className={`text-sm ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						}`}
+					>
+						Please ensure the document is a valid DOCX file and try again.
+					</div>
+				</div>
+			);
+		}
+
+		return (
+			<>
+				<div className="flex justify-between items-center mb-4">
+					<h2
+						className={`text-xl font-semibold ${
+							isDarkMode ? "text-white" : "text-gray-900"
+						}`}
+					>
+						Resume Preview
+					</h2>
+					<a
+						href={fileUrl}
+						download
+						className={`flex items-center px-4 py-2 rounded-lg ${
+							isDarkMode
+								? "bg-blue-600 hover:bg-blue-700"
+								: "bg-blue-500 hover:bg-blue-600"
+						} text-white transition-colors duration-200`}
+					>
+						<Download className="w-4 h-4 mr-2" />
+						Download
+					</a>
+				</div>
+
+				<div
+					className={`mt-2 w-full rounded-lg shadow-md p-4 ${
+						isDarkMode ? "bg-gray-800" : "bg-white"
+					}`}
+				>
+					<div
+						className={`p-6 whitespace-pre-wrap font-sans ${
+							isDarkMode ? "bg-gray-800" : "bg-white"
+						}`}
+					>
+						{text.split("\n\n").map((paragraph, index) => (
+							<div
+								key={index}
+								className={`mb-4 ${
+									isDarkMode ? "text-gray-200" : "text-gray-800"
+								}`}
+							>
+								{paragraph}
+							</div>
+						))}
+					</div>
+				</div>
+			</>
+		);
+	};
+
 	return (
 		<div className="p-4 space-y-4">
 			{/* Show Add New Resume button only if there are no resumes */}
@@ -151,7 +326,11 @@ const Resume = ({
 											</div>
 										) : getFileType(res.canres_file) === "docx" ? (
 											// DOCX Preview using Mammoth
-											<div className="mt-2 w-full rounded-lg shadow-md p-4 bg-white">
+											<div
+												className={`mt-2 w-full rounded-lg shadow-md p-4 ${
+													isDarkMode ? "bg-gray-800" : "bg-white"
+												}`}
+											>
 												<DocxPreview
 													fileUrl={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
 												/>

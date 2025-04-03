@@ -10,7 +10,6 @@ import { BsArrowReturnRight } from "react-icons/bs";
 import { Check, X } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { FileText, Download } from "lucide-react";
-import mammoth from "mammoth";
 import PersonalInformation from "./profile/Personalinformation";
 import EducationalBackground from "./profile/EducationalBackground";
 import EmploymentHistory from "./profile/EmploymentHistory";
@@ -1248,8 +1247,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 						setIsResumeImageModalOpen={setIsResumeImageModalOpen}
 						showResumeModal={showResumeModal}
 						setShowResumeModal={setShowResumeModal}
-						getFileType={getFileType}
-						DocxPreview={DocxPreview}
 					/>
 				);
 
@@ -1294,21 +1291,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 		}
 	};
 
-	// Add this helper function near the top of your component
-	const getFileType = (filename) => {
-		const extension = filename.split(".").pop().toLowerCase();
-		if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
-			return "image";
-		} else if (extension === "pdf") {
-			return "pdf";
-		} else if (extension === "docx") {
-			return "docx";
-		} else if (extension === "doc") {
-			return "document";
-		}
-		return "unknown";
-	};
-
 	const openResumeModal = (resume) => {
 		setSelectedResume(resume);
 		setShowResumeModal(true);
@@ -1317,104 +1299,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 	const closeResumeModal = () => {
 		setShowResumeModal(false);
 		setSelectedResume(null);
-	};
-
-	// Add a new function to convert DOCX to text
-	const convertDocxToText = async (fileUrl) => {
-		try {
-			console.log("Fetching DOCX from:", fileUrl);
-			const response = await fetch(fileUrl);
-
-			if (!response.ok) {
-				console.error(
-					"Failed to fetch DOCX file:",
-					response.status,
-					response.statusText
-				);
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const arrayBuffer = await response.arrayBuffer();
-			console.log("File size:", arrayBuffer.byteLength, "bytes");
-
-			if (arrayBuffer.byteLength === 0) {
-				throw new Error("Empty file received");
-			}
-
-			const result = await mammoth.extractRawText({ arrayBuffer });
-
-			if (!result.value) {
-				throw new Error("No text content extracted");
-			}
-
-			console.log("Text extraction successful, length:", result.value.length);
-			return result.value;
-		} catch (error) {
-			console.error("Detailed error in convertDocxToText:", error);
-			if (error.messages) {
-				console.error("Mammoth messages:", error.messages);
-			}
-			throw error; // Propagate the error to be handled by the component
-		}
-	};
-
-	// Add a new DocxPreview component
-	const DocxPreview = ({ fileUrl }) => {
-		const [text, setText] = useState("");
-		const [loading, setLoading] = useState(true);
-		const [error, setError] = useState(null);
-
-		useEffect(() => {
-			const loadDocx = async () => {
-				try {
-					setLoading(true);
-					setError(null);
-					const extractedText = await convertDocxToText(fileUrl);
-
-					if (!extractedText || extractedText.trim().length === 0) {
-						throw new Error("No text content found in document");
-					}
-
-					setText(extractedText);
-				} catch (error) {
-					console.error("Error in DocxPreview:", error);
-					setError(error.message || "Failed to load document");
-					setText("");
-				} finally {
-					setLoading(false);
-				}
-			};
-
-			loadDocx();
-		}, [fileUrl]);
-
-		if (loading) {
-			return (
-				<div className="flex items-center justify-center py-4">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-					<span className="ml-2">Loading document...</span>
-				</div>
-			);
-		}
-
-		if (error) {
-			return (
-				<div className="text-center py-4 text-red-500">
-					<div className="mb-2">Error: {error}</div>
-					<div className="text-sm">
-						Please ensure the document is a valid DOCX file and try again.
-					</div>
-				</div>
-			);
-		}
-
-		return (
-			<div className="prose max-w-none dark:prose-invert">
-				<div className="whitespace-pre-wrap font-sans p-4 bg-white dark:bg-gray-800 rounded-lg">
-					{text || "No content available"}
-				</div>
-			</div>
-		);
 	};
 
 	return (
