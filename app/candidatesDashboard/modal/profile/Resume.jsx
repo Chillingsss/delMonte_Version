@@ -128,6 +128,14 @@ const Resume = ({
 		);
 	};
 
+	const textContentPdf = (filePath) => {
+		return <PdfPreview fileUrl={filePath} />;
+	};
+
+	const textContentDocx = (filePath) => {
+		return <DocxPreview fileUrl={filePath} />;
+	};
+
 	// Add a new function to convert DOCX to text
 	const convertDocxToText = async (fileUrl) => {
 		try {
@@ -189,7 +197,7 @@ const Resume = ({
 					if (!extractedText || extractedText.trim().length === 0) {
 						throw new Error("No text content found in document");
 					}
-
+					console.log("Extracted DOCX Text:", extractedText);
 					setText(extractedText);
 				} catch (error) {
 					console.error("Error in DocxPreview:", error);
@@ -393,9 +401,9 @@ const Resume = ({
 											/>
 										) : getFileType(res.canres_file) === "pdf" ? (
 											<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
-												<PdfPreview
-													fileUrl={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
-												/>
+												{textContentPdf(
+													`${process.env.NEXT_PUBLIC_API_URL}serve-file.php?file=${res.canres_file}`
+												)}
 												{/* <iframe
 													src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
 													className="w-full h-full"
@@ -418,9 +426,9 @@ const Resume = ({
 													isDarkMode ? "bg-gray-800" : "bg-white"
 												}`}
 											>
-												<DocxPreview
-													fileUrl={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
-												/>
+												{textContentDocx(
+													`${process.env.NEXT_PUBLIC_API_URL}serve-file.php?file=${res.canres_file}`
+												)}
 											</div>
 										) : (
 											// Fallback for unsupported file types
