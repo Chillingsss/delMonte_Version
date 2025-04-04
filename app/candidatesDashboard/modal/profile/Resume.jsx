@@ -4,6 +4,10 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import UpdateResume from "../update/updateResume";
 import { FileText, Download } from "lucide-react";
 import mammoth from "mammoth";
+import * as pdfjsLib from "pdfjs-dist/build/pdf";
+import pdfWorker from "pdfjs-dist/build/pdf.worker.entry";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const Resume = ({
 	profile,
@@ -38,6 +42,90 @@ const Resume = ({
 			return "document";
 		}
 		return "unknown";
+	};
+
+	const extractTextFromPdf = async (fileUrl) => {
+		try {
+			const loadingTask = pdfjsLib.getDocument(fileUrl);
+			const pdf = await loadingTask.promise;
+			let extractedText = "";
+
+			for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+				const page = await pdf.getPage(pageNum);
+				const textContent = await page.getTextContent();
+				const pageText = textContent.items.map((item) => item.str).join(" ");
+				extractedText += pageText + "\n\n";
+			}
+
+			console.log("Extracted PDF Text:", extractedText);
+			return extractedText;
+		} catch (error) {
+			console.error("Error extracting text from PDF:", error);
+			throw error;
+		}
+	};
+
+	const PdfPreview = ({ fileUrl }) => {
+		const [text, setText] = React.useState("");
+		const [loading, setLoading] = React.useState(true);
+		const [error, setError] = React.useState(null);
+
+		React.useEffect(() => {
+			const loadPdf = async () => {
+				try {
+					setLoading(true);
+					setError(null);
+					const extractedText = await extractTextFromPdf(fileUrl);
+					setText(extractedText);
+					console.log("Extracted PDF Text:", extractedText);
+				} catch (error) {
+					setError("Failed to load PDF");
+				} finally {
+					setLoading(false);
+				}
+			};
+
+			loadPdf();
+		}, [fileUrl]);
+
+		if (loading) {
+			return <p>Loading PDF...</p>;
+		}
+
+		if (error) {
+			return <p className="text-red-500">{error}</p>;
+		}
+
+		return (
+			<div
+				className={`p-4 rounded-lg shadow-md ${
+					isDarkMode ? "bg-gray-700" : "bg-gray-100"
+				}`}
+			>
+				<div className="flex justify-between items-center mb-4">
+					<h2
+						className={`text-xl font-semibold ${
+							isDarkMode ? "text-white" : "text-gray-900"
+						}`}
+					>
+						Resume Preview
+					</h2>
+					<a
+						href={fileUrl}
+						download
+						className={`flex items-center px-4 py-2 rounded-lg ${
+							isDarkMode
+								? "bg-blue-600 hover:bg-blue-700"
+								: "bg-blue-500 hover:bg-blue-600"
+						} text-white transition-colors duration-200`}
+					>
+						<Download className="w-4 h-4 mr-2" />
+						Download
+					</a>
+				</div>
+				<p className="whitespace-pre-wrap">{text}</p>
+			</div>
+		);
 	};
 
 	// Add a new function to convert DOCX to text
@@ -166,12 +254,11 @@ const Resume = ({
 						download
 						className={`flex items-center px-4 py-2 rounded-lg ${
 							isDarkMode
-								? "bg-blue-600 hover:bg-blue-700"
-								: "bg-blue-500 hover:bg-blue-600"
-						} text-white transition-colors duration-200`}
+								? "text-gray-200 hover:text-blue-700"
+								: "text-gray-800 hover:text-blue-600"
+						} transition-colors duration-200`}
 					>
-						<Download className="w-4 h-4 mr-2" />
-						Download
+						<Download className="w-4 h-4" />
 					</a>
 				</div>
 
@@ -305,16 +392,17 @@ const Resume = ({
 												}}
 											/>
 										) : getFileType(res.canres_file) === "pdf" ? (
-											// PDF Preview
 											<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
-												<iframe
+												<PdfPreview
+													fileUrl={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
+												/>
+												{/* <iframe
 													src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${res.canres_file}`}
 													className="w-full h-full"
 													title="PDF Resume"
-												/>
+												/> */}
 											</div>
 										) : getFileType(res.canres_file) === "document" ? (
-											// Document Preview using Google Docs Viewer
 											<div className="mt-2 w-full h-[600px] rounded-lg overflow-hidden shadow-md">
 												<iframe
 													src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
@@ -325,7 +413,6 @@ const Resume = ({
 												/>
 											</div>
 										) : getFileType(res.canres_file) === "docx" ? (
-											// DOCX Preview using Mammoth
 											<div
 												className={`mt-2 w-full rounded-lg shadow-md p-4 ${
 													isDarkMode ? "bg-gray-800" : "bg-white"
