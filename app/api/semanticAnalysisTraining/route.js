@@ -1,6 +1,6 @@
-import * as tf from "@tensorflow/tfjs";
-import { HfInference } from "@huggingface/inference";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import * as tf from "@tensorflow/tfjs";
 
 // Configuration
 const STOPWORDS = new Set([
@@ -17,17 +17,72 @@ const STOPWORDS = new Set([
 	"by",
 ]);
 
-const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || ""; // Fallback for safety
-const NER_MODEL = "dbmdz/bert-large-cased-finetuned-conll03-english"; // More advanced NER model
+const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || "";
 const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
-const TIMEOUT_MS = 30000; // 30s timeout for API calls
-// Using pure embedding similarity for comparison
+const TIMEOUT_MS = 10000;
+
+// Gemini configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 // Initialize LangChain embeddings
 const embeddings = new HuggingFaceInferenceEmbeddings({
 	apiKey: HF_ACCESS_TOKEN,
 	model: EMBEDDING_MODEL,
 });
+
+/**
+ * Processes text to identify training entities using Gemini
+ * @param {string} text - Original input text
+ * @returns {Promise<{trainings: string[]}>} Identified training entities
+ */
+async function processNERResults(text) {
+	if (!text || typeof text !== "string") return { trainings: [] };
+
+	try {
+		const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+		const prompt = `Analyze this text and extract training experiences, certifications, and skills. Return only a JSON object with one array: "trainings" containing all identified training-related items.
+
+Text: "${text}"
+
+Format the response exactly like this example:
+{
+    "trainings": ["Training Name", "Certification", "Skill"]
+}
+
+Consider including:
+- Training programs
+- Workshops
+- Certifications
+- Technical skills
+- Professional development courses
+- Seminars attended`;
+
+		const result = await withTimeoutAndRetry(model.generateContent(prompt));
+
+		const response = await result.response;
+		console.log("Raw Gemini Response:", response.text());
+
+		// Parse the response content as JSON
+		let parsed;
+		try {
+			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
+			parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { trainings: [] };
+		} catch (error) {
+			console.error("Error parsing Gemini response:", error);
+			parsed = { trainings: [] };
+		}
+
+		return {
+			trainings: Array.isArray(parsed.trainings) ? parsed.trainings : [],
+		};
+	} catch (error) {
+		console.error("Error in NER processing:", error);
+		return { trainings: [] };
+	}
+}
+
 /**
  * Preprocesses text with improved handling of abbreviations
  * @param {string} text - Raw input text
@@ -37,7 +92,7 @@ function preprocessText(text) {
 	if (!text || typeof text !== "string") return "";
 	return text
 		.toLowerCase()
-		.replace(/[^\w\s.]/g, "") // Preserve periods for abbreviations
+		.replace(/[^\w\s.]/g, "")
 		.split(" ")
 		.filter((word) => word.length > 1 && !STOPWORDS.has(word))
 		.join(" ");
@@ -57,89 +112,9 @@ async function withTimeoutAndRetry(promise, retries = 2) {
 			return await Promise.race([promise, timeout]);
 		} catch (error) {
 			if (i === retries) throw error;
-			await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+			await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
 		}
 	}
-}
-
-/**
- * Processes text to identify educational entities with batching
- * @param {string} text - Original input text
- * @returns {Promise<{institutions: string[], courses: string[]}>} Categorized entities
- */
-async function processNERResults(text) {
-	if (!text || typeof text !== "string") return { trainings: [] };
-
-	const hf = new HfInference(HF_ACCESS_TOKEN);
-	const entities = { trainings: new Set() };
-	const sentences = text.split("\n").filter((s) => s.trim());
-
-	const batchSize = 1; // Process one sentence at a time for better reliability
-	for (let i = 0; i < sentences.length; i += batchSize) {
-		const batch = sentences.slice(i, i + batchSize);
-		try {
-			const nerResults = await withTimeoutAndRetry(
-				hf.tokenClassification({
-					model: NER_MODEL,
-					inputs: batch.join(" "),
-					wait_for_model: true,
-				})
-			);
-
-			console.log("NER Result for batch:", batch.join(" "), nerResults);
-
-			let currentTokens = [];
-			let currentType = null;
-
-			for (const item of nerResults) {
-				if (!item.entity || item.entity === "O") continue;
-				const type = item.entity.replace(/^[BI]-/, "");
-
-				if (item.entity.startsWith("B-")) {
-					if (currentTokens.length > 0) {
-						entities.trainings.add(currentTokens.join(" ").trim());
-					}
-					currentTokens = [item.word];
-					currentType = type;
-				} else if (item.entity.startsWith("I-") && type === currentType) {
-					currentTokens.push(item.word);
-				} else {
-					if (currentTokens.length > 0) {
-						entities.trainings.add(currentTokens.join(" ").trim());
-					}
-					currentTokens = [item.word];
-					currentType = type;
-				}
-			}
-			if (currentTokens.length > 0) {
-				entities.trainings.add(currentTokens.join(" ").trim());
-			}
-
-			// Add the complete sentence as a potential training entity
-			for (const sentence of batch) {
-				entities.trainings.add(sentence.trim());
-			}
-		} catch (error) {
-			console.error(`Error processing batch starting at sentence ${i}:`, error);
-		}
-	}
-
-	return {
-		trainings: [...entities.trainings],
-	};
-}
-
-/**
- * Helper function to process entities from NER results
- * @param {string} entity - Entity text
- * @param {string} type - NER entity type
- * @param {{institutions: Set, courses: Set}} entities - Entity storage
- */
-function processEntity(entity, type, entities) {
-	if (!entity) return;
-	const cleanEntity = entity.trim();
-	if (!cleanEntity) return;
-	entities.trainings.add(cleanEntity);
 }
 
 /**
@@ -195,7 +170,7 @@ export async function POST(req) {
 	}
 
 	try {
-		console.log("Performing educational entity analysis...");
+		console.log("Performing training analysis...");
 		console.log("Input texts:", { text1, text2 });
 
 		const [entities1, entities2] = await Promise.all([
@@ -212,11 +187,10 @@ export async function POST(req) {
 
 		console.log("Processed Text:", processedText1, processedText2);
 
-		const sharedEntities = {
-			trainings: entities1.trainings.filter((training) =>
-				entities2.trainings.includes(training)
-			),
-		};
+		const sharedTrainings = entities1.trainings.filter((training) =>
+			entities2.trainings.includes(training)
+		);
+
 		const sharedWords = [
 			...new Set(
 				processedText1
@@ -226,7 +200,12 @@ export async function POST(req) {
 					)
 			),
 		];
-		console.log("Shared Entities & Words:", sharedEntities, sharedWords);
+
+		console.log(
+			"Shared Trainings & Words:",
+			{ trainings: sharedTrainings },
+			sharedWords
+		);
 
 		console.log("Generating embeddings with LangChain...");
 		const [embedding1, embedding2] = await Promise.all([
@@ -236,7 +215,7 @@ export async function POST(req) {
 
 		console.log("Calculating similarity score...");
 		const similarityScore = calculateCosineSimilarity(embedding1, embedding2);
-		const finalScore = similarityScore * 100; // Convert to percentage
+		const finalScore = similarityScore * 100;
 
 		console.log("Final Similarity Percentage:", finalScore);
 
@@ -250,7 +229,10 @@ export async function POST(req) {
 				entities2,
 				processedText1,
 				processedText2,
-				exactMatches: { entities: sharedEntities, words: sharedWords },
+				exactMatches: {
+					trainings: sharedTrainings,
+					words: sharedWords,
+				},
 			}),
 			{ headers: { "Content-Type": "application/json" } }
 		);

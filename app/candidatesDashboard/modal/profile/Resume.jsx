@@ -70,31 +70,21 @@ const Resume = ({
 		const [loading, setLoading] = React.useState(true);
 		const [error, setError] = React.useState(null);
 
+		// Load PDF immediately when component mounts
 		React.useEffect(() => {
-			const loadPdf = async () => {
-				try {
-					setLoading(true);
-					setError(null);
-					const extractedText = await extractTextFromPdf(fileUrl);
+			extractTextFromPdf(fileUrl)
+				.then((extractedText) => {
 					setText(extractedText);
-					console.log("Extracted PDF Text:", extractedText);
-				} catch (error) {
-					setError("Failed to load PDF");
-				} finally {
 					setLoading(false);
-				}
-			};
+				})
+				.catch((err) => {
+					setError("Failed to load PDF");
+					setLoading(false);
+				});
+		}, []); // Empty dependency array means this only runs once on mount
 
-			loadPdf();
-		}, [fileUrl]);
-
-		if (loading) {
-			return <p>Loading PDF...</p>;
-		}
-
-		if (error) {
-			return <p className="text-red-500">{error}</p>;
-		}
+		if (loading) return <p>Loading PDF...</p>;
+		if (error) return <p className="text-red-500">{error}</p>;
 
 		return (
 			<div
@@ -187,29 +177,21 @@ const Resume = ({
 		const [loading, setLoading] = React.useState(true);
 		const [error, setError] = React.useState(null);
 
+		// Load DOCX immediately when component mounts
 		React.useEffect(() => {
-			const loadDocx = async () => {
-				try {
-					setLoading(true);
-					setError(null);
-					const extractedText = await convertDocxToText(fileUrl);
-
+			convertDocxToText(fileUrl)
+				.then((extractedText) => {
 					if (!extractedText || extractedText.trim().length === 0) {
 						throw new Error("No text content found in document");
 					}
-					console.log("Extracted DOCX Text:", extractedText);
 					setText(extractedText);
-				} catch (error) {
-					console.error("Error in DocxPreview:", error);
-					setError(error.message || "Failed to load document");
-					setText("");
-				} finally {
 					setLoading(false);
-				}
-			};
-
-			loadDocx();
-		}, [fileUrl]);
+				})
+				.catch((err) => {
+					setError(err.message || "Failed to load document");
+					setLoading(false);
+				});
+		}, []); // Empty dependency array means this only runs once on mount
 
 		if (loading) {
 			return (
@@ -269,7 +251,6 @@ const Resume = ({
 						<Download className="w-4 h-4" />
 					</a>
 				</div>
-
 				<div
 					className={`mt-2 w-full rounded-lg shadow-md p-4 ${
 						isDarkMode ? "bg-gray-800" : "bg-white"

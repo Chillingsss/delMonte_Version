@@ -1,6 +1,6 @@
-import * as tf from "@tensorflow/tfjs";
-import { HfInference } from "@huggingface/inference";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import * as tf from "@tensorflow/tfjs";
 
 // Configuration
 const STOPWORDS = new Set([
@@ -17,40 +17,17 @@ const STOPWORDS = new Set([
 	"by",
 ]);
 
-const COURSE_KEYWORDS = [
-	"bachelor",
-	"bs",
-	"bsc",
-	"master",
-	"phd",
-	"certificate",
-	"diploma",
-	"science",
-	"engineering",
-	"technology",
-	"information",
-	"computer",
-	"it",
-	"business",
-	"administration",
-	"management",
-];
-
-const INSTITUTION_KEYWORDS = [
-	"college",
-	"university",
-	"institute",
-	"school",
-	"academy",
-	"polytechnic",
-];
-
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || ""; // Fallback for safety
-const NER_MODEL = "dbmdz/bert-large-cased-finetuned-conll03-english"; // More advanced NER model
 const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
 const TIMEOUT_MS = 10000; // 10s timeout for API calls
 const BONUS_WEIGHT = 0.05; // Configurable bonus per match
 const MAX_BONUS = 0.25; // Max bonus cap
+
+// Replace HF configuration with Gemini configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+console.log("Gemini api key: ", GEMINI_API_KEY);
 
 // Initialize LangChain embeddings
 const embeddings = new HuggingFaceInferenceEmbeddings({
@@ -93,7 +70,7 @@ async function withTimeoutAndRetry(promise, retries = 2) {
 }
 
 /**
- * Processes text to identify educational entities with batching
+ * Processes text to identify educational entities using Gemini
  * @param {string} text - Original input text
  * @returns {Promise<{institutions: string[], courses: string[]}>} Categorized entities
  */
@@ -101,99 +78,46 @@ async function processNERResults(text) {
 	if (!text || typeof text !== "string")
 		return { institutions: [], courses: [] };
 
-	const hf = new HfInference(HF_ACCESS_TOKEN);
-	const entities = { institutions: new Set(), courses: new Set() };
-	const sentences = text.split("\n").filter((s) => s.trim());
+	try {
+		const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-	const batchSize = 5;
-	for (let i = 0; i < sentences.length; i += batchSize) {
-		const batch = sentences.slice(i, i + batchSize);
+		const prompt = `Analyze this text and extract educational institutions and courses/degrees. Return only a JSON object with two arrays: "institutions" for educational institutions and "courses" for courses/degrees.
+
+Text: "${text}"
+
+Format the response exactly like this example:
+{
+    "institutions": ["University Name"],
+    "courses": ["Course Name"]
+}`;
+
+		const result = await withTimeoutAndRetry(model.generateContent(prompt));
+
+		const response = await result.response;
+		console.log("Raw Gemini Response:", response.text());
+
+		// Parse the response content as JSON
+		let parsed;
 		try {
-			const nerResults = await withTimeoutAndRetry(
-				hf.tokenClassification({
-					model: NER_MODEL,
-					inputs: batch.join(" "),
-					wait_for_model: true,
-				})
-			);
-
-			console.log("NER Result for batch:", batch.join(" "), nerResults);
-
-			let currentTokens = [];
-			let currentType = null;
-
-			for (const item of nerResults) {
-				if (!item.entity || item.entity === "O") continue;
-				const type = item.entity.replace(/^[BI]-/, "");
-
-				if (item.entity.startsWith("B-")) {
-					if (currentTokens.length > 0 && currentType) {
-						processEntity(currentTokens.join(" "), currentType, entities);
-					}
-					currentTokens = [item.word];
-					currentType = type;
-				} else if (item.entity.startsWith("I-") && type === currentType) {
-					currentTokens.push(item.word);
-				} else {
-					if (currentTokens.length > 0 && currentType) {
-						processEntity(currentTokens.join(" "), currentType, entities);
-					}
-					currentTokens = [item.word];
-					currentType = type;
-				}
-			}
-			if (currentTokens.length > 0 && currentType) {
-				processEntity(currentTokens.join(" "), currentType, entities);
-			}
-
-			for (const sentence of batch) {
-				const lowerSentence = sentence.toLowerCase();
-				const words = lowerSentence.split(" ");
-				if (INSTITUTION_KEYWORDS.some((kw) => words.includes(kw))) {
-					entities.institutions.add(sentence.trim());
-				}
-				if (COURSE_KEYWORDS.some((kw) => lowerSentence.includes(kw))) {
-					let course = sentence
-						.trim()
-						.replace(/^(bachelor|bs|bsc|master|phd) (of|in|on)/i, "")
-						.replace(/^(certificate|diploma) (of|in|on)/i, "")
-						.trim();
-					entities.courses.add(course);
-				}
-			}
+			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
+			parsed = jsonMatch
+				? JSON.parse(jsonMatch[0])
+				: { institutions: [], courses: [] };
 		} catch (error) {
-			console.error(`Error processing batch starting at sentence ${i}:`, error);
+			console.error("Error parsing Gemini response:", error);
+			parsed = { institutions: [], courses: [] };
 		}
-	}
 
-	return {
-		institutions: [...entities.institutions],
-		courses: [...entities.courses],
-	};
-}
-
-/**
- * Helper function to process entities from NER results
- * @param {string} entity - Entity text
- * @param {string} type - NER entity type
- * @param {{institutions: Set, courses: Set}} entities - Entity storage
- */
-function processEntity(entity, type, entities) {
-	if (!entity) return;
-	const cleanEntity = entity.trim();
-	if (!cleanEntity) return;
-
-	const lowerEntity = cleanEntity.toLowerCase();
-	if (
-		type === "ORG" &&
-		INSTITUTION_KEYWORDS.some((kw) => lowerEntity.includes(kw))
-	) {
-		entities.institutions.add(cleanEntity);
-	} else if (
-		type === "MISC" &&
-		COURSE_KEYWORDS.some((kw) => lowerEntity.includes(kw))
-	) {
-		entities.courses.add(cleanEntity);
+		// Ensure arrays are returned even if parsing fails
+		return {
+			institutions: Array.isArray(parsed.institutions)
+				? parsed.institutions
+				: [],
+			courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+		};
+	} catch (error) {
+		console.error("Error in NER processing:", error);
+		return { institutions: [], courses: [] };
 	}
 }
 
