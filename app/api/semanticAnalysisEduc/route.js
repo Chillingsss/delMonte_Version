@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import * as tf from "@tensorflow/tfjs";
 
@@ -23,11 +22,8 @@ const TIMEOUT_MS = 10000; // 10s timeout for API calls
 const BONUS_WEIGHT = 0.05; // Configurable bonus per match
 const MAX_BONUS = 0.25; // Max bonus cap
 
-// Replace HF configuration with Gemini configuration
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-console.log("Gemini api key: ", GEMINI_API_KEY);
+// Update to a smaller, accessible model
+const NER_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 
 // Initialize LangChain embeddings
 const embeddings = new HuggingFaceInferenceEmbeddings({
@@ -70,7 +66,7 @@ async function withTimeoutAndRetry(promise, retries = 2) {
 }
 
 /**
- * Processes text to identify educational entities using Gemini
+ * Processes text to identify educational entities using Mistral
  * @param {string} text - Original input text
  * @returns {Promise<{institutions: string[], courses: string[]}>} Categorized entities
  */
@@ -79,32 +75,58 @@ async function processNERResults(text) {
 		return { institutions: [], courses: [] };
 
 	try {
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+		const prompt = `You are a helpful AI assistant. Your task is to analyze the given text and extract educational institutions and courses/degrees.
 
-		const prompt = `Analyze this text and extract educational institutions and courses/degrees. Return only a JSON object with two arrays: "institutions" for educational institutions and "courses" for courses/degrees.
+Text to analyze: "${text}"
 
-Text: "${text}"
+Please extract and return ONLY a JSON object with two arrays:
+1. "institutions" - list of educational institutions
+2. "courses" - list of courses or degrees
 
-Format the response exactly like this example:
+Example format:
 {
     "institutions": ["University Name"],
     "courses": ["Course Name"]
-}`;
+}
 
-		const result = await withTimeoutAndRetry(model.generateContent(prompt));
+Return ONLY the JSON object, no additional text.`;
 
-		const response = await result.response;
-		console.log("Raw Gemini Response:", response.text());
+		const response = await withTimeoutAndRetry(
+			fetch(`https://api-inference.huggingface.co/models/${NER_MODEL}`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${HF_ACCESS_TOKEN}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					inputs: prompt,
+					parameters: {
+						max_new_tokens: 250,
+						temperature: 0.1,
+						return_full_text: false,
+						top_p: 0.95,
+						repetition_penalty: 1.1,
+					},
+				}),
+			})
+		);
+
+		const result = await response.json();
+		console.log("Raw Model Response:", result);
 
 		// Parse the response content as JSON
 		let parsed;
 		try {
-			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
+			// Handle both array and object response formats
+			const responseText = Array.isArray(result)
+				? result[0].generated_text
+				: result.generated_text;
+			const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 			parsed = jsonMatch
 				? JSON.parse(jsonMatch[0])
 				: { institutions: [], courses: [] };
 		} catch (error) {
-			console.error("Error parsing Gemini response:", error);
+			console.error("Error parsing model response:", error);
 			parsed = { institutions: [], courses: [] };
 		}
 
