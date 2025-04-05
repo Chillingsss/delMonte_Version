@@ -17,12 +17,11 @@ const STOPWORDS = new Set([
 ]);
 
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || ""; // Fallback for safety
-const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
-const TIMEOUT_MS = 10000; // 10s timeout for API calls
+const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L12-v2";
+const TIMEOUT_MS = 30000; // Increased from 10000 to 30000 (30s timeout)
 const BONUS_WEIGHT = 0.05; // Configurable bonus per match
 const MAX_BONUS = 0.25; // Max bonus cap
 
-// Update to a smaller, accessible model
 const NER_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 
 // Initialize LangChain embeddings
@@ -51,7 +50,7 @@ function preprocessText(text) {
  * @param {Promise} promise - API call promise
  * @returns {Promise} Resolved or rejected promise
  */
-async function withTimeoutAndRetry(promise, retries = 2) {
+async function withTimeoutAndRetry(promise, retries = 3) {
 	const timeout = new Promise((_, reject) =>
 		setTimeout(() => reject(new Error("API timeout")), TIMEOUT_MS)
 	);
@@ -60,7 +59,7 @@ async function withTimeoutAndRetry(promise, retries = 2) {
 			return await Promise.race([promise, timeout]);
 		} catch (error) {
 			if (i === retries) throw error;
-			await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+			await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1))); // Exponential backoff with longer delays
 		}
 	}
 }

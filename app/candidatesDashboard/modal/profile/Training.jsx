@@ -59,6 +59,7 @@ const Training = ({
 							fetchProfile={fetchProfile}
 							profile={profile}
 							fetchTraining={fetchTraining}
+							isDarkMode={isDarkMode}
 						/>
 					</div>
 				</div>

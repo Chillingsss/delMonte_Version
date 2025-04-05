@@ -46,6 +46,7 @@ const UpdateTraining = ({
 	trainings,
 	selectedTraining,
 	fetchTraining,
+	isDarkMode,
 }) => {
 	const { data: session } = useSession();
 	const [data, setData] = useState({
@@ -56,41 +57,6 @@ const UpdateTraining = ({
 		image: null,
 		training_image: train?.training_image || "",
 	});
-
-	const [isDarkMode, setIsDarkMode] = useState(() => {
-		if (typeof window !== "undefined") {
-			const savedTheme = localStorage.getItem("appearance");
-			return savedTheme === "dark";
-		}
-		return false;
-	});
-
-	useEffect(() => {
-		const updateTheme = () => {
-			const savedTheme = localStorage.getItem("appearance");
-			setIsDarkMode(savedTheme === "dark");
-		};
-
-		// Set initial theme
-		updateTheme();
-
-		// Listen for changes in localStorage
-		const handleStorageChange = (e) => {
-			if (e.key === "appearance") {
-				updateTheme();
-			}
-		};
-		if (typeof window !== "undefined") {
-			window.addEventListener("storage", handleStorageChange);
-		}
-
-		// Cleanup
-		return () => {
-			if (typeof window !== "undefined") {
-				window.removeEventListener("storage", handleStorageChange);
-			}
-		};
-	}, []);
 
 	const [isNewTraining, setIsNewTraining] = useState(true); // Track if adding a new training
 	const [loading, setLoading] = useState(false);
@@ -538,12 +504,12 @@ const UpdateTraining = ({
 				</div>
 
 				{loading && (
-					<div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[4px] flex items-center justify-center z-50">
+					<div className="fixed inset-0 bg-black/50 backdrop-blur-[4px] flex items-center justify-center z-50">
 						<div
 							className={`p-6 rounded-2xl shadow-xl w-96 border ${
 								isDarkMode
-									? "bg-gray-900 text-white border-gray-800"
-									: "bg-white text-gray-800 border-gray-200"
+									? "bg-gray-900 border-gray-800"
+									: "bg-white border-gray-200"
 							} transform transition-all duration-300 scale-100 hover:scale-[1.02]`}
 						>
 							<div className="space-y-6">
@@ -588,14 +554,13 @@ const UpdateTraining = ({
 													className="flex flex-col items-center relative z-10"
 												>
 													<div
-														className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm
-                          ${
-														index <= stepProgress
-															? "bg-[#004F39] text-white border-2 border-[#00634A] scale-110"
-															: isDarkMode
-															? "bg-gray-800 border border-gray-700 text-gray-400"
-															: "bg-white border border-gray-200 text-gray-500"
-													}`}
+														className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${
+															index <= stepProgress
+																? "bg-[#004F39] text-white border-2 border-[#00634A] scale-110"
+																: isDarkMode
+																? "bg-gray-800 border border-gray-700 text-gray-400"
+																: "bg-white border border-gray-200 text-gray-500"
+														}`}
 													>
 														{index < stepProgress ? (
 															<svg
