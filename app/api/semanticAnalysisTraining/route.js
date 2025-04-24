@@ -18,13 +18,12 @@ const STOPWORDS = new Set([
 ]);
 
 const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || "";
-const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L12-v2";
-const TIMEOUT_MS = 30000; // Increased timeout duration
-const MAX_RETRIES = 3;
-const INITIAL_BACKOFF_MS = 1000;
+const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
+const TIMEOUT_MS = 10000;
 
-// NER Model configuration
-const NER_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
+// Gemini configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 // Initialize LangChain embeddings
 const embeddings = new HuggingFaceInferenceEmbeddings({
@@ -41,14 +40,13 @@ async function processNERResults(text) {
 	if (!text || typeof text !== "string") return { trainings: [] };
 
 	try {
-		const prompt = `You are a helpful AI assistant. Your task is to analyze the given text and extract training experiences, certifications, and skills.
+		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-Text to analyze: "${text}"
+		const prompt = `Analyze this text and extract training experiences, certifications, and skills. Return only a JSON object with one array: "trainings" containing all identified training-related items.
 
-Please extract and return ONLY a JSON object with one array:
-"trainings" - list of training experiences, certifications, and skills
+Text: "${text}"
 
-Example format:
+Format the response exactly like this example:
 {
     "trainings": ["Training Name", "Certification", "Skill"]
 }
@@ -59,44 +57,20 @@ Consider including:
 - Certifications
 - Technical skills
 - Professional development courses
-- Seminars attended
+- Seminars attended`;
 
-Return ONLY the JSON object, no additional text.`;
+		const result = await withTimeoutAndRetry(model.generateContent(prompt));
 
-		const response = await withTimeoutAndRetry(
-			fetch(`https://api-inference.huggingface.co/models/${NER_MODEL}`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${HF_ACCESS_TOKEN}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					inputs: prompt,
-					parameters: {
-						max_new_tokens: 250,
-						temperature: 0.1,
-						return_full_text: false,
-						top_p: 0.95,
-						repetition_penalty: 1.1,
-					},
-				}),
-			})
-		);
-
-		const result = await response.json();
-		console.log("Raw Model Response:", result);
+		const response = await result.response;
+		console.log("Raw Gemini Response:", response.text());
 
 		// Parse the response content as JSON
 		let parsed;
 		try {
-			// Handle both array and object response formats
-			const responseText = Array.isArray(result)
-				? result[0].generated_text
-				: result.generated_text;
-			const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
 			parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { trainings: [] };
 		} catch (error) {
-			console.error("Error parsing model response:", error);
+			console.error("Error parsing Gemini response:", error);
 			parsed = { trainings: [] };
 		}
 
@@ -129,7 +103,7 @@ function preprocessText(text) {
  * @param {Promise} promise - API call promise
  * @returns {Promise} Resolved or rejected promise
  */
-async function withTimeoutAndRetry(promise, retries = MAX_RETRIES) {
+async function withTimeoutAndRetry(promise, retries = 2) {
 	const timeout = new Promise((_, reject) =>
 		setTimeout(() => reject(new Error("API timeout")), TIMEOUT_MS)
 	);
@@ -138,11 +112,7 @@ async function withTimeoutAndRetry(promise, retries = MAX_RETRIES) {
 			return await Promise.race([promise, timeout]);
 		} catch (error) {
 			if (i === retries) throw error;
-			// Exponential backoff with jitter
-			const backoff =
-				INITIAL_BACKOFF_MS * Math.pow(2, i) * (0.5 + Math.random() * 0.5);
-			console.log(`Retry ${i + 1}/${retries} after ${backoff}ms`);
-			await new Promise((resolve) => setTimeout(resolve, backoff));
+			await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
 		}
 	}
 }

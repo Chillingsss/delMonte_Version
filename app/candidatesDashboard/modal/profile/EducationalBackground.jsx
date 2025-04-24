@@ -30,7 +30,7 @@ const EducationalBackground = ({
 	setSelectedDiplomaImage,
 	setIsDiplomaImageModalOpen,
 }) => {
-	console.log("Profile:", profile);
+	// console.log("Profile:", profile);
 	return (
 		<div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 			<div className="flex items-center justify-center mb-4 sm:mb-6">

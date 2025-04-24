@@ -387,7 +387,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 	useEffect(() => {
 		fetchProfile();
-	}, [updateTrigger]);
+	}, []);
 
 	// useEffect(() => {
 	//   function handleClickOutside(event) {

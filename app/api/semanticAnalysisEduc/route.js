@@ -1,5 +1,6 @@
-import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as tf from "@tensorflow/tfjs";
+import * as useModel from "@tensorflow-models/universal-sentence-encoder";
 
 // Configuration
 const STOPWORDS = new Set([
@@ -16,19 +17,28 @@ const STOPWORDS = new Set([
 	"by",
 ]);
 
-const HF_ACCESS_TOKEN = process.env.HUGGINGFACE_API_KEY || ""; // Fallback for safety
-const EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L12-v2";
-const TIMEOUT_MS = 30000; // Increased from 10000 to 30000 (30s timeout)
-const BONUS_WEIGHT = 0.05; // Configurable bonus per match
-const MAX_BONUS = 0.25; // Max bonus cap
+const TIMEOUT_MS = 10000; // 10s timeout for API calls
+const INSTITUTION_BONUS_WEIGHT = 0.9; // Very high weight for institution matches
+const COURSE_BONUS_WEIGHT = 0.05; // Regular weight for course matches
+const MAX_BONUS = 0.95; // Higher max bonus for stricter matching
+const INSTITUTION_MISMATCH_PENALTY = 0.9; // Heavy penalty when institutions don't match
 
-const NER_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
+// Gemini configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-// Initialize LangChain embeddings
-const embeddings = new HuggingFaceInferenceEmbeddings({
-	apiKey: HF_ACCESS_TOKEN,
-	model: EMBEDDING_MODEL,
-});
+console.log("Gemini api key: ", GEMINI_API_KEY);
+
+// Initialize Universal Sentence Encoder
+let useEncoder = null;
+
+async function loadEncoder() {
+	if (!useEncoder) {
+		await tf.ready();
+		useEncoder = await useModel.load();
+	}
+	return useEncoder;
+}
 
 /**
  * Preprocesses text with improved handling of abbreviations
@@ -50,7 +60,7 @@ function preprocessText(text) {
  * @param {Promise} promise - API call promise
  * @returns {Promise} Resolved or rejected promise
  */
-async function withTimeoutAndRetry(promise, retries = 3) {
+async function withTimeoutAndRetry(promise, retries = 2) {
 	const timeout = new Promise((_, reject) =>
 		setTimeout(() => reject(new Error("API timeout")), TIMEOUT_MS)
 	);
@@ -59,13 +69,13 @@ async function withTimeoutAndRetry(promise, retries = 3) {
 			return await Promise.race([promise, timeout]);
 		} catch (error) {
 			if (i === retries) throw error;
-			await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1))); // Exponential backoff with longer delays
+			await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
 		}
 	}
 }
 
 /**
- * Processes text to identify educational entities using Mistral
+ * Processes text to identify educational entities using Gemini
  * @param {string} text - Original input text
  * @returns {Promise<{institutions: string[], courses: string[]}>} Categorized entities
  */
@@ -74,58 +84,40 @@ async function processNERResults(text) {
 		return { institutions: [], courses: [] };
 
 	try {
-		const prompt = `You are a helpful AI assistant. Your task is to analyze the given text and extract educational institutions and courses/degrees.
+		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-Text to analyze: "${text}"
+		const prompt = `Analyze this text and extract educational institutions and courses/degrees. Focus on precise identification of educational institutions. Return only a JSON object with two arrays.
 
-Please extract and return ONLY a JSON object with two arrays:
-1. "institutions" - list of educational institutions
-2. "courses" - list of courses or degrees
+Text: "${text}"
 
-Example format:
+Format the response exactly like this example:
 {
     "institutions": ["University Name"],
     "courses": ["Course Name"]
 }
 
-Return ONLY the JSON object, no additional text.`;
+For institutions, include:
+- Full official names of universities/colleges
+- Technical/vocational schools
+- Educational institutes
+- Academic institutions
 
-		const response = await withTimeoutAndRetry(
-			fetch(`https://api-inference.huggingface.co/models/${NER_MODEL}`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${HF_ACCESS_TOKEN}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					inputs: prompt,
-					parameters: {
-						max_new_tokens: 250,
-						temperature: 0.1,
-						return_full_text: false,
-						top_p: 0.95,
-						repetition_penalty: 1.1,
-					},
-				}),
-			})
-		);
+Ensure institution names are complete and standardized.`;
 
-		const result = await response.json();
-		console.log("Raw Model Response:", result);
+		const result = await withTimeoutAndRetry(model.generateContent(prompt));
+
+		const response = await result.response;
+		console.log("Raw Gemini Response:", response.text());
 
 		// Parse the response content as JSON
 		let parsed;
 		try {
-			// Handle both array and object response formats
-			const responseText = Array.isArray(result)
-				? result[0].generated_text
-				: result.generated_text;
-			const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
 			parsed = jsonMatch
 				? JSON.parse(jsonMatch[0])
 				: { institutions: [], courses: [] };
 		} catch (error) {
-			console.error("Error parsing model response:", error);
+			console.error("Error parsing Gemini response:", error);
 			parsed = { institutions: [], courses: [] };
 		}
 
@@ -143,22 +135,72 @@ Return ONLY the JSON object, no additional text.`;
 }
 
 /**
- * Calculates cosine similarity between two vectors
- * @param {number[]} vecA - First vector
- * @param {number[]} vecB - Second vector
- * @returns {number} Cosine similarity score
+ * Calculates similarity score using Gemini AI
+ * @param {string} text1 - First text
+ * @param {string} text2 - Second text
+ * @param {number[]} embedding1 - USE embedding for first text (for fallback)
+ * @param {number[]} embedding2 - USE embedding for second text (for fallback)
+ * @returns {Promise<number>} Similarity score (0 to 1)
  */
-function calculateCosineSimilarity(vecA, vecB) {
-	if (!vecA?.length || !vecB?.length) return 0;
-	return tf.tidy(() => {
-		const tensorA = tf.tensor1d(vecA);
-		const tensorB = tf.tensor1d(vecB);
-		const dotProduct = tf.dot(tensorA, tensorB);
-		const normA = tf.norm(tensorA);
-		const normB = tf.norm(tensorB);
-		const similarity = tf.div(dotProduct, tf.mul(normA, normB)).dataSync()[0];
-		return isNaN(similarity) ? 0 : similarity;
-	});
+async function calculateCosineSimilarity(text1, text2, embedding1, embedding2) {
+	if (!text1 || !text2) return 0;
+
+	try {
+		const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+		const prompt = `Analyze the semantic similarity between the following two texts, focusing on their educational content (institutions, courses, and academic context). Return a similarity score as a number between 0 and 1, where 1 indicates identical meaning and 0 indicates no similarity. Provide the score in a JSON object like this: {"similarity": 0.85}
+
+Assign a very low similarity score (close to 0, e.g., 0.1 or lower) if the courses or degrees differ significantly in their field or specialization, even if they share a similar degree structure. For example:
+- "Bachelor of Science in Information Technology" and "Bachelor of Science in Civil Engineering" should have a very low score (e.g., 0.1) because the fields are unrelated.
+- "Master of Business Administration" and "Bachelor of Arts in Psychology" should have a very low score due to different degree types and fields.
+Only assign high scores (e.g., 0.8 or above) if the courses are identical or very closely related (e.g., "Bachelor of Science in Computer Science" and "BSc in Computer Science").
+
+Text 1: "${text1}"
+Text 2: "${text2}"`;
+
+		const result = await withTimeoutAndRetry(model.generateContent(prompt));
+		const response = await result.response;
+		console.log("Gemini Similarity Response:", response.text());
+
+		// Parse the response content as JSON
+		let parsed;
+		try {
+			const jsonMatch = response.text().match(/\{[\s\S]*\}/);
+			parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { similarity: 0 };
+		} catch (error) {
+			console.error("Error parsing Gemini similarity response:", error);
+			parsed = { similarity: 0 };
+		}
+
+		let similarity = parsed.similarity;
+		if (typeof similarity !== "number" || similarity < 0 || similarity > 1) {
+			console.warn("Invalid Gemini similarity score, falling back to USE");
+			// Fallback to original USE-based cosine similarity
+			return tf.tidy(() => {
+				const tensorA = tf.tensor1d(embedding1);
+				const tensorB = tf.tensor1d(embedding2);
+				const dotProduct = tf.dot(tensorA, tensorB);
+				const normA = tf.norm(tensorA);
+				const normB = tf.norm(tensorB);
+				const sim = tf.div(dotProduct, tf.mul(normA, normB)).dataSync()[0];
+				return isNaN(sim) ? 0 : sim;
+			});
+		}
+
+		return similarity;
+	} catch (error) {
+		console.error("Error in Gemini similarity calculation:", error);
+		// Fallback to original USE-based cosine similarity
+		return tf.tidy(() => {
+			const tensorA = tf.tensor1d(embedding1);
+			const tensorB = tf.tensor1d(embedding2);
+			const dotProduct = tf.dot(tensorA, tensorB);
+			const normA = tf.norm(tensorA);
+			const normB = tf.norm(tensorB);
+			const sim = tf.div(dotProduct, tf.mul(normA, normB)).dataSync()[0];
+			return isNaN(sim) ? 0 : sim;
+		});
+	}
 }
 
 /**
@@ -239,20 +281,37 @@ export async function POST(req) {
 		];
 		console.log("Shared Entities & Words:", sharedEntities, sharedWords);
 
-		console.log("Generating embeddings with LangChain...");
+		console.log("Generating embeddings with Universal Sentence Encoder...");
+		const encoder = await loadEncoder();
+		const embeddings = await encoder.embed([processedText1, processedText2]);
 		const [embedding1, embedding2] = await Promise.all([
-			withTimeoutAndRetry(embeddings.embedQuery(processedText1)),
-			withTimeoutAndRetry(embeddings.embedQuery(processedText2)),
+			embeddings.array().then((arr) => arr[0]),
+			embeddings.array().then((arr) => arr[1]),
 		]);
 
-		console.log("Calculating similarity score...");
-		const similarityScore = calculateCosineSimilarity(embedding1, embedding2);
-		const totalMatches =
-			sharedEntities.institutions.length +
-			sharedEntities.courses.length +
-			sharedWords.length;
-		const exactMatchBonus = Math.min(BONUS_WEIGHT * totalMatches, MAX_BONUS);
-		const finalScore = Math.min(1, similarityScore + exactMatchBonus) * 100;
+		console.log("Calculating similarity score with Gemini...");
+		// Apply institution matching first
+		let baseScore = 0;
+		if (sharedEntities.institutions.length > 0) {
+			baseScore = INSTITUTION_BONUS_WEIGHT;
+		} else {
+			const similarity = await calculateCosineSimilarity(
+				processedText1,
+				processedText2,
+				embedding1,
+				embedding2
+			);
+			baseScore = similarity * INSTITUTION_MISMATCH_PENALTY;
+		}
+
+		// Add course and word matching bonus
+		const courseBonus = Math.min(
+			COURSE_BONUS_WEIGHT *
+				(sharedEntities.courses.length + sharedWords.length),
+			MAX_BONUS - baseScore
+		);
+
+		const finalScore = Math.min(100, (baseScore + courseBonus) * 100);
 
 		console.log("Final Similarity Percentage:", finalScore);
 
