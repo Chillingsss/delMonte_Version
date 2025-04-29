@@ -18,18 +18,29 @@ import Training from "./profile/Training";
 import Knowledge from "./profile/Knowledge";
 import License from "./profile/License";
 import Resume from "./profile/Resume";
+import calculateCompletionPercentage from "../components/CalculateCompletionPercentage";
 
-const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
+const ViewProfile = ({
+	isOpen,
+	onClose,
+	onClosed,
+	fetchProfiles,
+	profile,
+	setProfile,
+	loading,
+	setLoading,
+}) => {
+	console.log("viewProfile", profile);
 	const { data: session } = useSession();
-	const [profile, setProfile] = useState({
-		candidateInformation: {},
-		educationalBackground: [],
-		employmentHistory: {},
-		skills: [],
-		training: [],
-		license: [],
-		resume: [],
-	});
+	// const [profile, setProfile] = useState({
+	// 	candidateInformation: {},
+	// 	educationalBackground: [],
+	// 	employmentHistory: {},
+	// 	skills: [],
+	// 	training: [],
+	// 	license: [],
+	// 	resume: [],
+	// });
 
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		const savedTheme = localStorage.getItem("appearance");
@@ -80,7 +91,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 	}, []);
 	const [showResumeModal, setShowResumeModal] = useState(false);
 	const [selectedResume, setSelectedResume] = useState(null);
-	const [loading, setLoading] = useState(true);
+	// const [loading, setLoading] = useState(true);
 	const [activeSection, setActiveSection] = useState("Personal Information");
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
@@ -354,40 +365,40 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 		fetchLicenseType();
 	}, []);
 
-	async function fetchProfile() {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+	// async function fetchProfile() {
+	// 	try {
+	// 		const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 
-			const getUserIdFromCookie = () => {
-				const tokenData = getDataFromCookie("auth_token");
-				if (tokenData && tokenData.userId) {
-					return tokenData.userId;
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
+	// 		const getUserIdFromCookie = () => {
+	// 			const tokenData = getDataFromCookie("auth_token");
+	// 			if (tokenData && tokenData.userId) {
+	// 				return tokenData.userId;
+	// 			}
+	// 			return null; // Return null if userId is not found or tokenData is invalid
+	// 		};
 
-			const userId = session?.user?.id || getUserIdFromCookie();
+	// 		const userId = session?.user?.id || getUserIdFromCookie();
 
-			console.log("User ID:", userId);
+	// 		console.log("User ID:", userId);
 
-			const jsonData = { cand_id: userId };
+	// 		const jsonData = { cand_id: userId };
 
-			const formData = new FormData();
-			formData.append("operation", "getCandidateProfile");
-			formData.append("json", JSON.stringify(jsonData));
+	// 		const formData = new FormData();
+	// 		formData.append("operation", "getCandidateProfile");
+	// 		formData.append("json", JSON.stringify(jsonData));
 
-			const response = await axios.post(url, formData);
-			console.log("res", response.data);
-			setProfile(response.data);
-			setLoading(false);
-		} catch (error) {
-			setLoading(false);
-		}
-	}
+	// 		const response = await axios.post(url, formData);
+	// 		console.log("res", response.data);
+	// 		setProfile(response.data);
+	// 		setLoading(false);
+	// 	} catch (error) {
+	// 		setLoading(false);
+	// 	}
+	// }
 
-	useEffect(() => {
-		fetchProfile();
-	}, []);
+	// useEffect(() => {
+	// 	fetchProfile();
+	// }, []);
 
 	// useEffect(() => {
 	//   function handleClickOutside(event) {
@@ -655,7 +666,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("Education record deleted successfully.");
-				fetchProfile();
+				fetchProfiles();
 				console.log(
 					`Education record with ID ${currentDeleteId} deleted successfully.`
 				);
@@ -717,7 +728,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data.success) {
 				toast.success("Employment record deleted successfully.");
-				fetchProfile(); // Assume fetchProfile is defined to refresh the data
+				fetchProfiles(); // Assume fetchProfile is defined to refresh the data
 			} else {
 				toast.error("Failed to delete the employment record.");
 			}
@@ -768,7 +779,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("Skill record deleted successfully.");
-				fetchProfile(); // Assume fetchProfile is defined to refresh the data
+				fetchProfiles(); // Assume fetchProfile is defined to refresh the data
 			} else {
 				toast.error("Failed to delete the skill record.");
 			}
@@ -821,7 +832,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("Training record deleted successfully.");
-				fetchProfile();
+				fetchProfiles();
 			} else {
 				toast.error("Failed to delete the Training record.");
 			}
@@ -874,7 +885,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("Knowledge record deleted successfully.");
-				fetchProfile();
+				fetchProfiles();
 			} else {
 				toast.error("Failed to delete the Knowledge record.");
 			}
@@ -927,7 +938,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("License record deleted successfully.");
-				fetchProfile();
+				fetchProfiles();
 			} else {
 				toast.error("Failed to delete the License record.");
 			}
@@ -978,7 +989,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 			if (response.data === 1) {
 				toast.success("Resume record deleted successfully.");
-				fetchProfile();
+				fetchProfiles();
 			} else {
 				toast.error("Failed to delete the Resume record.");
 				console.error("Server response:", response.data);
@@ -1010,35 +1021,6 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 
 	const handleEditEmailClick = () => {
 		setShowEmailModal(true);
-	};
-
-	const calculateCompletionPercentage = () => {
-		let totalFields = 20;
-		let completedFields = 0;
-
-		if (profile.educationalBackground.length > 0) completedFields++;
-		if (profile.employmentHistory.length > 0) completedFields++;
-		if (profile.skills.length > 0) completedFields++;
-		if (profile.training.length > 0) completedFields++;
-		if (profile.knowledge.length > 0) completedFields++;
-		if (profile.license.length > 0) completedFields++;
-		if (profile.resume.length > 0) completedFields++;
-
-		if (profile.candidateInformation.cand_firstname) completedFields++;
-		if (profile.candidateInformation.cand_lastname) completedFields++;
-		if (profile.candidateInformation.cand_contactNo) completedFields++;
-		if (profile.candidateInformation.cand_alternatecontactNo) completedFields++;
-		if (profile.candidateInformation.cand_presentAddress) completedFields++;
-		if (profile.candidateInformation.cand_permanentAddress) completedFields++;
-		if (profile.candidateInformation.cand_dateofBirth) completedFields++;
-		if (profile.candidateInformation.cand_alternateEmail) completedFields++;
-		if (profile.candidateInformation.cand_sssNo) completedFields++;
-		if (profile.candidateInformation.cand_tinNo) completedFields++;
-		if (profile.candidateInformation.cand_philhealthNo) completedFields++;
-		if (profile.candidateInformation.cand_pagibigNo) completedFields++;
-		if (profile.candidateInformation.cand_profPic) completedFields++;
-
-		return (completedFields / totalFields) * 100;
 	};
 
 	const handleAddEducation = () => {
@@ -1082,7 +1064,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<EducationalBackground
 						profile={profile}
 						setProfile={setProfile}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						isDarkMode={isDarkMode}
 						setIsDarkMode={setIsDarkMode}
 						handleAddEducation={handleAddEducation}
@@ -1115,7 +1097,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<EmploymentHistory
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1138,7 +1120,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<Skill
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1162,7 +1144,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<Training
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1185,7 +1167,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<Knowledge
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1208,7 +1190,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<License
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1232,7 +1214,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 					<Resume
 						profile={profile}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfile}
+						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1329,7 +1311,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 									<h2 className="text-xl md:text-2xl font-semibold ">
 										Account Details
 									</h2>
-									{calculateCompletionPercentage() === 100 ? (
+									{calculateCompletionPercentage(profile) === 100 ? (
 										<div className="flex items-center">
 											<FaRegCheckCircle className="h-5 w-5 text-green-400 mr-2 mt-1" />
 											<p className="text-gray-300 text-base">Fully Completed</p>
@@ -1337,7 +1319,8 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 									) : (
 										<p className="text-gray-300 text-base">
 											Your profile is{" "}
-											{calculateCompletionPercentage().toFixed(0)}% complete.
+											{calculateCompletionPercentage(profile).toFixed(0)}%
+											complete.
 										</p>
 									)}
 								</div>
@@ -1368,7 +1351,7 @@ const ViewProfile = ({ isOpen, onClose, onClosed, fetchProfiles }) => {
 									<li
 										key={section}
 										className={`cursor-pointer py-2 px-4 ${
-											activeSection === section ? "bg-green-600" : ""
+											activeSection === section ? "bg-green-800/50" : ""
 										} rounded-md mb-2`}
 										onClick={() => handleSectionClick(section)}
 									>

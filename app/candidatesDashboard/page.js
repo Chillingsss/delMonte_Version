@@ -127,6 +127,8 @@ export default function DashboardCandidates() {
 		employmentHistory: {},
 		skills: [],
 		training: [],
+		license: [],
+		resume: [],
 	});
 
 	const [isLoading, setIsLoading] = useState(false);
@@ -2027,6 +2029,7 @@ export default function DashboardCandidates() {
 						setIsModalOpen(false);
 						getDataFromSession("jobId");
 					}}
+					profile={profile}
 				/>
 			)}
 			{isProfileModalOpen && (
@@ -2036,6 +2039,9 @@ export default function DashboardCandidates() {
 					candId={selectedCandidateId}
 					fetchProfiles={fetchProfiles}
 					profile={profile}
+					setProfile={setProfile}
+					loading={loading}
+					setLoading={setLoading}
 				/>
 			)}
 

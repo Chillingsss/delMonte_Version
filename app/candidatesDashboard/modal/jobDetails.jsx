@@ -1,568 +1,562 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
-import Link from "next/link";
 import { hourglass } from "ldrs";
-import {
-  getDataFromSession,
-  getDataFromCookie,
-} from "@/app/utils/storageUtils";
+import { getDataFromSession } from "@/app/utils/storageUtils";
 import "react-toastify/dist/ReactToastify.css";
-import { useRouter } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 import ViewProfile from "./viewProfile";
 import { X } from "lucide-react";
+import {
+	getFileType,
+	extractTextFromPdf,
+	convertDocxToText,
+} from "@/app/utils/documentUtils";
+import { handleJobApplication } from "@/app/utils/jobApplicationUtils";
 
 const JobDetailsModal = ({
-  job,
-  onClosedd,
-  fetchJobs,
-  fetchAppliedJobs,
-  fetchNotification,
-  appliedJobs,
+	job,
+	onClosedd,
+	fetchJobs,
+	fetchAppliedJobs,
+	fetchNotification,
+	appliedJobs,
+	profile,
 }) => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const modalRef = useRef(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [jobs, setJobs] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [profile, setProfile] = useState(null);
-  // const [AppliedJobs, setAppliedJobs] = useState([]);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+	const { data: session } = useSession();
+	const modalRef = useRef(null);
+	const [error, setError] = useState(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [success, setSuccess] = useState(null);
+	const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
+	const [resumeText, setResumeText] = useState("");
+	const [resumeLoading, setResumeLoading] = useState(false);
+	const [resumeError, setResumeError] = useState(null);
+	const [jobQualifications, setJobQualifications] = useState(null);
+	const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    // ✅ Ensure `lineSpinner.register()` runs only in the client
-    if (typeof window !== "undefined") {
-      hourglass.register();
-    }
-  }, []);
+	const getJobQualifications = async () => {
+		setIsLoading(true);
+		try {
+			const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
+			const formData = new FormData();
+			formData.append("operation", "getJobQualification");
+			formData.append(
+				"json",
+				JSON.stringify({ jobId: getDataFromSession("jobId") })
+			);
+			console.log(
+				"Fetching qualifications for jobId:",
+				getDataFromSession("jobId")
+			);
+			const response = await axios.post(url, formData);
+			setJobQualifications(response.data || []);
+			console.log("Qualifications data:", response.data);
+		} catch (error) {
+			console.error("Detailed error in getJobQualifications:", error);
+			toast.error("Failed to fetch job qualifications");
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-  async function fetchProfile() {
-    try {
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-      const userId = session?.user?.id || getUserIdFromCookie();
+	useEffect(() => {
+		getJobQualifications();
+	}, []);
 
-      console.log("User ID:", userId);
+	// Add useEffect to handle resume text extraction
+	useEffect(() => {
+		const extractResumeText = async () => {
+			if (profile?.resume?.[0]?.canres_file) {
+				setResumeLoading(true);
+				setResumeError(null);
+				try {
+					const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}serve-file.php?file=${profile.resume[0].canres_file}`;
+					const fileType = getFileType(fileUrl);
+					let text = "";
 
-      const jsonData = { cand_id: userId };
+					if (fileType === "pdf") {
+						text = await extractTextFromPdf(fileUrl);
+						console.log("Extracted PDF Text:", text);
+					} else if (fileType === "docx") {
+						text = await convertDocxToText(fileUrl);
+						console.log("Extracted DOCX Text:", text);
+					}
 
-      const formData = new FormData();
-      formData.append("operation", "getCandidateProfile");
-      formData.append("json", JSON.stringify(jsonData));
+					setResumeText(text);
+					console.log("Final Extracted Text:", text);
+				} catch (err) {
+					setResumeError(err.message);
+					console.error("Error extracting resume text:", err);
+				} finally {
+					setResumeLoading(false);
+				}
+			}
+		};
 
-      const response = await axios.post(url, formData);
-      console.log("Profile response:", response.data);
-      ("");
-      setProfile(response.data);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  }
+		extractResumeText();
+	}, [profile?.resume]);
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+	console.log("profile:", profile);
 
-  // useEffect(() => {
-  //   function handleClickOutside(event) {
-  //     if (modalRef.current && !modalRef.current.contains(event.target)) {
-  //       onClose();
-  //     }
-  //     // removeData("jobId");
-  //   }
+	useEffect(() => {
+		// ✅ Ensure `lineSpinner.register()` runs only in the client
+		if (typeof window !== "undefined") {
+			hourglass.register();
+		}
+	}, []);
 
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, [onClose]);
+	const handleApply = async () => {
+		setIsLoading(true);
+		setProgress(0);
 
-  const calculateCompletionPercentage = () => {
-    let totalFields = 20;
-    let completedFields = 0;
+		try {
+			// Simulate progress updates
+			const progressInterval = setInterval(() => {
+				setProgress((prev) => {
+					if (prev >= 100) {
+						clearInterval(progressInterval);
+						return 100;
+					}
+					return prev + 25;
+				});
+			}, 1000);
 
-    if (profile.educationalBackground.length > 0) completedFields++;
-    if (profile.employmentHistory.length > 0) completedFields++;
-    if (profile.skills.length > 0) completedFields++;
-    if (profile.training.length > 0) completedFields++;
-    if (profile.knowledge.length > 0) completedFields++;
-    if (profile.license.length > 0) completedFields++;
-    if (profile.resume.length > 0) completedFields++;
+			// Pass the job object to handleJobApplication
+			await handleJobApplication({
+				profile,
+				setIsLoading,
+				setError,
+				setSuccess,
+				setIsProfileModalOpen,
+				setIsRedirecting,
+				session,
+				fetchAppliedJobs,
+				fetchNotification,
+				fetchJobs,
+				onClosedd,
+				resumeText,
+				job,
+			});
 
-    if (profile.candidateInformation.cand_firstname) completedFields++;
-    if (profile.candidateInformation.cand_lastname) completedFields++;
-    if (profile.candidateInformation.cand_contactNo) completedFields++;
-    if (profile.candidateInformation.cand_alternatecontactNo) completedFields++;
-    if (profile.candidateInformation.cand_presentAddress) completedFields++;
-    if (profile.candidateInformation.cand_permanentAddress) completedFields++;
-    if (profile.candidateInformation.cand_dateofBirth) completedFields++;
-    if (profile.candidateInformation.cand_alternateEmail) completedFields++;
-    if (profile.candidateInformation.cand_sssNo) completedFields++;
-    if (profile.candidateInformation.cand_tinNo) completedFields++;
-    if (profile.candidateInformation.cand_philhealthNo) completedFields++;
-    if (profile.candidateInformation.cand_pagibigNo) completedFields++;
-    if (profile.candidateInformation.cand_profPic) completedFields++;
+			clearInterval(progressInterval);
+			setProgress(100);
+		} catch (error) {
+			setError(error.message);
+			toast.error(error.message);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-    return (completedFields / totalFields) * 100;
-  };
+	const getInitialTheme = () => {
+		const savedTheme = localStorage.getItem("appearance");
+		if (savedTheme && savedTheme !== "system") {
+			return savedTheme === "dark";
+		}
 
-  const handleApply = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+		const prefersDark = window.matchMedia(
+			"(prefers-color-scheme: dark)"
+		).matches;
+		return prefersDark;
+	};
 
-    if (
-      profile.candidateInformation.length === 0 ||
-      profile.skills.length === 0 ||
-      profile.employmentHistory.length === 0 ||
-      profile.educationalBackground.length === 0 ||
-      // profile.knowledge.length === 0 ||
-      // profile.training.length === 0 ||
-      // profile.license.length === 0 ||
-      profile.resume.length === 0
-    ) {
-      toast.error(
-        <div className="flex flex-col items-center space-y-4 p-4 bg-red-50 rounded-xl shadow-lg max-w-md mx-auto text-center">
-          <div>
-            <p className="text-base font-semibold text-red-800 mb-2">
-              Profile Incomplete
-            </p>
-            <p className="text-sm text-red-600 mb-3">
-              Please complete your profile information before applying to this
-              job. Ensure all required sections are filled out to proceed with
-              your application.
-            </p>
-            <div className="w-full bg-red-200 rounded-full h-2.5 mb-3">
-              <div
-                className="bg-red-600 h-2.5 rounded-full"
-                style={{
-                  width: `${calculateCompletionPercentage()}%`,
-                  transition: "width 0.5s ease-in-out",
-                }}
-              ></div>
-            </div>
-            <p className="text-xs text-red-700 mb-2">
-              Profile Completion: {Math.round(calculateCompletionPercentage())}%
-            </p>
-          </div>
-          <button
-            onClick={() => setIsProfileModalOpen(true)}
-            className="w-full px-4 py-2 bg-red-100 text-red-800 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors duration-200"
-          >
-            Click here to Complete Profile
-          </button>
-        </div>,
-        {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background: "transparent",
-            boxShadow: "none",
-            padding: "0",
-          },
-        }
-      );
-      return;
-    }
+	const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
-    try {
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+	// useEffect(() => {
+	//   const theme = isDarkMode ? "dark" : "light";
+	//   localStorage.setItem("theme", theme);
+	//   document.body.className = theme;
+	//   console.log("Setting theme:", theme);
+	// }, [isDarkMode]);
 
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-      // Example usage
-      const userId = session?.user?.id || getUserIdFromCookie();
-      console.log("User ID:", userId);
-      const jobId = getDataFromSession("jobId");
+		const handleSystemThemeChange = (e) => {
+			setIsDarkMode(e.matches);
+		};
 
-      // console.log("user_id:", user_id, "jobId:", jobId);
+		mediaQuery.addEventListener("change", handleSystemThemeChange);
 
-      const formData = new FormData();
-      formData.append("operation", "applyForJob");
-      formData.append("user_id", userId);
-      formData.append("jobId", jobId);
+		return () => {
+			mediaQuery.removeEventListener("change", handleSystemThemeChange);
+		};
+	}, []);
 
-      const response = await axios.post(url, formData);
+	// Toggle function to switch themes manually
+	const toggleTheme = () => {
+		setIsDarkMode((prevMode) => !prevMode);
+	};
 
-      console.log(response);
+	if (!job) return null;
 
-      if (response.data.success) {
-        setSuccess("You have successfully applied for the job!");
+	const dutiesArray = job.duties_text ? job.duties_text.split("|") : [];
+	const educationArray = job.course_categoryName
+		? job.course_categoryName.split("|").join(", ")
+		: [];
+	const workResponsibilitiesArray = job.jwork_responsibilities
+		? job.jwork_responsibilities
+				.split("|")
+				.map((responsibility) => responsibility.trim())
+		: [];
 
-        if (fetchAppliedJobs) {
-          fetchAppliedJobs();
-        }
-        if (fetchNotification) {
-          fetchNotification();
-        }
-        if (fetchJobs) {
-          fetchJobs();
-        }
+	const workDurationsArray = job.jwork_duration
+		? job.jwork_duration.split("|").map((duration) => duration.trim())
+		: [];
 
-        console.log("fetchAppliedJobs:", fetchAppliedJobs);
-        console.log("fetchNotification:", fetchNotification);
-        console.log("fetchJobs:", fetchJobs);
-        // removeData("jobId");
+	const workDetailsArray = workResponsibilitiesArray.map(
+		(responsibility, index) => ({
+			responsibility: responsibility || "",
+			duration: workDurationsArray[index] || "",
+		})
+	);
 
-        setIsRedirecting(true);
-        getDataFromSession("jobId");
+	// const knowledgeArray = job.jknow_text ? job.jknow_text.split("|") : [];
+	const knowledgeArray = job.knowledge_name
+		? job.knowledge_name.split("|").join(", ") // Join knowledge items with a comma
+		: [];
 
-        setTimeout(() => {
-          setIsRedirecting(false);
-          onClosedd();
-        }, 10000);
-        toast.success("Applied successfully!");
-      } else if (response.data.status === "duplicate") {
-        toast(response.data.message, {
-          icon: "⚠️",
-          style: {
-            border: "1px solid #FF0000",
-            padding: "16px",
-            color: "#FF0000",
-          },
-        });
-        // removeData("jobId");
-      } else {
-        throw new Error(response.data.error || "Failed to apply for the job.");
-      }
-    } catch (err) {
-      setError(err.message);
-      toast.error(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+	const skillsArray = job.jskills_text ? job.jskills_text.split("|") : [];
+	const trainingArray = job.perT_name
+		? job.perT_name.split("|").join(", ")
+		: [];
 
-  const getInitialTheme = () => {
-    const savedTheme = localStorage.getItem("appearance");
-    if (savedTheme && savedTheme !== "system") {
-      return savedTheme === "dark";
-    }
+	const licenseArray = job.license_master_name
+		? job.license_master_name.split("|").join(", ")
+		: [];
 
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    return prefersDark;
-  };
+	return (
+		<div
+			className={`fixed inset-0 z-50 flex items-center justify-center ${
+				isDarkMode ? "bg-black bg-opacity-80" : "bg-black bg-opacity-50"
+			}`}
+		>
+			<div
+				ref={modalRef}
+				className={`relative p-6 rounded-lg max-w-4xl w-full ${
+					isDarkMode ? "bg-[#1D1D1D] text-gray-200" : "bg-white text-black"
+				}`}
+			>
+				<div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200">
+					<div className="flex items-center justify-between px-4">
+						<div className="w-8" /> {/* Spacer to help center the title */}
+						<h2 className="text-xl font-bold text-[#0A6338] flex-1 text-center">
+							{job.jobM_title}
+						</h2>
+						<button
+							onClick={onClosedd}
+							className="text-[#004F39] transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
+						>
+							<X size={24} />
+						</button>
+					</div>
+				</div>
 
-  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
+				<div
+					className={`overflow-y-auto scrollbar-custom ${
+						isDarkMode ? "scrollbar-thumb-gray-600" : "scrollbar-thumb-gray-300"
+					}`}
+					style={{ paddingBottom: "6rem", maxHeight: "70vh" }}
+				>
+					<h2 className="text-lg font-bold mb-4">Job Description:</h2>
+					<p className="mb-8">{job.jobM_description}</p>
 
-  // useEffect(() => {
-  //   const theme = isDarkMode ? "dark" : "light";
-  //   localStorage.setItem("theme", theme);
-  //   document.body.className = theme;
-  //   console.log("Setting theme:", theme);
-  // }, [isDarkMode]);
+					{dutiesArray.length > 0 && (
+						<>
+							<h2 className="text-lg font-bold mb-4">
+								Duties and Responsibilities:
+							</h2>
+							<ul className="list-disc pl-5 mb-8">
+								{dutiesArray.map((duty, index) => (
+									<li key={index} className="mb-2">
+										{duty}
+									</li>
+								))}
+							</ul>
+						</>
+					)}
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+					<div>
+						<h2 className="text-lg font-bold mb-4">Qualifications:</h2>
 
-    const handleSystemThemeChange = (e) => {
-      setIsDarkMode(e.matches);
-    };
+						{educationArray.length > 0 && (
+							<>
+								{/* <h3 className="text-md font-semibold mb-2">Education:</h3> */}
+								<ul className="list-disc pl-5 mb-4">
+									<li className="mb-2">
+										Graduate of any {educationArray} courses.
+									</li>
+								</ul>
+							</>
+						)}
 
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
+						{licenseArray.length > 0 && (
+							<>
+								<ul className="list-disc pl-5 mb-4">
+									<li className="mb-2">
+										Having a {licenseArray} is considered an advantage.
+									</li>
+								</ul>
+							</>
+						)}
 
-    return () => {
-      mediaQuery.removeEventListener("change", handleSystemThemeChange);
-    };
-  }, []);
+						{trainingArray.length > 0 && (
+							<>
+								{/* <h3 className="text-md font-semibold mb-2">Training:</h3> */}
+								<ul className="list-disc pl-5 mb-4">
+									<li className="mb-2">With training in {trainingArray} </li>
+								</ul>
+							</>
+						)}
 
-  // Toggle function to switch themes manually
-  const toggleTheme = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
-
-  if (!job) return null;
-
-  const dutiesArray = job.duties_text ? job.duties_text.split("|") : [];
-  const educationArray = job.course_categoryName
-    ? job.course_categoryName.split("|").join(", ")
-    : [];
-  const workResponsibilitiesArray = job.jwork_responsibilities
-    ? job.jwork_responsibilities
-        .split("|")
-        .map((responsibility) => responsibility.trim())
-    : [];
-
-  const workDurationsArray = job.jwork_duration
-    ? job.jwork_duration.split("|").map((duration) => duration.trim())
-    : [];
-
-  const workDetailsArray = workResponsibilitiesArray.map(
-    (responsibility, index) => ({
-      responsibility: responsibility || "",
-      duration: workDurationsArray[index] || "",
-    })
-  );
-
-  // const knowledgeArray = job.jknow_text ? job.jknow_text.split("|") : [];
-  const knowledgeArray = job.knowledge_name
-    ? job.knowledge_name.split("|").join(", ") // Join knowledge items with a comma
-    : [];
-
-  const skillsArray = job.jskills_text ? job.jskills_text.split("|") : [];
-  const trainingArray = job.perT_name
-    ? job.perT_name.split("|").join(", ")
-    : [];
-
-  const licenseArray = job.license_master_name
-    ? job.license_master_name.split("|").join(", ")
-    : [];
-
-  return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${
-        isDarkMode ? "bg-black bg-opacity-80" : "bg-black bg-opacity-50"
-      }`}
-    >
-      <div
-        ref={modalRef}
-        className={`relative p-6 rounded-lg max-w-4xl w-full ${
-          isDarkMode ? "bg-[#1D1D1D] text-gray-200" : "bg-white text-black"
-        }`}
-      >
-        <div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200">
-          <div className="flex items-center justify-between px-4">
-            <div className="w-8" /> {/* Spacer to help center the title */}
-            <h2 className="text-xl font-bold text-[#0A6338] flex-1 text-center">
-              {job.jobM_title}
-            </h2>
-            <button
-              onClick={onClosedd}
-              className="text-[#004F39] transition-transform duration-300 ease-in-out hover:scale-105 hover:-translate-y-1"
-            >
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-
-        <div
-          className={`overflow-y-auto scrollbar-custom ${
-            isDarkMode ? "scrollbar-thumb-gray-600" : "scrollbar-thumb-gray-300"
-          }`}
-          style={{ paddingBottom: "6rem", maxHeight: "70vh" }}
-        >
-          <h2 className="text-lg font-bold mb-4">Job Description:</h2>
-          <p className="mb-8">{job.jobM_description}</p>
-
-          {dutiesArray.length > 0 && (
-            <>
-              <h2 className="text-lg font-bold mb-4">
-                Duties and Responsibilities:
-              </h2>
-              <ul className="list-disc pl-5 mb-8">
-                {dutiesArray.map((duty, index) => (
-                  <li key={index} className="mb-2">
-                    {duty}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          <div>
-            <h2 className="text-lg font-bold mb-4">Qualifications:</h2>
-
-            {educationArray.length > 0 && (
-              <>
-                {/* <h3 className="text-md font-semibold mb-2">Education:</h3> */}
-                <ul className="list-disc pl-5 mb-4">
-                  <li className="mb-2">
-                    Graduate of any {educationArray} courses.
-                  </li>
-                </ul>
-              </>
-            )}
-
-            {licenseArray.length > 0 && (
-              <>
-                <ul className="list-disc pl-5 mb-4">
-                  <li className="mb-2">
-                    Having a {licenseArray} is considered an advantage.
-                  </li>
-                </ul>
-              </>
-            )}
-
-            {trainingArray.length > 0 && (
-              <>
-                {/* <h3 className="text-md font-semibold mb-2">Training:</h3> */}
-                <ul className="list-disc pl-5 mb-4">
-                  <li className="mb-2">With training in {trainingArray} </li>
-                </ul>
-              </>
-            )}
-
-            <div className="job-details">
-              {workDetailsArray.length > 0 && (
-                <>
-                  {/* <h3 className="text-md font-semibold mb-2">
+						<div className="job-details">
+							{workDetailsArray.length > 0 && (
+								<>
+									{/* <h3 className="text-md font-semibold mb-2">
                     Work Experience:
                   </h3> */}
-                  <ul className="list-disc pl-5">
-                    {workDetailsArray.map((detail, index) => (
-                      <li key={index} className="mb-2">
-                        <p>
-                          At least {detail.duration} years of experience in a{" "}
-                          {detail.responsibility}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
+									<ul className="list-disc pl-5">
+										{workDetailsArray.map((detail, index) => (
+											<li key={index} className="mb-2">
+												<p>
+													At least {detail.duration} years of experience in a{" "}
+													{detail.responsibility}
+												</p>
+											</li>
+										))}
+									</ul>
+								</>
+							)}
+						</div>
 
-            {knowledgeArray.length > 0 && (
-              <>
-                {/* <h3 className="text-md font-semibold mb-2">Knowledge:</h3> */}
-                <ul className="list-disc pl-5 mb-4 mt-4">
-                  <li className="mb-2">Knowledge in {knowledgeArray} </li>
-                </ul>
-              </>
-            )}
+						{knowledgeArray.length > 0 && (
+							<>
+								{/* <h3 className="text-md font-semibold mb-2">Knowledge:</h3> */}
+								<ul className="list-disc pl-5 mb-4 mt-4">
+									<li className="mb-2">Knowledge in {knowledgeArray} </li>
+								</ul>
+							</>
+						)}
 
-            {skillsArray.length > 0 && (
-              <>
-                {/* <h3 className="text-md font-semibold mb-2">Skills:</h3> */}
-                <ul className="list-disc pl-5 mb-4">
-                  {skillsArray.map((skill, index) => (
-                    <li key={index} className="mb-2 mt-4">
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
+						{skillsArray.length > 0 && (
+							<>
+								{/* <h3 className="text-md font-semibold mb-2">Skills:</h3> */}
+								<ul className="list-disc pl-5 mb-4">
+									{skillsArray.map((skill, index) => (
+										<li key={index} className="mb-2 mt-4">
+											{skill}
+										</li>
+									))}
+								</ul>
+							</>
+						)}
+					</div>
+				</div>
 
-        <div
-          className={`absolute bottom-0 left-0 right-0 p-4 ${
-            isDarkMode
-              ? "bg-[#1D1D1D] border-gray-700"
-              : "bg-white border-gray-200"
-          } flex justify-end`}
-        >
-          {Array.isArray(appliedJobs) &&
-          appliedJobs.some(
-            (item) =>
-              item.Is_Applied !== 0 &&
-              item.jobM_id === job.jobM_id &&
-              [
-                "Pending",
-                "Processed",
-                "Interview",
-                "Exam",
-                "Background Check",
-                "Job Offer",
-                "Employed",
-                "Failed Exam",
-                "Decision Pending",
-              ].includes(item.status_name)
-          ) ? (
-            <button
-              className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out bg-gray-400 cursor-not-allowed`}
-              style={{
-                boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
-              }}
-              disabled
-            >
-              Already Applied
-            </button>
-          ) : Array.isArray(appliedJobs) &&
-            appliedJobs.some(
-              (item) =>
-                item.Is_Applied !== 0 &&
-                item.jobM_id === job.jobM_id &&
-                ["Cancelled", "Decline Offer"].includes(item.status_name)
-            ) ? (
-            <button
-              onClick={handleApply}
-              className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out ${
-                isDarkMode
-                  ? "bg-green-600 text-white hover:scale-110 hover:-translate-y-1"
-                  : "bg-green-700 hover:bg-[#0A6338] text-white hover:scale-110 hover:-translate-y-1"
-              }`}
-              style={{
-                boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
-              }}
-            >
-              Reapply
-            </button>
-          ) : (
-            <button
-              onClick={handleApply}
-              className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out ${
-                isDarkMode
-                  ? "bg-green-600 text-white hover:scale-110 hover:-translate-y-1"
-                  : "bg-green-700 hover:bg-[#0A6338] text-white hover:scale-110 hover:-translate-y-1"
-              }`}
-              style={{
-                boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
-              }}
-            >
-              Apply
-            </button>
-          )}
-        </div>
-      </div>
-      <Toaster position="bottom-left" />
+				<div
+					className={`absolute bottom-0 left-0 right-0 p-4 ${
+						isDarkMode
+							? "bg-[#1D1D1D] border-gray-700"
+							: "bg-white border-gray-200"
+					} flex justify-end`}
+				>
+					{Array.isArray(appliedJobs) &&
+					appliedJobs.some(
+						(item) =>
+							item.Is_Applied !== 0 &&
+							item.jobM_id === job.jobM_id &&
+							[
+								"Pending",
+								"Processed",
+								"Interview",
+								"Exam",
+								"Background Check",
+								"Job Offer",
+								"Employed",
+								"Failed Exam",
+								"Decision Pending",
+							].includes(item.status_name)
+					) ? (
+						<button
+							className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out bg-gray-400 cursor-not-allowed`}
+							style={{
+								boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
+							}}
+							disabled
+						>
+							Already Applied
+						</button>
+					) : Array.isArray(appliedJobs) &&
+					  appliedJobs.some(
+							(item) =>
+								item.Is_Applied !== 0 &&
+								item.jobM_id === job.jobM_id &&
+								["Cancelled", "Decline Offer"].includes(item.status_name)
+					  ) ? (
+						<button
+							onClick={handleApply}
+							className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out ${
+								isDarkMode
+									? "bg-green-600 text-white hover:scale-110 hover:-translate-y-1"
+									: "bg-green-700 hover:bg-[#0A6338] text-white hover:scale-110 hover:-translate-y-1"
+							}`}
+							style={{
+								boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
+							}}
+						>
+							Reapply
+						</button>
+					) : (
+						<button
+							onClick={handleApply}
+							className={`px-4 py-2 rounded-md relative transition-transform duration-300 ease-in-out ${
+								isDarkMode
+									? "bg-green-600 text-white hover:scale-110 hover:-translate-y-1"
+									: "bg-green-700 hover:bg-[#0A6338] text-white hover:scale-110 hover:-translate-y-1"
+							}`}
+							style={{
+								boxShadow: "0 10px 15px rgba(0, 0, 0, 0.3)",
+							}}
+						>
+							Apply
+						</button>
+					)}
+				</div>
+			</div>
+			<Toaster position="bottom-left" />
 
-      {isRedirecting && (
-        <div className="fixed inset-0 bg-[#01472B] bg-opacity-90 flex items-center justify-center z-50">
-          <div className="text-center">
-            <l-hourglass
-              size="40"
-              bg-opacity="0.1"
-              speed="1.75"
-              color="white"
-            ></l-hourglass>
-            <p className="text-white text-xl font-semibold mt-4">
-              Application Received
-            </p>
-            <p className="text-green-300 mt-2">
-              Thank you for your application. We are currently reviewing it and
-              will contact you soon to provide details on the next steps.
-            </p>
-            <p className="text-green-300 mt-2">
-              Thank you for your interest in this position.
-            </p>
-          </div>
-        </div>
-      )}
+			{isRedirecting && (
+				<div className="fixed inset-0 bg-[#01472B] bg-opacity-90 flex items-center justify-center z-50">
+					<div className="text-center">
+						<l-hourglass
+							size="40"
+							bg-opacity="0.1"
+							speed="1.75"
+							color="white"
+						></l-hourglass>
+						<p className="text-white text-xl font-semibold mt-4">
+							Application Received
+						</p>
+						<p className="text-green-300 mt-2">
+							Thank you for your application. We are currently reviewing it and
+							will contact you soon to provide details on the next steps.
+						</p>
+						<p className="text-green-300 mt-2">
+							Thank you for your interest in this position.
+						</p>
+					</div>
+				</div>
+			)}
 
-      {isProfileModalOpen && (
-        <ViewProfile
-          isOpen={isProfileModalOpen}
-          setShowModal={setIsProfileModalOpen}
-          onClosed={() => setIsProfileModalOpen(false)}
-        />
-      )}
-    </div>
-  );
+			{isProfileModalOpen && (
+				<ViewProfile
+					isOpen={isProfileModalOpen}
+					setShowModal={setIsProfileModalOpen}
+					onClosed={() => setIsProfileModalOpen(false)}
+				/>
+			)}
+
+			{isLoading && (
+				<div className="fixed inset-0 bg-black/50 backdrop-blur-[4px] flex items-center justify-center z-50">
+					<div
+						className={`p-6 rounded-2xl shadow-xl w-96 border ${
+							isDarkMode
+								? "bg-gray-900 border-gray-800"
+								: "bg-white border-gray-200"
+						} transform transition-all duration-300 scale-100 hover:scale-[1.02]`}
+					>
+						<div className="space-y-6">
+							{/* Header */}
+							<div className="text-center">
+								<h3
+									className={`text-lg font-semibold ${
+										isDarkMode ? "text-gray-200" : "text-gray-900"
+									}`}
+								>
+									Processing Application
+								</h3>
+							</div>
+
+							{/* Progress Steps */}
+							<div className="relative flex justify-between mb-4">
+								{["Submit", "Analyze", "Process", "Complete"].map(
+									(step, index) => {
+										const stepProgress = Math.floor(progress / 25);
+										return (
+											<div key={step} className="flex flex-col items-center">
+												<div
+													className={`w-8 h-8 rounded-full flex items-center justify-center ${
+														index <= stepProgress
+															? isDarkMode
+																? "bg-green-500"
+																: "bg-green-600"
+															: isDarkMode
+															? "bg-gray-700"
+															: "bg-gray-200"
+													}`}
+												>
+													<span
+														className={`text-sm font-medium ${
+															index <= stepProgress
+																? "text-white"
+																: isDarkMode
+																? "text-gray-400"
+																: "text-gray-500"
+														}`}
+													>
+														{index + 1}
+													</span>
+												</div>
+												<span
+													className={`text-xs mt-1 ${
+														isDarkMode ? "text-gray-400" : "text-gray-500"
+													}`}
+												>
+													{step}
+												</span>
+											</div>
+										);
+									}
+								)}
+							</div>
+
+							{/* Progress Bar */}
+							<div className="relative pt-1">
+								<div
+									className={`overflow-hidden h-2 text-xs flex rounded-full ${
+										isDarkMode ? "bg-gray-800" : "bg-gray-100"
+									}`}
+								>
+									<div
+										style={{ width: `${progress}%` }}
+										className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center ${
+											isDarkMode ? "bg-green-500" : "bg-green-600"
+										}`}
+									/>
+								</div>
+								<div
+									className={`text-center mt-2 text-sm ${
+										isDarkMode ? "text-gray-200" : "text-gray-700"
+									}`}
+								>
+									{progress < 25 && "Submitting application..."}
+									{progress >= 25 && progress < 50 && "Analyzing resume..."}
+									{progress >= 50 &&
+										progress < 75 &&
+										"Processing requirements..."}
+									{progress >= 75 && "Finalizing application..."}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
 };
 
 export default JobDetailsModal;
