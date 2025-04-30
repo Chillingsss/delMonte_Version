@@ -139,7 +139,7 @@ const JobDetailsModal = ({
 				fetchJobs,
 				onClosedd,
 				resumeText,
-				job,
+				jobQualifications,
 			});
 
 			clearInterval(progressInterval);

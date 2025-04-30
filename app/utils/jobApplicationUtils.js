@@ -16,7 +16,7 @@ export const handleJobApplication = async ({
 	fetchJobs,
 	onClosedd,
 	resumeText,
-	job,
+	jobQualifications,
 }) => {
 	setIsLoading(true);
 	setError(null);
@@ -83,15 +83,38 @@ export const handleJobApplication = async ({
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					text1: resumeText,
-					text2: `${job.course_categoryName || ""}\n${
-						job.jskills_text || ""
-					}\n${job.jwork_responsibilities || ""}\n${job.perT_name || ""}\n${
-						job.license_master_name || ""
-					}`,
-					threshold: 80,
+					text2: JSON.stringify({
+						education:
+							jobQualifications.jobEducation?.map((edu) => ({
+								degree: edu.course_categoryName,
+								points: edu.jeduc_points,
+							})) || [],
+						experience:
+							jobQualifications.jobExperience?.map((exp) => ({
+								responsibilities: exp.jwork_responsibilities,
+								points: exp.jwork_points,
+							})) || [],
+						knowledge:
+							jobQualifications.jobKnowledge?.map((know) => ({
+								name: know.knowledge_name,
+								points: know.jknow_points,
+							})) || [],
+						skills:
+							jobQualifications.jobSkills?.map((skill) => ({
+								name: skill.perS_name,
+								points: skill.jskills_points,
+							})) || [],
+						training:
+							jobQualifications.jobTrainings?.map((train) => ({
+								name: train.perT_name,
+								points: train.jtrng_points,
+							})) || [],
+					}),
 				}),
 			}
 		);
+
+		console.log("text2", jobQualifications);
 
 		if (!semanticResponse.ok) {
 			throw new Error(
@@ -116,31 +139,158 @@ export const handleJobApplication = async ({
 		formData.append("user_id", userId);
 		formData.append("jobId", jobId);
 
-		// Append points from semantic analysis
-		formData.append("educPoints", semanticResult.educPoints || 0);
-		formData.append("empPoints", semanticResult.empPoints || 0);
-		formData.append("skillPoints", semanticResult.skillPoints || 0);
-		formData.append("trainingPoints", semanticResult.trainingPoints || 0);
-		formData.append("licensePoints", semanticResult.licensePoints || 0);
+		// Append detailed scores from semantic analysis
+		formData.append(
+			"detailedScores",
+			JSON.stringify({
+				education: semanticResult.detailedScores.education.map((score) => ({
+					qualification: score.qualification,
+					points: score.points,
+					score: score.score,
+					similarity: score.similarity,
+					explanation: score.explanation,
+				})),
+				experience: semanticResult.detailedScores.experience.map((score) => ({
+					qualification: score.qualification,
+					points: score.points,
+					score: score.score,
+					similarity: score.similarity,
+					explanation: score.explanation,
+				})),
+				skills: semanticResult.detailedScores.skills.map((score) => ({
+					qualification: score.qualification,
+					points: score.points,
+					score: score.score,
+					similarity: score.similarity,
+					explanation: score.explanation,
+				})),
+				training: semanticResult.detailedScores.training.map((score) => ({
+					qualification: score.qualification,
+					points: score.points,
+					score: score.score,
+					similarity: score.similarity,
+					explanation: score.explanation,
+				})),
+				knowledge: semanticResult.detailedScores.knowledge.map((score) => ({
+					qualification: score.qualification,
+					points: score.points,
+					score: score.score,
+					similarity: score.similarity,
+					explanation: score.explanation,
+				})),
+			})
+		);
+
+		// Send individual scores for each qualification
+		semanticResult.detailedScores.education.forEach((score, index) => {
+			formData.append(`education_${index}_score`, score.score);
+			formData.append(`education_${index}_points`, score.points);
+		});
+
+		semanticResult.detailedScores.experience.forEach((score, index) => {
+			formData.append(`experience_${index}_score`, score.score);
+			formData.append(`experience_${index}_points`, score.points);
+		});
+
+		semanticResult.detailedScores.skills.forEach((score, index) => {
+			formData.append(`skills_${index}_score`, score.score);
+			formData.append(`skills_${index}_points`, score.points);
+		});
+
+		semanticResult.detailedScores.training.forEach((score, index) => {
+			formData.append(`training_${index}_score`, score.score);
+			formData.append(`training_${index}_points`, score.points);
+		});
+
+		semanticResult.detailedScores.knowledge.forEach((score, index) => {
+			formData.append(`knowledge_${index}_score`, score.score);
+			formData.append(`knowledge_${index}_points`, score.points);
+		});
 
 		const response = await axios.post(url, formData);
 
 		if (response.data.success) {
 			setSuccess("You have successfully applied for the job!");
 
-			// Show points breakdown in success toast
+			// Show detailed points breakdown in success toast
 			toast.success(
 				<div className="space-y-2">
 					<p className="font-semibold">Application Submitted Successfully!</p>
 					<div className="text-sm">
-						<p>Qualification Match Scores:</p>
-						<ul className="list-disc pl-4 mt-1">
-							<li>Education: {Math.round(semanticResult.educPoints)}%</li>
-							<li>Experience: {Math.round(semanticResult.empPoints)}%</li>
-							<li>Skills: {Math.round(semanticResult.skillPoints)}%</li>
-							<li>Training: {Math.round(semanticResult.trainingPoints)}%</li>
-							<li>License: {Math.round(semanticResult.licensePoints)}%</li>
-						</ul>
+						<p>Qualification Match Details:</p>
+						{semanticResult.detailedScores.education.length > 0 && (
+							<div className="mt-2">
+								<p className="font-semibold">Education:</p>
+								<ul className="list-disc pl-4 mt-1">
+									{semanticResult.detailedScores.education.map(
+										(score, index) => (
+											<li key={index}>
+												{score.qualification}: {score.score}/{score.points}{" "}
+												points ({Math.round(score.similarity * 100)}% match)
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{semanticResult.detailedScores.experience.length > 0 && (
+							<div className="mt-2">
+								<p className="font-semibold">Experience:</p>
+								<ul className="list-disc pl-4 mt-1">
+									{semanticResult.detailedScores.experience.map(
+										(score, index) => (
+											<li key={index}>
+												{score.qualification}: {score.score}/{score.points}{" "}
+												points ({Math.round(score.similarity * 100)}% match)
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{semanticResult.detailedScores.skills.length > 0 && (
+							<div className="mt-2">
+								<p className="font-semibold">Skills:</p>
+								<ul className="list-disc pl-4 mt-1">
+									{semanticResult.detailedScores.skills.map((score, index) => (
+										<li key={index}>
+											{score.qualification}: {score.score}/{score.points} points
+											({Math.round(score.similarity * 100)}% match)
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
+						{semanticResult.detailedScores.training.length > 0 && (
+							<div className="mt-2">
+								<p className="font-semibold">Training:</p>
+								<ul className="list-disc pl-4 mt-1">
+									{semanticResult.detailedScores.training.map(
+										(score, index) => (
+											<li key={index}>
+												{score.qualification}: {score.score}/{score.points}{" "}
+												points ({Math.round(score.similarity * 100)}% match)
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
+						{semanticResult.detailedScores.knowledge.length > 0 && (
+							<div className="mt-2">
+								<p className="font-semibold">Knowledge:</p>
+								<ul className="list-disc pl-4 mt-1">
+									{semanticResult.detailedScores.knowledge.map(
+										(score, index) => (
+											<li key={index}>
+												{score.qualification}: {score.score}/{score.points}{" "}
+												points ({Math.round(score.similarity * 100)}% match)
+											</li>
+										)
+									)}
+								</ul>
+							</div>
+						)}
 						{semanticResult.recommendations &&
 							semanticResult.recommendations.length > 0 && (
 								<div className="mt-2">
