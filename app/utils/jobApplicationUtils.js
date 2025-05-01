@@ -86,26 +86,31 @@ export const handleJobApplication = async ({
 					text2: JSON.stringify({
 						education:
 							jobQualifications.jobEducation?.map((edu) => ({
+								id: edu.course_categoryId,
 								degree: edu.course_categoryName,
 								points: edu.jeduc_points,
 							})) || [],
 						experience:
 							jobQualifications.jobExperience?.map((exp) => ({
+								id: exp.jwork_id,
 								responsibilities: exp.jwork_responsibilities,
 								points: exp.jwork_points,
 							})) || [],
 						knowledge:
 							jobQualifications.jobKnowledge?.map((know) => ({
+								id: know.knowledge_id,
 								name: know.knowledge_name,
 								points: know.jknow_points,
 							})) || [],
 						skills:
 							jobQualifications.jobSkills?.map((skill) => ({
+								id: skill.perS_id,
 								name: skill.perS_name,
 								points: skill.jskills_points,
 							})) || [],
 						training:
 							jobQualifications.jobTrainings?.map((train) => ({
+								id: train.perT_id,
 								name: train.perT_name,
 								points: train.jtrng_points,
 							})) || [],
@@ -139,72 +144,30 @@ export const handleJobApplication = async ({
 		formData.append("user_id", userId);
 		formData.append("jobId", jobId);
 
-		// Append detailed scores from semantic analysis
-		formData.append(
-			"detailedScores",
-			JSON.stringify({
-				education: semanticResult.detailedScores.education.map((score) => ({
-					qualification: score.qualification,
-					points: score.points,
-					score: score.score,
-					similarity: score.similarity,
-					explanation: score.explanation,
-				})),
-				experience: semanticResult.detailedScores.experience.map((score) => ({
-					qualification: score.qualification,
-					points: score.points,
-					score: score.score,
-					similarity: score.similarity,
-					explanation: score.explanation,
-				})),
-				skills: semanticResult.detailedScores.skills.map((score) => ({
-					qualification: score.qualification,
-					points: score.points,
-					score: score.score,
-					similarity: score.similarity,
-					explanation: score.explanation,
-				})),
-				training: semanticResult.detailedScores.training.map((score) => ({
-					qualification: score.qualification,
-					points: score.points,
-					score: score.score,
-					similarity: score.similarity,
-					explanation: score.explanation,
-				})),
-				knowledge: semanticResult.detailedScores.knowledge.map((score) => ({
-					qualification: score.qualification,
-					points: score.points,
-					score: score.score,
-					similarity: score.similarity,
-					explanation: score.explanation,
-				})),
-			})
-		);
-
 		// Send individual scores for each qualification
 		semanticResult.detailedScores.education.forEach((score, index) => {
 			formData.append(`education_${index}_score`, score.score);
-			formData.append(`education_${index}_points`, score.points);
+			formData.append(`education_${index}_id`, score.id);
 		});
 
 		semanticResult.detailedScores.experience.forEach((score, index) => {
 			formData.append(`experience_${index}_score`, score.score);
-			formData.append(`experience_${index}_points`, score.points);
+			formData.append(`experience_${index}_id`, score.id);
 		});
 
 		semanticResult.detailedScores.skills.forEach((score, index) => {
 			formData.append(`skills_${index}_score`, score.score);
-			formData.append(`skills_${index}_points`, score.points);
+			formData.append(`skills_${index}_id`, score.id);
 		});
 
 		semanticResult.detailedScores.training.forEach((score, index) => {
 			formData.append(`training_${index}_score`, score.score);
-			formData.append(`training_${index}_points`, score.points);
+			formData.append(`training_${index}_id`, score.id);
 		});
 
 		semanticResult.detailedScores.knowledge.forEach((score, index) => {
 			formData.append(`knowledge_${index}_score`, score.score);
-			formData.append(`knowledge_${index}_points`, score.points);
+			formData.append(`knowledge_${index}_id`, score.id);
 		});
 
 		const response = await axios.post(url, formData);

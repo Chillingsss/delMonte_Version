@@ -241,7 +241,11 @@ const JobDetailsModal = ({
 					isDarkMode ? "bg-[#1D1D1D] text-gray-200" : "bg-white text-black"
 				}`}
 			>
-				<div className="sticky top-0 left-0 right-0 bg-white z-10 pb-4 border-b border-gray-200">
+				<div
+					className={`sticky top-0 left-0 right-0 z-10 pb-4 border-b ${
+						isDarkMode ? "bg-[#1D1D1D] text-gray-200" : "bg-white text-black"
+					} border-gray-200`}
+				>
 					<div className="flex items-center justify-between px-4">
 						<div className="w-8" /> {/* Spacer to help center the title */}
 						<h2 className="text-xl font-bold text-[#0A6338] flex-1 text-center">

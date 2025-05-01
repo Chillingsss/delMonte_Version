@@ -271,17 +271,22 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 						async (candidateEdu) =>
 							await calculateSemanticSimilarity(
 								candidateEdu.degree,
-								jobEdu.degree
+								jobEdu.degree,
+								jobEdu.id
 							)
 					)
 				);
 				const bestMatch = Math.max(...candidateMatches);
-				const partialScore = Math.round(jobEdu.points * bestMatch); // Calculate partial score based on similarity
+				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
+				const matchedCandidate = safeCandidateInfo.education[bestIndex] || {};
+				const partialScore = Math.round(jobEdu.points * bestMatch);
 				return {
+					id: jobEdu.id,
 					qualification: jobEdu.degree,
+					candidate: matchedCandidate,
 					points: jobEdu.points,
 					score: partialScore,
-					matched: bestMatch > 0.3, // Lower threshold for partial matches
+					matched: bestMatch > 0.3,
 					similarity: bestMatch,
 					explanation:
 						bestMatch > 0.3
@@ -298,14 +303,19 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 						async (candidateExp) =>
 							await calculateSemanticSimilarity(
 								candidateExp.responsibilities.join(" "),
-								jobExp.responsibilities
+								jobExp.responsibilities,
+								jobExp.id
 							)
 					)
 				);
 				const bestMatch = Math.max(...candidateMatches);
+				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
+				const matchedCandidate = safeCandidateInfo.experience[bestIndex] || {};
 				const partialScore = Math.round(jobExp.points * bestMatch);
 				return {
+					id: jobExp.id,
 					qualification: jobExp.responsibilities,
+					candidate: matchedCandidate,
 					points: jobExp.points,
 					score: partialScore,
 					matched: bestMatch > 0.3,
@@ -326,13 +336,21 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 				const candidateMatches = await Promise.all(
 					flattenedCandidateSkills.map(
 						async (candidateSkill) =>
-							await calculateSemanticSimilarity(candidateSkill, jobSkill.name)
+							await calculateSemanticSimilarity(
+								candidateSkill,
+								jobSkill.name,
+								jobSkill.id
+							)
 					)
 				);
 				const bestMatch = Math.max(...candidateMatches);
+				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
+				const matchedCandidate = flattenedCandidateSkills[bestIndex] || "";
 				const partialScore = Math.round(jobSkill.points * bestMatch);
 				return {
+					id: jobSkill.id,
 					qualification: jobSkill.name,
+					candidate: matchedCandidate,
 					points: jobSkill.points,
 					score: partialScore,
 					matched: bestMatch > 0.3,
@@ -352,14 +370,19 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 						async (candidateTrain) =>
 							await calculateSemanticSimilarity(
 								candidateTrain.name,
-								jobTrain.name
+								jobTrain.name,
+								jobTrain.id
 							)
 					)
 				);
 				const bestMatch = Math.max(...candidateMatches);
+				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
+				const matchedCandidate = safeCandidateInfo.training[bestIndex] || {};
 				const partialScore = Math.round(jobTrain.points * bestMatch);
 				return {
+					id: jobTrain.id,
 					qualification: jobTrain.name,
+					candidate: matchedCandidate,
 					points: jobTrain.points,
 					score: partialScore,
 					matched: bestMatch > 0.3,
@@ -379,14 +402,19 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 						async (candidateKnow) =>
 							await calculateSemanticSimilarity(
 								candidateKnow.name,
-								jobKnow.name
+								jobKnow.name,
+								jobKnow.id
 							)
 					)
 				);
 				const bestMatch = Math.max(...candidateMatches);
+				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
+				const matchedCandidate = safeCandidateInfo.knowledge[bestIndex] || {};
 				const partialScore = Math.round(jobKnow.points * bestMatch);
 				return {
+					id: jobKnow.id,
 					qualification: jobKnow.name,
+					candidate: matchedCandidate,
 					points: jobKnow.points,
 					score: partialScore,
 					matched: bestMatch > 0.3,
@@ -514,7 +542,7 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 			),
 		};
 
-		console.log("Final result:", result);
+		console.log("Final result:", JSON.stringify(result, null, 2));
 		return result;
 	} catch (error) {
 		console.error("Error in similarity calculation:", error);
