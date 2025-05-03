@@ -7,7 +7,9 @@ import DatePicker from "react-datepicker";
 const EmploymentHistory = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
@@ -53,7 +55,9 @@ const EmploymentHistory = ({
 							showModal={showAddModal}
 							setShowModal={setShowAddModal}
 							employment={""}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 						/>
 					</div>

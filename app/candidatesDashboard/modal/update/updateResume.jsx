@@ -2,18 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
-import {
-	getDataFromSession,
-	getDataFromCookie,
-} from "@/app/utils/storageUtils";
+import { getDataFromCookie } from "@/app/utils/storageUtils";
 import { toast } from "sonner";
 import Tesseract from "tesseract.js";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const UpdateResume = ({
 	showModal,
 	setShowModal,
 	res,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	selectedResume,
 }) => {
 	const { data: session } = useSession();
@@ -29,7 +28,7 @@ const UpdateResume = ({
 		employmentHistory: [],
 		skills: [],
 	});
-	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [processingImage, setProcessingImage] = useState(false);
 
 	const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -115,7 +114,7 @@ const UpdateResume = ({
 	}, []);
 
 	const fetchProfileKeywords = async () => {
-		setLoading(true);
+		setLoadings(true);
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 			const getUserIdFromCookie = () => {
@@ -154,7 +153,7 @@ const UpdateResume = ({
 		} catch (error) {
 			console.error("Error fetching candidate profile:", error);
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 		}
 	};
 
@@ -270,7 +269,7 @@ const UpdateResume = ({
 			);
 			return;
 		}
-		setLoading(true);
+		setLoadings(true);
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 			const getUserIdFromCookie = () => {
@@ -308,9 +307,7 @@ const UpdateResume = ({
 
 			if (response.data === 1) {
 				toast.success("Resume updated successfully.");
-				if (fetchProfile) {
-					fetchProfile();
-				}
+				fetchProfiles(session, setProfile, setLoading);
 				setShowModal(false);
 			} else {
 				console.error("Failed to update resume:", response.data);
@@ -319,7 +316,7 @@ const UpdateResume = ({
 			console.error("Error updating resume:", error);
 			toast.error("Error updating resume");
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 		}
 	};
 
@@ -403,9 +400,9 @@ const UpdateResume = ({
 					<button
 						onClick={handleSave}
 						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-						disabled={loading || processingImage}
+						disabled={loadings || processingImage}
 					>
-						{loading || processingImage ? "Saving..." : "Save"}
+						{loadings || processingImage ? "Saving..." : "Save"}
 					</button>
 				</div>
 				{processingImage && (

@@ -6,14 +6,15 @@ import axios from "axios";
 import { getDataFromCookie } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast";
-
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 const UpdateLicense = ({
 	showLicenseModal,
 	setShowLicenseModal,
 	selectedLicense,
 	licenses,
 	licenseType,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	fetchLicense,
 }) => {
 	const { data: session } = useSession();
@@ -26,6 +27,8 @@ const UpdateLicense = ({
 		customLicenseType: "",
 		customLicenseMaster: "",
 	});
+
+	const [loadings, setLoadings] = useState(false);
 
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		const savedTheme = localStorage.getItem("appearance");
@@ -77,7 +80,6 @@ const UpdateLicense = ({
 
 	const [error, setError] = useState(""); // State for error message
 	const [formValid, setFormValid] = useState(false);
-	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		setFormValid(
@@ -252,19 +254,20 @@ const UpdateLicense = ({
 			formData.append("operation", "updateCandidateLicense");
 			formData.append("json", JSON.stringify(updatedLicense));
 
-			setLoading(true);
+			setLoadings(true);
 			const response = await axios.post(url, formData, {
 				headers: {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-			setLoading(false);
+			setLoadings(false);
 
 			if (response.data === 1) {
 				console.log("License updated successfully.");
 				toast.success("License updated successfully."); // Updated toast call
-				if (fetchProfile) {
-					fetchProfile();
+				fetchProfiles(session, setProfile, setLoading);
+				if (fetchLicense) {
+					fetchLicense();
 				}
 				if (fetchLicense) {
 					fetchLicense();

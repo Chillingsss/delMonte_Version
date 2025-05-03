@@ -12,7 +12,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 const Resume = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
@@ -306,7 +308,9 @@ const Resume = ({
 							showModal={showAddModal}
 							setShowModal={setShowAddModal}
 							res={selectedResume}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 						/>
 					</div>
@@ -437,7 +441,9 @@ const Resume = ({
 										showModal={showResumeModal}
 										setShowModal={setShowResumeModal}
 										res={selectedResume}
-										fetchProfile={fetchProfile}
+										setProfile={setProfile}
+										setLoading={setLoading}
+										session={session}
 									/>
 								</div>
 							</div>

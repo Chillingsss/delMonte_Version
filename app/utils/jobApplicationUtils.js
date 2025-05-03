@@ -2,24 +2,24 @@ import { toast } from "react-hot-toast";
 import axios from "axios";
 import { getDataFromSession, getDataFromCookie } from "./storageUtils";
 import calculateCompletionPercentage from "../candidatesDashboard/components/CalculateCompletionPercentage";
+import { fetchAppliedJobs, fetchJobs, fetchNotification } from "./apiFunctions";
 
 export const handleJobApplication = async ({
 	profile,
 	setIsLoading,
-	setError,
 	setSuccess,
 	setIsProfileModalOpen,
 	setIsRedirecting,
 	session,
-	fetchAppliedJobs,
-	fetchNotification,
-	fetchJobs,
+	setNotification,
+	setUnreadNotificationCount,
 	onClosedd,
 	resumeText,
 	jobQualifications,
+	setJobs,
+	setAppliedJobs
 }) => {
 	setIsLoading(true);
-	setError(null);
 	setSuccess(null);
 
 	if (
@@ -270,9 +270,11 @@ export const handleJobApplication = async ({
 				{ duration: 6000 }
 			);
 
-			if (fetchAppliedJobs) fetchAppliedJobs();
-			if (fetchNotification) fetchNotification();
-			if (fetchJobs) fetchJobs();
+			fetchAppliedJobs(session, setAppliedJobs);
+
+			fetchNotification(session, setNotification, setUnreadNotificationCount);
+
+			fetchJobs(session, setJobs);
 
 			setIsRedirecting(true);
 			setTimeout(() => {
@@ -292,7 +294,6 @@ export const handleJobApplication = async ({
 			throw new Error(response.data.error || "Failed to apply for the job.");
 		}
 	} catch (err) {
-		setError(err.message);
 		toast.error(err.message);
 	} finally {
 		setIsLoading(false);

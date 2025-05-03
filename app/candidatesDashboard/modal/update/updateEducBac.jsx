@@ -12,6 +12,7 @@ import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import Tesseract from "tesseract.js";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -64,7 +65,8 @@ const UpdateEducBac = ({
 	institutions,
 	courseTypes,
 	courseCategory,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	fetchCourses,
 	fetchInstitutions,
 	fetchCourseTypes,
@@ -177,7 +179,7 @@ const UpdateEducBac = ({
 	});
 
 	// Add these new state variables
-	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [diploma, setDiploma] = useState(null);
 
@@ -277,7 +279,7 @@ const UpdateEducBac = ({
 	};
 
 	const handleSave = async () => {
-		setLoading(true);
+		setLoadings(true);
 		setProgress(0);
 		try {
 			setProgress(10);
@@ -303,7 +305,7 @@ const UpdateEducBac = ({
 				)
 			) {
 				toast.error("Please choose the existing course from the dropdown.");
-				setLoading(false);
+				setLoadings(false);
 				return;
 			}
 
@@ -318,7 +320,7 @@ const UpdateEducBac = ({
 				toast.error(
 					"Please choose the existing institution from the dropdown."
 				);
-				setLoading(false);
+				setLoadings(false);
 				return;
 			}
 
@@ -333,7 +335,7 @@ const UpdateEducBac = ({
 				toast.error(
 					"Please choose the existing course category from the dropdown."
 				);
-				setLoading(false);
+				setLoadings(false);
 				return;
 			}
 
@@ -348,7 +350,7 @@ const UpdateEducBac = ({
 				toast.error(
 					"Please choose the existing course type from the dropdown."
 				);
-				setLoading(false);
+				setLoadings(false);
 				return;
 			}
 
@@ -365,7 +367,7 @@ const UpdateEducBac = ({
 
 				if (!selectedCourse) {
 					toast.error("Please select or enter a course first");
-					setLoading(false);
+					setLoadings(false);
 					return;
 				}
 
@@ -389,7 +391,7 @@ const UpdateEducBac = ({
 					toast.error(
 						`The diploma does not match the selected course (Similarity: ${diplomaAnalysis.score}%, Required: ${coursePassingPercent}%)`
 					);
-					setLoading(false);
+					setLoadings(false);
 					return;
 				}
 
@@ -423,7 +425,7 @@ const UpdateEducBac = ({
 							1
 						)}%, Required: ${coursePassingPercent}%)`
 					);
-					setLoading(false);
+					setLoadings(false);
 					return;
 				}
 
@@ -457,7 +459,7 @@ const UpdateEducBac = ({
 						toast.error(
 							`The diploma does not match the selected institution (Similarity: ${institutionAnalysis.score}%, Required: ${coursePassingPercent}%)`
 						);
-						setLoading(false);
+						setLoadings(false);
 						return;
 					}
 				}
@@ -520,9 +522,9 @@ const UpdateEducBac = ({
 
 			if (response.data === 1) {
 				toast.success("Educational background updated successfully");
-				if (fetchProfile) {
-					fetchProfile();
-				}
+
+				fetchProfiles(session, setProfile, setLoading);
+
 				if (fetchCourses) {
 					fetchCourses();
 				}
@@ -548,7 +550,7 @@ const UpdateEducBac = ({
 			console.error("Error updating educational background:", error);
 			toast.error("Error updating educational background: " + error.message);
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 			setProgress(0);
 			setShowModalUpdateEduc(false);
 		}
@@ -562,9 +564,9 @@ const UpdateEducBac = ({
 				diploma &&
 				!errors.customCourse &&
 				!errors.customInstitution &&
-				!loading
+				!loadings
 		);
-	}, [data, diploma, errors, loading]);
+	}, [data, diploma, errors, loadings]);
 
 	const getSelectedOption = (options, value) =>
 		options.find((option) => option.value === value) || null;
@@ -1149,7 +1151,7 @@ const UpdateEducBac = ({
 			<Toaster position="bottom-left" />
 
 			{/* Add loading overlay */}
-			{loading && (
+			{loadings && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[4px] flex items-center justify-center z-50">
 					<div
 						className={`p-6 rounded-2xl shadow-xl w-96 border ${

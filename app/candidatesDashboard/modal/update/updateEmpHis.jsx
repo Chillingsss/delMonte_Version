@@ -10,12 +10,14 @@ import {
 	getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const UpdateEmpHis = ({
 	showModal,
 	setShowModal,
 	employment,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	profile,
 }) => {
 	const { data: session } = useSession();
@@ -171,9 +173,7 @@ const UpdateEmpHis = ({
 
 			if (response.data.success) {
 				toast.success("Employment history updated successfully.");
-				if (fetchProfile) {
-					fetchProfile();
-				}
+				fetchProfiles(session, setProfile, setLoading);
 				setShowModal(false);
 			} else if (response.data.duplicate) {
 				toast.error(response.data.duplicate);

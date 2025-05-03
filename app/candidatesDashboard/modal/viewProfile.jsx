@@ -19,12 +19,12 @@ import Knowledge from "./profile/Knowledge";
 import License from "./profile/License";
 import Resume from "./profile/Resume";
 import calculateCompletionPercentage from "../components/CalculateCompletionPercentage";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const ViewProfile = ({
 	isOpen,
 	onClose,
 	onClosed,
-	fetchProfiles,
 	profile,
 	setProfile,
 	loading,
@@ -365,61 +365,6 @@ const ViewProfile = ({
 		fetchLicenseType();
 	}, []);
 
-	// async function fetchProfile() {
-	// 	try {
-	// 		const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-	// 		const getUserIdFromCookie = () => {
-	// 			const tokenData = getDataFromCookie("auth_token");
-	// 			if (tokenData && tokenData.userId) {
-	// 				return tokenData.userId;
-	// 			}
-	// 			return null; // Return null if userId is not found or tokenData is invalid
-	// 		};
-
-	// 		const userId = session?.user?.id || getUserIdFromCookie();
-
-	// 		console.log("User ID:", userId);
-
-	// 		const jsonData = { cand_id: userId };
-
-	// 		const formData = new FormData();
-	// 		formData.append("operation", "getCandidateProfile");
-	// 		formData.append("json", JSON.stringify(jsonData));
-
-	// 		const response = await axios.post(url, formData);
-	// 		console.log("res", response.data);
-	// 		setProfile(response.data);
-	// 		setLoading(false);
-	// 	} catch (error) {
-	// 		setLoading(false);
-	// 	}
-	// }
-
-	// useEffect(() => {
-	// 	fetchProfile();
-	// }, []);
-
-	// useEffect(() => {
-	//   function handleClickOutside(event) {
-	//     if (modalRef.current && !modalRef.current.contains(event.target)) {
-	//     if (onClose) {
-	//       onClose();
-	//     } else {
-	//       onClosed();
-	//     }
-	//     }
-	//   }
-
-	//   if (isOpen) {
-	//     document.addEventListener("mousedown", handleClickOutside);
-	//   }
-
-	//   return () => {
-	//     document.removeEventListener("mousedown", handleClickOutside);
-	//   };
-	// }, [isOpen, onClose, onClosed]);
-
 	const handleSectionClick = (section) => {
 		setActiveSection(section);
 		setIsSidebarOpen(false); // Close the sidebar on mobile after selecting a section
@@ -578,9 +523,7 @@ const ViewProfile = ({
 				setIsEditingPersonalInfo(false);
 				toast.success("Profile updated successfully");
 
-				if (fetchProfiles) {
-					fetchProfiles();
-				}
+				fetchProfiles(session, setProfile, setLoading);
 			} else if (response.data.error) {
 				toast.error("Error updating profile: " + response.data.error);
 			} else {
@@ -666,7 +609,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("Education record deleted successfully.");
-				fetchProfiles();
+				fetchProfiles(session, setProfile, setLoading);
 				console.log(
 					`Education record with ID ${currentDeleteId} deleted successfully.`
 				);
@@ -728,7 +671,7 @@ const ViewProfile = ({
 
 			if (response.data.success) {
 				toast.success("Employment record deleted successfully.");
-				fetchProfiles(); // Assume fetchProfile is defined to refresh the data
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the employment record.");
 			}
@@ -779,7 +722,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("Skill record deleted successfully.");
-				fetchProfiles(); // Assume fetchProfile is defined to refresh the data
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the skill record.");
 			}
@@ -832,7 +775,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("Training record deleted successfully.");
-				fetchProfiles();
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the Training record.");
 			}
@@ -885,7 +828,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("Knowledge record deleted successfully.");
-				fetchProfiles();
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the Knowledge record.");
 			}
@@ -938,7 +881,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("License record deleted successfully.");
-				fetchProfiles();
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the License record.");
 			}
@@ -989,7 +932,7 @@ const ViewProfile = ({
 
 			if (response.data === 1) {
 				toast.success("Resume record deleted successfully.");
-				fetchProfiles();
+				fetchProfiles(session, setProfile, setLoading);
 			} else {
 				toast.error("Failed to delete the Resume record.");
 				console.error("Server response:", response.data);
@@ -1035,6 +978,8 @@ const ViewProfile = ({
 					<PersonalInformation
 						profile={profile}
 						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
 						setIsDarkMode={setIsDarkMode}
 						handleEditPasswordClick={handleEditPasswordClick}
@@ -1064,9 +1009,10 @@ const ViewProfile = ({
 					<EducationalBackground
 						profile={profile}
 						setProfile={setProfile}
-						fetchProfile={fetchProfiles}
+						setLoading={setLoading}
 						isDarkMode={isDarkMode}
 						setIsDarkMode={setIsDarkMode}
+						session={session}
 						handleAddEducation={handleAddEducation}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
@@ -1096,8 +1042,10 @@ const ViewProfile = ({
 				return (
 					<EmploymentHistory
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1119,8 +1067,10 @@ const ViewProfile = ({
 				return (
 					<Skill
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1143,8 +1093,10 @@ const ViewProfile = ({
 				return (
 					<Training
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1166,8 +1118,10 @@ const ViewProfile = ({
 				return (
 					<Knowledge
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1189,8 +1143,10 @@ const ViewProfile = ({
 				return (
 					<License
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
@@ -1213,8 +1169,10 @@ const ViewProfile = ({
 				return (
 					<Resume
 						profile={profile}
+						setProfile={setProfile}
+						setLoading={setLoading}
+						session={session}
 						isDarkMode={isDarkMode}
-						fetchProfile={fetchProfiles}
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}

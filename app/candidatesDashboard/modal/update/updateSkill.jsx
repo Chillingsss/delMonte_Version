@@ -4,322 +4,321 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import {
-  getDataFromSession,
-  getDataFromCookie,
+	getDataFromSession,
+	getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import Select, { components } from "react-select";
 import { Toaster, toast } from "react-hot-toast";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 // Custom Option Component
 const CustomOption = (props) => {
-  return (
-    <components.Option
-      {...props}
-      className={`custom-option ${props.isSelected ? "is-selected" : ""}`}
-      style={{ cursor: "pointer" }}
-    >
-      {props.children}
-    </components.Option>
-  );
+	return (
+		<components.Option
+			{...props}
+			className={`custom-option ${props.isSelected ? "is-selected" : ""}`}
+			style={{ cursor: "pointer" }}
+		>
+			{props.children}
+		</components.Option>
+	);
 };
 
 const UpdateSkill = ({
-  showModal,
-  setShowModal,
-  selectedSkill,
-  skills,
-  fetchProfile,
-  fetchSkills,
+	showModal,
+	setShowModal,
+	selectedSkill,
+	skills,
+	setProfile,
+	setLoading,
 }) => {
-  const { data: session } = useSession();
-  const [data, setData] = useState({
-    skills_id: "",
-    skillId: "",
-    customSkill: "",
-  });
+	const { data: session } = useSession();
+	const [data, setData] = useState({
+		skills_id: "",
+		skillId: "",
+		customSkill: "",
+	});
 
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("appearance");
-    if (savedTheme === "dark") return true;
-    if (savedTheme === "light") return false;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+	const [isDarkMode, setIsDarkMode] = useState(() => {
+		const savedTheme = localStorage.getItem("appearance");
+		if (savedTheme === "dark") return true;
+		if (savedTheme === "light") return false;
+		return window.matchMedia("(prefers-color-scheme: dark)").matches;
+	});
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+	useEffect(() => {
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const updateTheme = () => {
-      const savedTheme = localStorage.getItem("appearance");
-      if (savedTheme === "dark") {
-        setIsDarkMode(true);
-      } else if (savedTheme === "light") {
-        setIsDarkMode(false);
-      } else {
-        setIsDarkMode(mediaQuery.matches);
-      }
-    };
+		const updateTheme = () => {
+			const savedTheme = localStorage.getItem("appearance");
+			if (savedTheme === "dark") {
+				setIsDarkMode(true);
+			} else if (savedTheme === "light") {
+				setIsDarkMode(false);
+			} else {
+				setIsDarkMode(mediaQuery.matches);
+			}
+		};
 
-    // Set initial theme
-    updateTheme();
+		// Set initial theme
+		updateTheme();
 
-    // Listen for changes in localStorage
-    const handleStorageChange = (e) => {
-      if (e.key === "appearance") {
-        updateTheme();
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
+		// Listen for changes in localStorage
+		const handleStorageChange = (e) => {
+			if (e.key === "appearance") {
+				updateTheme();
+			}
+		};
+		window.addEventListener("storage", handleStorageChange);
 
-    // Listen for changes in system preference
-    const handleMediaQueryChange = (e) => {
-      const savedTheme = localStorage.getItem("appearance");
-      if (savedTheme === "system") {
-        setIsDarkMode(e.matches);
-      }
-    };
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
+		// Listen for changes in system preference
+		const handleMediaQueryChange = (e) => {
+			const savedTheme = localStorage.getItem("appearance");
+			if (savedTheme === "system") {
+				setIsDarkMode(e.matches);
+			}
+		};
+		mediaQuery.addEventListener("change", handleMediaQueryChange);
 
-    // Cleanup
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      mediaQuery.removeEventListener("change", handleMediaQueryChange);
-    };
-  }, []);
+		// Cleanup
+		return () => {
+			window.removeEventListener("storage", handleStorageChange);
+			mediaQuery.removeEventListener("change", handleMediaQueryChange);
+		};
+	}, []);
 
-  console.log("selectedSkill:", selectedSkill);
+	console.log("selectedSkill:", selectedSkill);
 
-  const [error, setError] = useState("");
-  const [isNewSkill, setIsNewSkill] = useState(true);
+	const [error, setError] = useState("");
+	const [isNewSkill, setIsNewSkill] = useState(true);
 
-  useEffect(() => {
-    if (showModal) {
-      if (selectedSkill && Object.keys(selectedSkill).length > 0) {
-        // If editing an existing skill
-        setData({
-          skills_id: selectedSkill.skills_id || "",
-          skillId: selectedSkill.skills_perSId || "",
-          customSkill: "", // Reset customSkill on selection change
-        });
-        setIsNewSkill(false); // Set to false when editing
-      } else {
-        // If adding a new skill
-        setData({
-          skills_id: "",
-          skillId: "",
-          customSkill: "",
-        });
-        setIsNewSkill(true); // Set to true when adding
-      }
-    }
-  }, [showModal, selectedSkill]); // Add showModal and selectedSkill to dependencies
+	useEffect(() => {
+		if (showModal) {
+			if (selectedSkill && Object.keys(selectedSkill).length > 0) {
+				// If editing an existing skill
+				setData({
+					skills_id: selectedSkill.skills_id || "",
+					skillId: selectedSkill.skills_perSId || "",
+					customSkill: "", // Reset customSkill on selection change
+				});
+				setIsNewSkill(false); // Set to false when editing
+			} else {
+				// If adding a new skill
+				setData({
+					skills_id: "",
+					skillId: "",
+					customSkill: "",
+				});
+				setIsNewSkill(true); // Set to true when adding
+			}
+		}
+	}, [showModal, selectedSkill]); // Add showModal and selectedSkill to dependencies
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setData({
-      ...data,
-      [name]: value,
-    });
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		setData({
+			...data,
+			[name]: value,
+		});
 
-    // Validate custom skill input
-    if (name === "customSkill") {
-      if (
-        skills.some(
-          (skill) => skill.perS_name.toLowerCase() === value.toLowerCase()
-        )
-      ) {
-        setError("This skill already exists."); // Set error message
-      } else {
-        setError(""); // Clear error if no issue
-      }
-    }
-  };
+		// Validate custom skill input
+		if (name === "customSkill") {
+			if (
+				skills.some(
+					(skill) => skill.perS_name.toLowerCase() === value.toLowerCase()
+				)
+			) {
+				setError("This skill already exists."); // Set error message
+			} else {
+				setError(""); // Clear error if no issue
+			}
+		}
+	};
 
-  const handleSelectChange = (selectedOption, fieldName) => {
-    setData((prevData) => ({
-      ...prevData,
-      [fieldName]: selectedOption ? selectedOption.value : "",
-      customSkill:
-        selectedOption && selectedOption.value === "custom"
-          ? ""
-          : prevData.customSkill,
-    }));
-  };
+	const handleSelectChange = (selectedOption, fieldName) => {
+		setData((prevData) => ({
+			...prevData,
+			[fieldName]: selectedOption ? selectedOption.value : "",
+			customSkill:
+				selectedOption && selectedOption.value === "custom"
+					? ""
+					: prevData.customSkill,
+		}));
+	};
 
-  const handleSave = async () => {
-    try {
-      const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-      const getUserIdFromCookie = () => {
-        const tokenData = getDataFromCookie("auth_token");
-        if (tokenData && tokenData.userId) {
-          return tokenData.userId;
-        }
-        return null; // Return null if userId is not found or tokenData is invalid
-      };
-      const userId = session?.user?.id || getUserIdFromCookie();
+	const handleSave = async () => {
+		try {
+			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+			const getUserIdFromCookie = () => {
+				const tokenData = getDataFromCookie("auth_token");
+				if (tokenData && tokenData.userId) {
+					return tokenData.userId;
+				}
+				return null; // Return null if userId is not found or tokenData is invalid
+			};
+			const userId = session?.user?.id || getUserIdFromCookie();
 
-      console.log("User ID:", userId);
+			console.log("User ID:", userId);
 
-      const updatedData = {
-        candidateId: userId,
-        skills: [
-          {
-            skills_id: data.skills_id,
-            skillId: data.skillId || (data.customSkill ? "custom" : ""),
-            customSkill: data.customSkill,
-          },
-        ],
-      };
+			const updatedData = {
+				candidateId: userId,
+				skills: [
+					{
+						skills_id: data.skills_id,
+						skillId: data.skillId || (data.customSkill ? "custom" : ""),
+						customSkill: data.customSkill,
+					},
+				],
+			};
 
-      const formData = new FormData();
-      formData.append("operation", "updateCandidateSkills");
-      formData.append("json", JSON.stringify(updatedData));
+			const formData = new FormData();
+			formData.append("operation", "updateCandidateSkills");
+			formData.append("json", JSON.stringify(updatedData));
 
-      const response = await axios.post(url, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+			const response = await axios.post(url, formData, {
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
 
-      if (response.data === 1) {
-        toast.success("Skill updated successfully!");
-        if (fetchProfile) {
-          fetchProfile();
-        }
-        if (fetchSkills) {
-          fetchSkills();
-        }
-      } else if (response.data === 2) {
-        toast.error("Skill already exists.");
-      } else {
-        toast.error("Failed to update skill.");
-      }
-    } catch (error) {
-      toast.error("An error occurred while updating the skill.");
-    } finally {
-      setShowModal(false);
-    }
-  };
+			if (response.data === 1) {
+				toast.success("Skill updated successfully!");
+				fetchProfiles(session, setProfile, setLoading);
+				if (fetchSkills) {
+					fetchSkills();
+				}
+			} else if (response.data === 2) {
+				toast.error("Skill already exists.");
+			} else {
+				toast.error("Failed to update skill.");
+			}
+		} catch (error) {
+			toast.error("An error occurred while updating the skill.");
+		} finally {
+			setShowModal(false);
+		}
+	};
 
-  const getSelectedOption = (options, value) =>
-    options.find((option) => option.value === value) || null;
+	const getSelectedOption = (options, value) =>
+		options.find((option) => option.value === value) || null;
 
-  const skillOptions = useMemo(() => {
-    return [
-      { value: "custom", label: "Other (Specify)" },
-      ...skills.map((skill) => ({
-        value: skill.perS_id,
-        label: skill.perS_name,
-      })),
-    ];
-  }, [skills]);
+	const skillOptions = useMemo(() => {
+		return [
+			{ value: "custom", label: "Other (Specify)" },
+			...skills.map((skill) => ({
+				value: skill.perS_id,
+				label: skill.perS_name,
+			})),
+		];
+	}, [skills]);
 
-  const selectedSkillOption = useMemo(() => {
-    return getSelectedOption(
-      skills.map((skill) => ({
-        value: skill.perS_id,
-        label: skill.perS_name,
-      })),
-      data.skillId || selectedSkill?.skills_perSId
-    );
-  }, [skills, data.skillId, selectedSkill]);
+	const selectedSkillOption = useMemo(() => {
+		return getSelectedOption(
+			skills.map((skill) => ({
+				value: skill.perS_id,
+				label: skill.perS_name,
+			})),
+			data.skillId || selectedSkill?.skills_perSId
+		);
+	}, [skills, data.skillId, selectedSkill]);
 
-  const [formValid, setFormValid] = useState(false);
+	const [formValid, setFormValid] = useState(false);
 
-  useEffect(() => {
-    setFormValid(
-      // Enable save if either:
-      // 1. A skill is selected from the dropdown (data.skillId), or
-      // 2. A valid custom skill is entered (data.skillId === "custom" && data.customSkill)
-      (data.skillId && data.skillId !== "custom") ||
-      (data.skillId === "custom" && data.customSkill && !error)
-    );
-  }, [data, error]);
+	useEffect(() => {
+		setFormValid(
+			// Enable save if either:
+			// 1. A skill is selected from the dropdown (data.skillId), or
+			// 2. A valid custom skill is entered (data.skillId === "custom" && data.customSkill)
+			(data.skillId && data.skillId !== "custom") ||
+				(data.skillId === "custom" && data.customSkill && !error)
+		);
+	}, [data, error]);
 
-  return (
-    <div className={`modal ${showModal ? "block" : "hidden"}`}>
-      <div
-        className={`modal-content ${
-          isDarkMode ? "bg-gray-700" : "bg-gray-200"
-        } p-6 rounded-lg shadow-lg`}
-      >
-        <h3
-          className={`text-xl font-semibold ${
-            isDarkMode ? "text-white" : "text-gray-800"
-          } mb-4`}
-        >
-          {isNewSkill ? "Add New Skill" : "Update Skill"}
-        </h3>
+	return (
+		<div className={`modal ${showModal ? "block" : "hidden"}`}>
+			<div
+				className={`modal-content ${
+					isDarkMode ? "bg-gray-700" : "bg-gray-200"
+				} p-6 rounded-lg shadow-lg`}
+			>
+				<h3
+					className={`text-xl font-semibold ${
+						isDarkMode ? "text-white" : "text-gray-800"
+					} mb-4`}
+				>
+					{isNewSkill ? "Add New Skill" : "Update Skill"}
+				</h3>
 
-        <div className="mb-4">
-          <label
-            className={`block ${
-              isDarkMode ? "text-white" : "text-gray-600"
-            } text-sm font-normal`}
-          >
-            Skill Name:
-          </label>
-          <div className="flex items-center">
-            <Select
-              name="skillId"
-              value={selectedSkillOption}
-              onChange={(option) => handleSelectChange(option, "skillId")}
-              options={skillOptions}
-              placeholder="Select Skill"
-              isSearchable
-              className="w-full text-black"
-              menuPlacement="auto"
-              menuPosition="fixed"
-              blurInputOnSelect
-              isOptionDisabled={(option) => option.isDisabled}
-            />
-            {data.skillId && (
-              <button
-                className="ml-2 text-red-500"
-                onClick={() => handleSelectChange(null, "skillId")}
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          {data.skillId === "custom" && (
-            <input
-              type="text"
-              name="customSkill"
-              value={data.customSkill}
-              onChange={handleInputChange}
-              placeholder="Enter custom skill"
-              className={`w-full mt-2 border-b-2 pb-2 ${
-                error ? "border-red-500" : "border-black"
-              } bg-transparent`}
-            />
-          )}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-        </div>
+				<div className="mb-4">
+					<label
+						className={`block ${
+							isDarkMode ? "text-white" : "text-gray-600"
+						} text-sm font-normal`}
+					>
+						Skill Name:
+					</label>
+					<div className="flex items-center">
+						<Select
+							name="skillId"
+							value={selectedSkillOption}
+							onChange={(option) => handleSelectChange(option, "skillId")}
+							options={skillOptions}
+							placeholder="Select Skill"
+							isSearchable
+							className="w-full text-black"
+							menuPlacement="auto"
+							menuPosition="fixed"
+							blurInputOnSelect
+							isOptionDisabled={(option) => option.isDisabled}
+						/>
+						{data.skillId && (
+							<button
+								className="ml-2 text-red-500"
+								onClick={() => handleSelectChange(null, "skillId")}
+							>
+								Clear
+							</button>
+						)}
+					</div>
+					{data.skillId === "custom" && (
+						<input
+							type="text"
+							name="customSkill"
+							value={data.customSkill}
+							onChange={handleInputChange}
+							placeholder="Enter custom skill"
+							className={`w-full mt-2 border-b-2 pb-2 ${
+								error ? "border-red-500" : "border-black"
+							} bg-transparent`}
+						/>
+					)}
+					{error && <p className="text-red-500 text-sm">{error}</p>}
+				</div>
 
-        <div className="flex justify-end mt-4">
-          <button
-            className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-            onClick={() => setShowModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${
-              formValid
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            onClick={handleSave}
-            disabled={!formValid}
-            title={!formValid ? "Please select a skill and skill level" : ""}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-      <Toaster position="bottom-left" />
-    </div>
-  );
+				<div className="flex justify-end mt-4">
+					<button
+						className="mr-2 px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+						onClick={() => setShowModal(false)}
+					>
+						Cancel
+					</button>
+					<button
+						className={`px-4 py-2 rounded ${
+							formValid
+								? "bg-blue-500 text-white hover:bg-blue-600"
+								: "bg-gray-300 text-gray-500 cursor-not-allowed"
+						}`}
+						onClick={handleSave}
+						disabled={!formValid}
+						title={!formValid ? "Please select a skill and skill level" : ""}
+					>
+						Save
+					</button>
+				</div>
+			</div>
+			<Toaster position="bottom-left" />
+		</div>
+	);
 };
 
 export default UpdateSkill;

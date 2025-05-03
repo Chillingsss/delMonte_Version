@@ -9,13 +9,15 @@ import {
 } from "@/app/utils/storageUtils";
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast"; // Import React Hot Toast
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const UpdateKnowledge = ({
 	showModal,
 	setShowModal,
 	know,
 	knowledges,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	selectedKnowledge,
 	fetchKnowledge,
 }) => {
@@ -26,7 +28,7 @@ const UpdateKnowledge = ({
 		knowledge_name: know?.knowledge_name || "",
 		customKnowledge: "",
 	});
-	const [loading, setLoading] = useState(false);
+	const [loadings] = useState(false);
 
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		const savedTheme = localStorage.getItem("appearance");
@@ -126,9 +128,9 @@ const UpdateKnowledge = ({
 
 	useEffect(() => {
 		setFormValid(
-			(data.knowledge_id || data.customKnowledge) && !error && !loading
+			(data.knowledge_id || data.customKnowledge) && !error && !loadings
 		);
-	}, [data, error, loading]);
+	}, [data, error, loadings]);
 
 	const handleSave = async () => {
 		try {
@@ -184,8 +186,9 @@ const UpdateKnowledge = ({
 			if (response.data === 1) {
 				console.log("Knowledge updated successfully.");
 				toast.success("Knowledge updated successfully.");
-				if (fetchProfile) {
-					fetchProfile();
+				fetchProfiles(session, setProfile, setLoading);
+				if (fetchKnowledge) {
+					fetchKnowledge();
 				}
 				if (fetchKnowledge) {
 					fetchKnowledge();

@@ -8,8 +8,8 @@ import {
 	getDataFromCookie,
 } from "@/app/utils/storageUtils";
 import { Toaster, toast } from "react-hot-toast";
-import { Input } from "@/components/ui/input";
 import { CheckCircle, Eye, EyeOff, X, XCircle } from "lucide-react";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 // Email validation regex
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -21,7 +21,8 @@ const UpdateEmail = ({
 	candidateEmail,
 	candidatePassword,
 	candidateAlternateEmail,
-	fetchProfile,
+	setProfile,
+	setLoading,
 }) => {
 	const { data: session } = useSession();
 	const [selectedEmailType, setSelectedEmailType] = useState(""); // "primary" or "alternate"
@@ -36,7 +37,7 @@ const UpdateEmail = ({
 	const [enteredNewPinCode, setEnteredNewPinCode] = useState("");
 	const [isPinCodeSent, setIsPinCodeSent] = useState(false);
 	const [isNewEmailPinCodeSent, setIsNewEmailPinCodeSent] = useState(false);
-	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [requestLoading, setRequestLoading] = useState(false);
 	const [isPinCodeVerified, setIsPinCodeVerified] = useState(false);
 	const [requiresPassword, setRequiresPassword] = useState(true);
@@ -318,7 +319,7 @@ const UpdateEmail = ({
 			return;
 		}
 
-		setLoading(true);
+		setLoadings(true);
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 			const formData = new FormData();
@@ -349,7 +350,7 @@ const UpdateEmail = ({
 			console.error("Error sending OTP to new email:", error);
 			toast.error("An error occurred while sending PIN code to the new email.");
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 		}
 	};
 
@@ -368,7 +369,7 @@ const UpdateEmail = ({
 			return;
 		}
 
-		setLoading(true);
+		setLoadings(true);
 
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
@@ -406,7 +407,7 @@ const UpdateEmail = ({
 						selectedEmailType === "primary" ? "Primary" : "Alternate"
 					} email updated successfully.`
 				);
-				await fetchProfile();
+				fetchProfiles(session, setProfile, setLoading);
 				setShowModal(false);
 			} else {
 				toast.error(response.data.error || "Failed to update email.");
@@ -415,7 +416,7 @@ const UpdateEmail = ({
 			console.error("Error updating email:", error);
 			toast.error("An error occurred while updating.");
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 		}
 	};
 
@@ -812,7 +813,7 @@ const UpdateEmail = ({
 
 								<button
 									onClick={requestPinCodeToCurrentEmail}
-									disabled={requestLoading || loading || !currentPassword}
+									disabled={requestLoading || loadings || !currentPassword}
 									className={`w-full py-2 px-4 text-xs sm:text-sm font-medium rounded-md transition-all ${
 										isDarkMode
 											? "bg-blue-600 hover:bg-blue-700 text-white"
@@ -947,9 +948,9 @@ const UpdateEmail = ({
 												? "bg-blue-600 hover:bg-blue-700 text-white"
 												: "bg-blue-500 hover:bg-blue-600 text-white"
 										} disabled:opacity-50 disabled:cursor-not-allowed`}
-										disabled={loading || !enteredPinCode}
+										disabled={loadings || !enteredPinCode}
 									>
-										{loading ? (
+										{loadings ? (
 											<span className="flex items-center justify-center">
 												<svg
 													className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -1118,14 +1119,14 @@ const UpdateEmail = ({
 											: "bg-blue-500 hover:bg-blue-600 text-white"
 									} disabled:opacity-50 disabled:cursor-not-allowed`}
 									disabled={
-										loading ||
+										loadings ||
 										!newEmail ||
 										emailError ||
 										isValidatingDomain ||
 										!isValidDomain
 									}
 								>
-									{loading ? (
+									{loadings ? (
 										<span className="flex items-center justify-center">
 											<svg
 												className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -1266,9 +1267,9 @@ const UpdateEmail = ({
 												? "bg-blue-600 hover:bg-blue-700 text-white"
 												: "bg-blue-500 hover:bg-blue-600 text-white"
 										} disabled:opacity-50 disabled:cursor-not-allowed`}
-										disabled={loading || !enteredNewPinCode}
+										disabled={loadings || !enteredNewPinCode}
 									>
-										{loading ? (
+										{loadings ? (
 											<span className="flex items-center justify-center">
 												<svg
 													className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -1299,7 +1300,7 @@ const UpdateEmail = ({
 
 									<button
 										onClick={handleResendNewEmailOTP}
-										disabled={!canResend || loading}
+										disabled={!canResend || loadings}
 										className={`w-full py-2.5 px-4 rounded-lg font-medium transition-all duration-200 ${
 											isDarkMode
 												? "bg-gray-700 hover:bg-gray-600 text-white"

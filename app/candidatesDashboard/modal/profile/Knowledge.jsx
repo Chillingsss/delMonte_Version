@@ -6,7 +6,9 @@ import UpdateKnowledge from "../update/updateKnowledge";
 const Knowledge = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
@@ -56,7 +58,9 @@ const Knowledge = ({
 							setShowModal={setShowAddModal}
 							know={selectedKnowlegde}
 							knowledges={knowledges}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 							handleConfirmKnowledgeDelete={handleConfirmKnowledgeDelete}
 							fetchKnowledge={fetchKnowledge}
@@ -145,7 +149,9 @@ const Knowledge = ({
 										setShowModal={setShowKnowledgeModal}
 										know={selectedKnowlegde}
 										knowledges={knowledges}
-										fetchProfile={fetchProfile}
+										setProfile={setProfile}
+										setLoading={setLoading}
+										session={session}
 										handleConfirmKnowledgeDelete
 										fetchKnowledge={fetchKnowledge}
 									/>

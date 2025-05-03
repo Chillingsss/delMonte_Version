@@ -7,8 +7,9 @@ const PersonalInformation = ({
 	profile,
 	isDarkMode,
 	settingsRef,
-	fetchProfile,
 	setProfile,
+	setLoading,
+	session,
 	isSettingsOpen,
 	setIsSettingsOpen,
 	isImageModalOpen,
@@ -28,7 +29,7 @@ const PersonalInformation = ({
 	handleSavePersonalInfo,
 	editData,
 	setEditData,
-  handleChangeNotArray
+	handleChangeNotArray,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -110,7 +111,9 @@ const PersonalInformation = ({
 				<UpdatePassword
 					showModal={showPasswordModal}
 					setShowModal={setShowPasswordModal}
-					fetchProfile={fetchProfile}
+					setProfile={setProfile}
+					setLoading={setLoading}
+					session={session}
 					candidateEmail={profile.candidateInformation.cand_email}
 					candidatePassword={profile.candidateInformation.cand_password}
 					candidateAlternateEmail={
@@ -123,7 +126,9 @@ const PersonalInformation = ({
 				<UpdateEmail
 					showModal={showEmailModal}
 					setShowModal={setShowEmailModal}
-					fetchProfile={fetchProfile}
+					setProfile={setProfile}
+					setLoading={setLoading}
+					session={session}
 					candidateEmail={profile.candidateInformation.cand_email}
 					candidatePassword={profile.candidateInformation.cand_password}
 					candidateAlternateEmail={

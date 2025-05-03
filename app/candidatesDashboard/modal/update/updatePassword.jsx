@@ -10,12 +10,14 @@ import {
 import { Toaster, toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, X } from "lucide-react";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const UpdatePassword = ({
 	showModal,
 	setShowModal,
 	candidateEmail,
-	fetchProfile,
+	setProfile,
+	setLoading,
 }) => {
 	const { data: session } = useSession();
 	const [email, setEmail] = useState("");
@@ -28,7 +30,7 @@ const UpdatePassword = ({
 	const [enteredPinCode, setEnteredPinCode] = useState("");
 	const [alternateEmail, setAlternateEmail] = useState("");
 	const [isPinCodeSent, setIsPinCodeSent] = useState(false);
-	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [requestLoading, setRequestLoading] = useState(false);
 	const [requiresPassword, setRequiresPassword] = useState(true);
 	const [passwordChecks, setPasswordChecks] = useState({
@@ -248,7 +250,7 @@ const UpdatePassword = ({
 			return;
 		}
 
-		setLoading(true);
+		setLoadings(true);
 
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
@@ -278,7 +280,7 @@ const UpdatePassword = ({
 
 			if (response.data.success) {
 				toast.success("Password updated successfully.");
-				await fetchProfile();
+				fetchProfiles(session, setProfile, setLoading);
 				setShowModal(false);
 			} else {
 				toast.error("Failed to update email/password.");
@@ -287,7 +289,7 @@ const UpdatePassword = ({
 			console.error("Error updating email/password:", error);
 			toast.error("An error occurred while updating.");
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 		}
 	};
 
@@ -376,7 +378,7 @@ const UpdatePassword = ({
 							}`}
 							disabled={
 								requestLoading ||
-								loading ||
+								loadings ||
 								(!canResend && resendTimer > 0) ||
 								(requiresPassword && !currentPassword)
 							}
@@ -634,13 +636,13 @@ const UpdatePassword = ({
 											: "focus:ring-green-500 focus:ring-offset-white"
 									}`}
 									disabled={
-										loading ||
+										loadings ||
 										!passwordValid ||
 										!passwordsMatch ||
 										!enteredPinCode
 									}
 								>
-									{loading ? (
+									{loadings ? (
 										<span className="flex items-center justify-center">
 											<svg
 												className="animate-spin -ml-1 mr-2 h-4 w-4"

@@ -6,7 +6,9 @@ import UpdateTraining from "../update/updateTraining";
 const Training = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
@@ -56,7 +58,9 @@ const Training = ({
 							setShowModal={setShowAddModal}
 							train={selectedTraining}
 							trainings={trainings}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 							fetchTraining={fetchTraining}
 							isDarkMode={isDarkMode}
@@ -157,7 +161,9 @@ const Training = ({
 										setShowModal={setShowTrainingModal}
 										train={selectedTraining}
 										trainings={trainings}
-										fetchProfile={fetchProfile}
+										setProfile={setProfile}
+										setLoading={setLoading}
+										session={session}
 										fetchTraining={fetchTraining}
 									/>
 								</div>

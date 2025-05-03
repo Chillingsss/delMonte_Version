@@ -6,7 +6,9 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 const EducationalBackground = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	handleAddEducation,
 	showAddModal,
 	setShowAddModal,
@@ -63,7 +65,9 @@ const EducationalBackground = ({
 					institutions={institutions}
 					courseTypes={courseTypes}
 					courseCategory={courseCategory}
-					fetchProfile={fetchProfile}
+					setProfile={setProfile}
+					setLoading={setLoading}
+					session={session}
 					fetchCourses={fetchCourses}
 					fetchInstitutions={fetchInstitutions}
 					fetchCourseTypes={fetchCourseTypes}

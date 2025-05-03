@@ -1,7 +1,7 @@
 "use client";
 // export const dynamic = "force-dynamic";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-	faBellSlash,
 	faUser as faUserRegular,
 	faBell as faBellRegular,
 } from "@fortawesome/free-regular-svg-icons";
@@ -62,6 +61,20 @@ import Image from "next/image";
 import { MdRefresh } from "react-icons/md";
 import { FaLock } from "react-icons/fa";
 import SecuritySettingsModal from "./modal/securitySettings";
+import {
+	fetchAppliedJobs,
+	fetchJobs,
+	fetchNotification,
+	fetchProfiles,
+	fetchReappliedJobs,
+	fetchExamResult,
+	fetchJobOffer,
+} from "../utils/apiFunctions";
+import JobList from "./components/JobList";
+import NotificationDropdown from "./components/NotificationDropdown";
+import UserDropdown from "./components/UserDropdown";
+import MobileNotificationDropdown from "./components/MobileNotificationDropdown";
+import MobileUserDropdown from "./components/MobileUserDropdown";
 
 export default function DashboardCandidates() {
 	const { data: session, status } = useSession();
@@ -73,7 +86,6 @@ export default function DashboardCandidates() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const sidebarRef = useRef(null);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
 	const router = useRouter();
 	const [userName, setUserName] = useState("");
 	const [appliedJobs, setAppliedJobs] = useState([]);
@@ -115,11 +127,8 @@ export default function DashboardCandidates() {
 	const [jobOfferDetails, setJobOfferDetails] = useState(null);
 
 	const [showCancelModal, setShowCancelModal] = useState(false);
-	const [jobToCancel, setJobToCancel] = useState(null);
 
 	const [reappliedJobs, setReappliedJobs] = useState([]);
-
-	const [mounted, setMounted] = useState(false);
 
 	const [profile, setProfile] = useState({
 		candidateInformation: {},
@@ -140,6 +149,7 @@ export default function DashboardCandidates() {
 		if (typeof window !== "undefined") {
 			lineSpinner.register();
 		}
+		console.log("profile", profile);
 	}, []);
 
 	const getUserIdFromCookie = () => {
@@ -249,130 +259,6 @@ export default function DashboardCandidates() {
 		setIsAppliedJobsModalOpen(false);
 	};
 
-	const fetchProfiles = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					// Check if running in the browser
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User IDss:", userId);
-			const jsonData = { cand_id: userId };
-
-			const formData = new FormData();
-			formData.append("operation", "getCandidateProfile");
-			formData.append("json", JSON.stringify(jsonData));
-
-			const response = await axios.post(url, formData);
-			console.log("res", response.data);
-			setProfile(response.data);
-			setLoading(false);
-		} catch (error) {
-			setLoading(false);
-		}
-	};
-
-	const fetchJobs = useCallback(async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					// Check if running in the browser
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "getActiveJob");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-
-			const response = await axios.post(url, formData);
-
-			if (Array.isArray(response.data)) {
-				console.log("Setting jobs:", response.data);
-				setJobs(response.data);
-			} else {
-				console.error("Invalid data format:", response.data);
-				setError("Unexpected data format received from server.");
-			}
-		} catch (error) {
-			console.error(
-				"Error fetching jobs:",
-				error.response?.data || error.message || error
-			);
-			setError("Error fetching jobs");
-		}
-	}, [session]); // Added session as a dependency
-
-	useEffect(() => {
-		if (typeof window !== "undefined") {
-			fetchJobs();
-			fetchProfiles();
-		}
-	}, []);
-
-	const fetchNotification = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "getNotification");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-
-			const response = await axios.post(url, formData);
-			console.log("Notification response:", response.data);
-
-			// Ensure response.data is an array
-			const notifications = Array.isArray(response.data) ? response.data : [];
-			setNotification(notifications);
-
-			// Calculate unread notifications
-			const unreadCount = notifications.reduce((count, notif) => {
-				return count + (notif.notification_read === 0 ? 1 : 0);
-			}, 0);
-
-			setUnreadNotificationCount(unreadCount);
-		} catch (error) {
-			console.error("Error fetching notifications:", error);
-			setNotification([]);
-			setUnreadNotificationCount(0);
-		}
-	};
-
-	useEffect(() => {
-		if (typeof window !== "undefined") {
-			fetchNotification();
-		}
-	}, []);
-
 	const markNotificationsAsRead = async () => {
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
@@ -403,7 +289,7 @@ export default function DashboardCandidates() {
 	const getInitialTheme = () => {
 		if (typeof window !== "undefined") {
 			// Check if running in the browser
-			const savedTheme = localStorage.getItem("appearance");
+			const savedTheme = localStorage.getItem("theme");
 			if (savedTheme && savedTheme !== "system") {
 				return savedTheme === "dark";
 			}
@@ -421,7 +307,7 @@ export default function DashboardCandidates() {
 		if (typeof window !== "undefined") {
 			// Check if running in the browser
 			const theme = isDarkMode ? "dark" : "light";
-			localStorage.setItem("appearance", theme);
+			localStorage.setItem("theme", theme);
 			document.body.className = theme;
 		}
 	}, [isDarkMode]);
@@ -481,49 +367,6 @@ export default function DashboardCandidates() {
 		}
 	};
 
-	const fetchJobOffer = async (jobMId) => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const data = {
-				cand_id: userId,
-				jobM_id: jobMId,
-			};
-
-			console.log("jobMId", jobMId);
-			const formData = new FormData();
-			formData.append("operation", "getJobOffer");
-			formData.append("json", JSON.stringify(data));
-
-			console.log("formData", data);
-
-			const response = await axios.post(url, formData);
-
-			console.log("Job offer response:", response.data);
-
-			if (response.data.error) {
-				console.error(response.data.error);
-			} else {
-				const jobOffer = response.data[0];
-				setJobOfferDetails(jobOffer);
-				setIsJobOfferModalOpen(true);
-			}
-		} catch (error) {
-			console.error("Error fetching job offer:", error);
-		}
-	};
-
 	const openExamModal = (
 		jobMId,
 		jobTitle,
@@ -547,11 +390,16 @@ export default function DashboardCandidates() {
 	};
 
 	// Function to open job offer modal
-	const openJobOfferModal = (appId, jobMId) => {
+	const openJobOfferModal = (
+		appId,
+		jobMId,
+		setJobOfferDetails,
+		setIsJobOfferModalOpen
+	) => {
 		// console.log("Opening job offer modal for app ID:", appId);
 		// console.log("jobMId", jobMId);
 		setAppId(appId);
-		fetchJobOffer(jobMId);
+		fetchJobOffer(session, jobMId, setJobOfferDetails, setIsJobOfferModalOpen);
 	};
 
 	const openCancelJobAppliedModal = (appId, jobMId, jobTitle) => {
@@ -566,112 +414,14 @@ export default function DashboardCandidates() {
 		// console.log("jobToCancel", appId, jobMId, jobTitle);
 	};
 
-	const fetchAppliedJobs = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "getAppliedJobs");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-
-			const response = await axios.post(url, formData);
-
-			if (response.data.error) {
-				console.error(response.data.error);
-			} else {
-				setAppliedJobs(response.data);
-				console.log("Applied jobs:", response.data);
-				// const passingpoints = response.data.passing_points;
-				// localStorage.setItem("passing", passingpoints);
-				// localStorage.setItem("app_id", response.data[0].app_id);
-			}
-		} catch (error) {
-			console.error("Error fetching applied jobs:", error);
-		}
-	};
-
-	const fetchReappliedJobs = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "getReappliedJobs");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-
-			const response = await axios.post(url, formData);
-
-			if (response.data.error) {
-				console.error(response.data.error);
-			} else {
-				setReappliedJobs(response.data);
-				// console.log("Reapplied jobs:", response.data);
-				// const passingpoints = response.data.passing_points;
-				// localStorage.setItem("passing", passingpoints);
-				// localStorage.setItem("app_id", response.data[0].app_id);
-			}
-		} catch (error) {
-			console.error("Error fetching reapplied jobs:", error);
-		}
-	};
-
-	const fetchExamResult = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "fetchExamResult");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-			const examResultsResponse = await axios.post(url, formData);
-
-			console.log("exam result", examResultsResponse.data);
-
-			setExamResults(examResultsResponse.data);
-		} catch (error) {
-			console.error("Error fetching data:", error);
-		}
-	};
-
 	useEffect(() => {
 		if (typeof window !== "undefined") {
-			fetchAppliedJobs();
-			fetchReappliedJobs();
-			fetchProfiles();
-			fetchNotification();
-			fetchJobs();
-			fetchExamResult();
+			fetchAppliedJobs(session, setAppliedJobs);
+			fetchReappliedJobs(session, setReappliedJobs);
+			fetchProfiles(session, setProfile, setLoading);
+			fetchNotification(session, setNotification, setUnreadNotificationCount);
+			fetchJobs(session, setJobs);
+			fetchExamResult(session, setExamResults);
 		}
 	}, []);
 
@@ -792,11 +542,15 @@ export default function DashboardCandidates() {
 	const refreshTransactions = async () => {
 		setIsLoading(true);
 		setTimeout(async () => {
-			await fetchAppliedJobs();
-			await fetchReappliedJobs();
-			await fetchProfiles();
-			await fetchNotification();
-			await fetchJobs();
+			await fetchAppliedJobs(session, setAppliedJobs);
+			await fetchReappliedJobs(session, setReappliedJobs);
+			await fetchProfiles(session, setProfile, setLoading);
+			await fetchNotification(
+				session,
+				setNotification,
+				setUnreadNotificationCount
+			);
+			await fetchJobs(session, setJobs);
 			setIsLoading(false);
 		}, 2000);
 	};
@@ -815,19 +569,6 @@ export default function DashboardCandidates() {
 				className={`md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-[#004F39] dark:bg-[#004F39]`}
 			>
 				<div className="flex items-center">
-					{/* <button
-            className="text-white focus:outline-none"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMenuOpen(!isMenuOpen);
-            }}
-          >
-            {isMenuOpen ? (
-              <MdClose className="w-8 h-8" />
-            ) : (
-              <HiOutlineMenuAlt2 className="w-8 h-8" />
-            )}{" "}
-          </button> */}
 					<Image
 						width={70}
 						height={70}
@@ -939,335 +680,29 @@ export default function DashboardCandidates() {
 					</div>
 
 					{isNotificationDropdownOpenMobile && (
-						<div
-							// ref={dropdownNotificationRefMobile}
-							className={`absolute w-64 right-0 z-10 top-14 ${
-								isDarkMode ? "bg-gray-800" : "bg-white"
-							} rounded-lg shadow-2xl`}
-						>
-							{/* Header */}
-							<div className="p-4 border-b border-gray-200">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-6 h-6 ${
-												isDarkMode ? "text-[#188C54]" : "text-[#188C54]"
-											}`}
-										>
-											{/* Updated Icon */}
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												className="w-full h-full"
-											>
-												<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-												<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-											</svg>
-										</div>
-										<div>
-											<h3
-												className={`text-lg font-semibold ${
-													isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
-												}`}
-											>
-												Notifications
-											</h3>
-											<p
-												className={`text-sm ${
-													isDarkMode ? "text-[#93B1A6]" : "text-[#0A6338]"
-												}`}
-											>
-												Earlier Today
-											</p>
-										</div>
-									</div>
-									<button
-										onClick={toggleNotificationDropdownMobile}
-										className="p-2 rounded-full hover:bg-gray-200 transition-colors duration-200"
-									>
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											className="h-5 w-5 text-gray-600"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="2"
-										>
-											<path d="M18 6L6 18M6 6l12 12"></path>
-										</svg>
-									</button>
-								</div>
-							</div>
-
-							{/* Notification List */}
-							<div className="max-h-[600px] overflow-y-auto scrollbar-custom">
-								<div className="p-4 space-y-4">
-									{notification.length > 0 ? (
-										notification.map((result, index) => (
-											<div
-												key={index}
-												onClick={() => {
-													if (result.status_name.toLowerCase() === "exam") {
-														const examId = Array.isArray(examResults)
-															? examResults.find(
-																	(exam) => exam.jobM_id === result.jobM_id
-															  )
-															: null;
-
-														if (examId) {
-															toast.error(
-																`You already took an exam for ${result.jobM_title}`
-															);
-														} else {
-															openExamModal(
-																result.jobM_id,
-																result.jobM_title,
-																result.app_id,
-																result.jobM_passpercentage
-															);
-														}
-													} else if (
-														result.status_name.toLowerCase() === "job offer"
-													) {
-														const jobOfferResponse = appliedJobs.find(
-															(job) =>
-																job.jobM_id === result.jobM_id &&
-																(job.status_name.toLowerCase() === "accept" ||
-																	job.status_name.toLowerCase() === "decline")
-														);
-														if (jobOfferResponse) {
-															toast.error(
-																`You have already responded to the job offer for ${result.jobM_title}`
-															);
-														} else {
-															openJobOfferModal(result.app_id, result.jobM_id);
-														}
-													} else if (
-														result.status_name.toLowerCase() === "pending"
-													) {
-														if (
-															result.status_name.toLowerCase() ===
-																"processed" ||
-															result.status_name.toLowerCase() ===
-																"job offer" ||
-															result.status_name.toLowerCase() === "exam" ||
-															result.status_name.toLowerCase() ===
-																"interview" ||
-															result.status_name.toLowerCase() ===
-																"background check" ||
-															result.status_name.toLowerCase() ===
-																"decision pending"
-														) {
-															// Do nothing or show an error message
-														} else {
-															openCancelJobAppliedModal(
-																result.app_id,
-																result.jobM_id,
-																result.jobM_title
-															);
-														}
-													}
-												}}
-												className={`group relative rounded-lg transition-all duration-200 hover:scale-[1.01] cursor-pointer
-                            ${
-															isDarkMode
-																? "bg-[#101010] text-green-200"
-																: "bg-[#004F39] text-white"
-														} hover:shadow-lg`}
-											>
-												<div className="p-4 space-y-3 shadow-sm hover:shadow-md">
-													{/* Header with Logo and Date */}
-													<div className="flex items-center justify-between">
-														<div className="flex items-center gap-3">
-															<div className="h-10 w-10 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-																<img
-																	src="/assets/images/delMontes.png"
-																	alt="Del Monte Logo"
-																	className="h-8 w-auto object-contain"
-																/>
-															</div>
-															<div>
-																<h4 className="text-lg font-semibold text-white">
-																	{result.jobM_title}
-																</h4>
-																<span className="inline-block px-2 py-1 text-xs bg-white/20 rounded-full mt-1">
-																	{result.status_name}
-																</span>
-															</div>
-														</div>
-														<span className="text-xs opacity-80">
-															{result.notification_date}
-														</span>
-													</div>
-
-													{/* Notification Message */}
-													<p className="text-sm leading-relaxed opacity-90">
-														{result.notification_message}
-													</p>
-												</div>
-											</div>
-										))
-									) : (
-										<div className="flex flex-col items-center justify-center py- 8 text-gray-500">
-											<div className="w-12 h-12 mb-3 text-gray-300">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="2"
-												>
-													<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-													<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-												</svg>
-											</div>
-											<p className="text-base font-medium">
-												No notifications yet
-											</p>
-											<p className="text-sm text-gray-400">
-												We will notify you when something arrives
-											</p>
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
+						<MobileNotificationDropdown
+							isOpen={isNotificationDropdownOpenMobile}
+							toggleDropdown={toggleNotificationDropdownMobile}
+							notification={notification}
+							isDarkMode={isDarkMode}
+							openExamModal={openExamModal}
+							openJobOfferModal={openJobOfferModal}
+							openCancelJobAppliedModal={openCancelJobAppliedModal}
+						/>
 					)}
 
-					{/* <div ref={dropdownUsernameMobileRef}> */}
 					{isUserDropdownOpenMobile && (
-						<div
-							// ref={dropdownUsernameMobileRef}
-							className={`absolute right-0 top-14 w-60 rounded-lg shadow-lg overflow-hidden z-10
-                  ${isDarkMode ? "bg-gray-800" : "bg-white"}
-                  border ${isDarkMode ? "border-gray-700" : "border-gray-200"}
-                `}
-						>
-							{/* User Info Section */}
-							<div
-								className={`p-4 ${
-									isDarkMode ? "bg-gray-900/50" : "bg-gray-50"
-								}`}
-							>
-								<div className="flex items-center gap-3">
-									<div
-										className={`w-10 h-10 rounded-full overflow-hidden border-2 ${
-											isDarkMode ? "border-green-600" : "border-green-500"
-										}`}
-									>
-										{profile.candidateInformation?.cand_profPic ? (
-											<img
-												src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
-												alt="Profile"
-												className="w-full h-full object-cover"
-											/>
-										) : (
-											<div
-												className={`w-full h-full flex items-center justify-center ${
-													isDarkMode ? "bg-gray-700" : "bg-gray-100"
-												}`}
-											>
-												<span
-													className={`text-sm font-semibold ${
-														isDarkMode ? "text-gray-300" : "text-gray-700"
-													}`}
-												>
-													{profile.candidateInformation &&
-														profile.candidateInformation.cand_firstname &&
-														profile.candidateInformation.cand_firstname
-															.split(" ")
-															.map((name, index, arr) =>
-																index === 0 || index === arr.length - 1
-																	? name.slice(0, 1).toUpperCase()
-																	: ""
-															)
-															.join("")}
-												</span>
-											</div>
-										)}
-									</div>
-									<div>
-										<p
-											className={`font-medium ${
-												isDarkMode ? "text-gray-200" : "text-gray-900"
-											}`}
-										>
-											{profile.candidateInformation?.cand_firstname}{" "}
-										</p>
-										<p
-											className={`text-xs ${
-												isDarkMode ? "text-gray-400" : "text-gray-600"
-											}`}
-										>
-											Candidate
-										</p>
-									</div>
-								</div>
-							</div>
-
-							{/* Menu Items */}
-							<div className="p-2">
-								<button
-									onClick={() =>
-										handleViewProfileClick(session?.user?.userLevel)
-									}
-									className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-										isDarkMode
-											? "hover:bg-gray-700 text-gray-200"
-											: "hover:bg-gray-100 text-gray-700"
-									}`}
-								>
-									<User className="w-4 h-4" />
-									View Profile
-								</button>
-
-								<button
-									onClick={toggleTheme}
-									className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-										isDarkMode
-											? "hover:bg-gray-700 text-gray-200"
-											: "hover:bg-gray-100 text-gray-700"
-									}`}
-								>
-									<FontAwesomeIcon
-										icon={isDarkMode ? faSun : faMoon}
-										className="w-4 h-4"
-									/>
-									{isDarkMode ? "Light Mode" : "Dark Mode"}
-								</button>
-
-								<button
-									onClick={() => handleClickSecuritySettings()}
-									className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-										isDarkMode
-											? "hover:bg-gray-700 text-gray-200"
-											: "hover:bg-gray-100 text-gray-700"
-									}`}
-								>
-									<FaLock className="w-4 h-4" />
-									Security
-								</button>
-
-								<button
-									onClick={() => handleLogout()}
-									className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-										isDarkMode
-											? "hover:bg-gray-700 text-red-400"
-											: "hover:bg-gray-100 text-red-600"
-									}`}
-								>
-									<FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
-									Log Out
-								</button>
-							</div>
-						</div>
+						<MobileUserDropdown
+							isOpen={isUserDropdownOpenMobile}
+							toggleDropdown={toggleUserDropdownMobile}
+							profile={profile}
+							handleViewProfileClick={handleViewProfileClick}
+							toggleTheme={toggleTheme}
+							handleLogout={handleLogout}
+							isDarkMode={isDarkMode}
+							handleClickSecuritySettings={handleClickSecuritySettings}
+						/>
 					)}
-					{/* </div> */}
 				</div>
 			</div>
 			<Sidebar
@@ -1276,16 +711,20 @@ export default function DashboardCandidates() {
 				setIsDarkMode={setIsDarkMode}
 				appliedJobs={appliedJobs}
 				examResults={examResults}
-				fetchExamResult={fetchExamResult}
-				fetchAppliedJobs={fetchAppliedJobs}
-				fetchJobs={fetchJobs}
-				fetchNotification={fetchNotification}
-				fetchProfiles={fetchProfiles}
+				setExamResults={setExamResults}
+				setAppliedJobs={setAppliedJobs}
+				setJobs={setJobs}
+				session={session}
+				setNotification={setNotification}
+				setUnreadNotificationCount={setUnreadNotificationCount}
+				setProfile={setProfile}
+				setLoading={setLoading}
 				isMenuOpen={isMenuOpen}
 				setIsMenuOpen={setIsMenuOpen}
 				ref={sidebarRef}
 				handleViewProfileClick={handleViewProfileClick}
 				openExamModal={openExamModal}
+				openJobOfferModal={openJobOfferModal}
 			/>
 			{/* Main Content */}
 			<div
@@ -1316,17 +755,6 @@ export default function DashboardCandidates() {
 							</div>
 						</button>
 					</div>
-
-					{/* {isLoading && (
-            <div className="fixed z-70 flex items-center justify-center h-screen w-screen">
-              <l-line-spinner
-                size="40"
-                stroke="3"
-                speed="1"
-                color={isDarkMode ? "#188C54" : "#000000"}
-              ></l-line-spinner>
-            </div>
-          )} */}
 
 					<div
 						className="flex items-center relative"
@@ -1440,332 +868,28 @@ export default function DashboardCandidates() {
 						</div>
 
 						{isNotificationDropdownOpen && (
-							<div
-								className={`absolute top-14 w-96 right-0 z-50 ${
-									isDarkMode ? "bg-gray-800" : "bg-white"
-								} rounded-lg shadow-2xl`}
-							>
-								{/* Header */}
-								<div className="p-4 border-b border-gray-200">
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-2">
-											<div
-												className={`w-6 h-6 ${
-													isDarkMode ? "text-[#188C54]" : "text-[#188C54]"
-												}`}
-											>
-												{/* Updated Icon */}
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="2"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													className="w-full h-full"
-												>
-													<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-													<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-												</svg>
-											</div>
-											<div>
-												<h3
-													className={`text-xl font-semibold ${
-														isDarkMode ? "text-[#188C54]" : "text-[#0A6338]"
-													}`}
-												>
-													Notifications
-												</h3>
-												<p
-													className={`text-sm ${
-														isDarkMode ? "text-[#93B1A6]" : "text-[#0A6338]"
-													}`}
-												>
-													Earlier Today
-												</p>
-											</div>
-										</div>
-										<button
-											onClick={toggleNotificationDropdown}
-											className="p-2 rounded-full hover:bg-gray-200 transition-colors duration-200"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												className="h-5 w-5 text-gray-600"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-											>
-												<path d="M18 6L6 18M6 6l12 12"></path>
-											</svg>
-										</button>
-									</div>
-								</div>
-
-								{/* Notification List */}
-								<div className="max-h-[600px] overflow-y-auto scrollbar-custom">
-									<div className="p-4 space-y-4">
-										{notification.length > 0 ? (
-											notification.map((result, index) => (
-												<div
-													key={index}
-													onClick={() => {
-														if (result.status_name.toLowerCase() === "exam") {
-															// Ensure examResults is an array before using find
-															const examId = Array.isArray(examResults)
-																? examResults.find(
-																		(exam) => exam.jobM_id === result.jobM_id
-																  )
-																: null;
-
-															if (examId) {
-																toast.error(
-																	`You already took an exam for ${result.jobM_title}`
-																);
-															} else {
-																openExamModal(
-																	result.jobM_id,
-																	result.jobM_title,
-																	result.app_id,
-																	result.jobM_passpercentage
-																);
-															}
-														} else if (
-															result.status_name.toLowerCase() === "job offer"
-														) {
-															const jobOfferResponse = appliedJobs.find(
-																(job) =>
-																	job.jobM_id === result.jobM_id &&
-																	(job.status_name.toLowerCase() === "accept" ||
-																		job.status_name.toLowerCase() === "decline")
-															);
-															if (jobOfferResponse) {
-																toast.error(
-																	`You have already responded to the job offer for ${result.jobM_title}`
-																);
-															} else {
-																openJobOfferModal(
-																	result.app_id,
-																	result.jobM_id
-																);
-															}
-														} else if (
-															result.status_name.toLowerCase() === "pending"
-														) {
-															if (
-																result.status_name.toLowerCase() ===
-																	"processed" ||
-																result.status_name.toLowerCase() ===
-																	"job offer" ||
-																result.status_name.toLowerCase() === "exam" ||
-																result.status_name.toLowerCase() ===
-																	"interview" ||
-																result.status_name.toLowerCase() ===
-																	"background check" ||
-																result.status_name.toLowerCase() ===
-																	"decision pending"
-															) {
-																// Do nothing or show an error message
-															} else {
-																openCancelJobAppliedModal(
-																	result.app_id,
-																	result.jobM_id,
-																	result.jobM_title
-																);
-															}
-														}
-													}}
-													className={`group relative rounded-lg transition-all duration-200 hover:scale-[1.01] cursor-pointer
-                            ${
-															isDarkMode
-																? "bg-[#101010] text-green-200"
-																: "bg-[#0A6338] text-white"
-														} hover:shadow-lg`}
-												>
-													<div className="p-4 space-y-3 shadow-sm hover:shadow-md">
-														{/* Header with Logo and Date */}
-														<div className="flex items-center justify-between">
-															<div className="flex items-center gap-3">
-																<div className="h-10 w-10 rounded-full bg-white p-1 flex items-center justify-center shadow-sm">
-																	<img
-																		src="/assets/images/delMontes.png"
-																		alt="Del Monte Logo"
-																		className="h-8 w-auto object-contain"
-																	/>
-																</div>
-																<div>
-																	<h4 className="text-xl font-semibold text-white">
-																		{result.jobM_title}
-																	</h4>
-																	<span className="inline-block px-2 py-1 text-xs bg-white/20 rounded-full mt-1">
-																		{result.status_name}
-																	</span>
-																</div>
-															</div>
-															<span className="text-xs opacity-80">
-																{result.notification_date}
-															</span>
-														</div>
-
-														{/* Notification Message */}
-														<p className="text-sm leading-relaxed opacity-90">
-															{result.notification_message}
-														</p>
-													</div>
-												</div>
-											))
-										) : (
-											<div className="flex flex-col items-center justify-center py- 8 text-gray-500">
-												<div className="w-12 h-12 mb-3 text-gray-300">
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														viewBox="0 0 24 24"
-														fill="none"
-														stroke="currentColor"
-														strokeWidth="2"
-													>
-														<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-														<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-													</svg>
-												</div>
-												<p className="text-base font-medium">
-													No notifications yet
-												</p>
-												<p className="text-sm text-gray-400">
-													We will notify you when something arrives
-												</p>
-											</div>
-										)}
-									</div>
-								</div>
-							</div>
+							<NotificationDropdown
+								isOpen={isNotificationDropdownOpen}
+								toggleDropdown={toggleNotificationDropdown}
+								notification={notification}
+								isDarkMode={isDarkMode}
+								openExamModal={openExamModal}
+								openJobOfferModal={openJobOfferModal}
+								openCancelJobAppliedModal={openCancelJobAppliedModal}
+							/>
 						)}
 
 						{isUserDropdownOpen && (
-							<div
-								className={`absolute right-0 top-14 w-60 rounded-lg shadow-lg overflow-hidden z-50
-                  ${isDarkMode ? "bg-gray-800" : "bg-white"}
-                  border ${isDarkMode ? "border-gray-700" : "border-gray-200"}
-                `}
-							>
-								{/* User Info Section */}
-								<div
-									className={`p-4 ${
-										isDarkMode ? "bg-gray-900/50" : "bg-gray-50"
-									}`}
-								>
-									<div className="flex items-center gap-3">
-										<div
-											className={`w-10 h-10 rounded-full overflow-hidden border-2 ${
-												isDarkMode ? "border-green-600" : "border-green-500"
-											}`}
-										>
-											{profile.candidateInformation?.cand_profPic ? (
-												<img
-													src={`${process.env.NEXT_PUBLIC_API_URL}uploads/${profile.candidateInformation.cand_profPic}`}
-													alt="Profile"
-													className="w-full h-full object-cover"
-												/>
-											) : (
-												<div
-													className={`w-full h-full flex items-center justify-center ${
-														isDarkMode ? "bg-gray-700" : "bg-gray-100"
-													}`}
-												>
-													<span
-														className={`text-sm font-semibold ${
-															isDarkMode ? "text-gray-300" : "text-gray-700"
-														}`}
-													>
-														{profile.candidateInformation &&
-															profile.candidateInformation.cand_firstname &&
-															profile.candidateInformation.cand_firstname
-																.split(" ")
-																.map((name, index, arr) =>
-																	index === 0 || index === arr.length - 1
-																		? name.slice(0, 1).toUpperCase()
-																		: ""
-																)
-																.join("")}
-													</span>
-												</div>
-											)}
-										</div>
-										<div>
-											<p
-												className={`font-medium ${
-													isDarkMode ? "text-gray-200" : "text-gray-900"
-												}`}
-											>
-												{profile.candidateInformation?.cand_firstname}{" "}
-											</p>
-											<p
-												className={`text-xs ${
-													isDarkMode ? "text-gray-400" : "text-gray-600"
-												}`}
-											>
-												Candidate
-											</p>
-										</div>
-									</div>
-								</div>
-
-								{/* Menu Items */}
-								<div className="p-2">
-									<button
-										onClick={() => handleViewProfileClick(userId)}
-										className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-											isDarkMode
-												? "hover:bg-gray-700 text-gray-200"
-												: "hover:bg-gray-100 text-gray-700"
-										}`}
-									>
-										<User className="w-4 h-4" />
-										View Profile
-									</button>
-
-									<button
-										onClick={toggleTheme}
-										className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-											isDarkMode
-												? "hover:bg-gray-700 text-gray-200"
-												: "hover:bg-gray-100 text-gray-700"
-										}`}
-									>
-										<FontAwesomeIcon
-											icon={isDarkMode ? faSun : faMoon}
-											className="w-4 h-4"
-										/>
-										{isDarkMode ? "Light Mode" : "Dark Mode"}
-									</button>
-
-									<button
-										onClick={() => handleClickSecuritySettings()}
-										className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-											isDarkMode
-												? "hover:bg-gray-700 text-gray-200"
-												: "hover:bg-gray-100 text-gray-700"
-										}`}
-									>
-										<FaLock className="w-4 h-4" />
-										Security Settings
-									</button>
-
-									<button
-										onClick={() => handleLogout()}
-										className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-											isDarkMode
-												? "hover:bg-gray-700 text-red-400"
-												: "hover:bg-gray-100 text-red-600"
-										}`}
-									>
-										<FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4" />
-										Log Out
-									</button>
-								</div>
-							</div>
+							<UserDropdown
+								isOpen={isUserDropdownOpen}
+								toggleDropdown={toggleUserDropdown}
+								profile={profile}
+								handleViewProfileClick={handleViewProfileClick}
+								toggleTheme={toggleTheme}
+								handleLogout={handleLogout}
+								isDarkMode={isDarkMode}
+								handleClickSecuritySettings={handleClickSecuritySettings}
+							/>
 						)}
 					</div>
 				</div>
@@ -1834,6 +958,7 @@ export default function DashboardCandidates() {
 					{/* Loading Spinner */}
 					{/* Loading Spinner */}
 				</div>
+
 				{isLoading && (
 					<div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[100]">
 						<l-line-spinner
@@ -1844,186 +969,25 @@ export default function DashboardCandidates() {
 						></l-line-spinner>
 					</div>
 				)}
+
 				{/* Jobs Display */}
-				{loading ? (
-					<div className="flex items-center justify-center h-64 flex-col">
-						<l-line-spinner
-							size="40"
-							stroke="3"
-							speed="1"
-							color={isDarkMode ? "#ffffff" : "#000000"}
-						></l-line-spinner>
-						<p
-							className={`mt-2 ${
-								isDarkMode ? "text-green-300" : "text-gray-700"
-							}`}
-						>
-							Please wait while we load your jobs
-						</p>
-					</div>
-				) : filteredJobs.length === 0 ? (
-					<p
-						className={`text-center ${
-							isDarkMode ? "text-gray-400" : "text-gray-500"
-						}`}
-					>
-						No jobs match your search.
-					</p>
-				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{filteredJobs.map((job, index) => (
-							<div
-								key={index}
-								className={`rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl ${
-									isDarkMode
-										? "bg-gray-800 text-gray-200"
-										: "bg-white text-gray-800"
-								}`}
-							>
-								<div
-									className={`p-4 h-20 flex items-center justify-start ${
-										isDarkMode ? "bg-[#004F39]" : "bg-[#004F39]"
-									}`}
-								>
-									<Briefcase className="w-6 h-6 text-white mr-2" />
-									<h3 className="text-xl font-semibold text-white truncate">
-										{job.jobM_title}
-									</h3>
-								</div>
-
-								<div className="p-4 space-y-4">
-									<div className="flex items-center space-x-2 text-sm mt-4">
-										<UserGroupIcon className="w-5 h-5 text-gray-400" />
-										<span>{job.Total_Applied} Applicants</span>
-										{job.Is_Applied !== 0 && (
-											<span className="flex items-center">
-												{(() => {
-													const jobApplications = Array.isArray(appliedJobs)
-														? appliedJobs.filter(
-																(aj) => aj.jobM_id === job.jobM_id
-														  )
-														: [];
-													const hasFailed =
-														jobApplications.length > 0 &&
-														jobApplications.some(
-															(aj) => aj.status_name === "Failed Exam"
-														);
-													const hasReapply = jobApplications.some(
-														(aj) => aj.status_name === "Reapply"
-													);
-													const hasCancelled = jobApplications.some(
-														(aj) => aj.status_name === "Cancelled"
-													);
-													const hasApplied = jobApplications.some(
-														(aj) => aj.status_name === "Applied"
-													);
-													const hasDeclinedOffer =
-														jobApplications.length > 0 &&
-														jobApplications.some(
-															(aj) => aj.status_name === "Decline Offer"
-														);
-													const isEmployed =
-														jobApplications.length > 0 &&
-														jobApplications.some(
-															(aj) => aj.status_name === "Employed"
-														);
-													const hasActiveStatus =
-														jobApplications.length > 0 &&
-														jobApplications.some((aj) =>
-															[
-																"Pending",
-																"Processed",
-																"Exam",
-																"Interview",
-																"Job Offer",
-																"Background Check",
-																"Decision Pending",
-															].includes(aj.status_name)
-														);
-
-													if (isEmployed) {
-														return (
-															<>
-																<UserIcon className="w-5 h-5 mr-1 text-blue-600" />
-																Employed
-															</>
-														);
-													} else if (hasDeclinedOffer) {
-														return (
-															<>
-																<XCircleIcon className="w-5 h-5 mr-1 text-red-500" />
-																Decline Offer
-															</>
-														);
-													} else if (hasReapply && hasCancelled) {
-														return (
-															<>
-																<XCircleIcon className="w-5 h-5 mr-1 text-red-500" />
-																Cancelled
-															</>
-														);
-													} else if (hasFailed) {
-														return (
-															<>
-																<XCircleIcon className="w-5 h-5 mr-1 text-red-500" />
-																Failed Exam
-															</>
-														);
-													} else if (hasReapply && hasActiveStatus) {
-														return (
-															<>
-																<CheckCircleIcon className="w-5 h-5 mr-1 text-blue-500" />
-																Reapplied
-															</>
-														);
-													} else if (hasReapply && hasDeclinedOffer) {
-														return (
-															<>
-																<CheckCircleIcon className="w-5 h-5 mr-1 text-blue-500" />
-																Reapplied
-															</>
-														);
-													} else if (!hasReapply && hasActiveStatus) {
-														return (
-															<>
-																<CheckCircleIcon className="w-5 h-5 mr-1 text-green-500" />
-																Applied
-															</>
-														);
-													}
-												})()}
-											</span>
-										)}
-									</div>
-
-									<div className="flex items-center space-x-1 text-sm mb-5">
-										<CalendarIcon className="w-5 h-5 text-gray-400" />
-										<span>{job.jobM_createdAt}</span>
-									</div>
-									<div className="mb-5"></div>
-
-									<button
-										onClick={() => handleDetailsClick(job)}
-										className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 shadow-md ${
-											isDarkMode
-												? "bg-transparent hover:bg-[#004F39] text-gray-300 hover:text-gray-300 border-b-gray-300 border-b-2"
-												: "bg-transparent hover:bg-[#004F39] text-gray-700 hover:text-gray-100 border-b-gray-300 border-b-2"
-										}`}
-									>
-										View Details
-									</button>
-								</div>
-							</div>
-						))}
-					</div>
-				)}
+				<JobList
+					loading={loading}
+					filteredJobs={filteredJobs}
+					appliedJobs={appliedJobs}
+					isDarkMode={isDarkMode}
+					handleDetailsClick={handleDetailsClick}
+				/>
 			</div>
 			{isModalOpen && (
 				<JobDetailsModal
 					job={selectedJob}
 					fetchJobs={fetchJobs}
 					fetchAppliedJobs={fetchAppliedJobs}
-					fetchNotification={fetchNotification}
+					setNotification={setNotification}
+					setUnreadNotificationCount={setUnreadNotificationCount}
+					setAppliedJobs={setAppliedJobs}
+					setJobs={setJobs}
 					appliedJobs={appliedJobs}
 					onClosedd={() => {
 						setIsModalOpen(false);
@@ -2037,7 +1001,6 @@ export default function DashboardCandidates() {
 					isOpen={isProfileModalOpen}
 					onClose={handleCloseProfileModal}
 					candId={selectedCandidateId}
-					fetchProfiles={fetchProfiles}
 					profile={profile}
 					setProfile={setProfile}
 					loading={loading}
@@ -2053,12 +1016,14 @@ export default function DashboardCandidates() {
 					setIsDarkMode={setIsDarkMode}
 					appliedJob={appliedJobs}
 					examResults={examResults}
-					fetchExamResult={fetchExamResult}
-					fetchAppliedJobs={fetchAppliedJobs}
-					fetchJobs={fetchJobs}
-					fetchNotification={fetchNotification}
-					fetchProfiles={fetchProfiles}
+					setExamResults={setExamResults}
+					setAppliedJobs={setAppliedJobs}
+					setNotification={setNotification}
+					setUnreadNotificationCount={setUnreadNotificationCount}
+					setProfile={setProfile}
+					setLoading={setLoading}
 					openExamModal={openExamModal}
+					setJobs={setJobs}
 				/>
 			)}
 
@@ -2072,24 +1037,28 @@ export default function DashboardCandidates() {
 					jobTitle={selectedJobTitle}
 					jobPercentage={selectedJobPercentage}
 					jobPassingPoints={selectedJobPassingPoints}
-					fetchAppliedJobs={fetchAppliedJobs}
-					fetchJobs={fetchJobs}
-					fetchNotification={fetchNotification}
-					fetchExamResult={fetchExamResult}
+					setAppliedJobs={setAppliedJobs}
+					setNotification={setNotification}
+					setUnreadNotificationCount={setUnreadNotificationCount}
+					setExamResults={setExamResults}
 					startTimer={isExamModalOpen}
 					onClose={() => {
 						closeExamModal();
 						getDataFromSession("app_id");
 					}}
+					setJobs={setJobs}
 				/>
 			)}
 			{isJobOfferModalOpen && (
 				<JobOfferModal
 					jobOfferDetails={jobOfferDetails}
-					fetchJobOffer={fetchJobOffer}
-					fetchAppliedJobs={fetchAppliedJobs}
-					fetchJobs={fetchJobs}
-					fetchNotification={fetchNotification}
+					setJobOfferDetails={setJobOfferDetails}
+					setIsJobOfferModalOpen={setIsJobOfferModalOpen}
+					jobMId={jobMId}
+					setAppliedJobs={setAppliedJobs}
+					setJobs={setJobs}
+					setNotification={setNotification}
+					setUnreadNotificationCount={setUnreadNotificationCount}
 					appId={appId}
 					onClose={() => {
 						setIsJobOfferModalOpen(false);
@@ -2104,9 +1073,10 @@ export default function DashboardCandidates() {
 					jobTitle={jobTitle}
 					jobMId={jobMId}
 					onCancel={showCancelModal}
-					fetchAppliedJobs={fetchAppliedJobs}
-					fetchJobs={fetchJobs}
-					fetchNotification={fetchNotification}
+					setAppliedJobs={setAppliedJobs}
+					setJobs={setJobs}
+					setNotification={setNotification}
+					setUnreadNotificationCount={setUnreadNotificationCount}
 					onClose={() => setShowCancelModal(false)}
 				/>
 			)}
@@ -2114,6 +1084,7 @@ export default function DashboardCandidates() {
 				<SecuritySettingsModal
 					isOpen={securitySettingModalOpen}
 					onClose={() => setSecuritySettingModalOpen(false)}
+					isDarkMode={isDarkMode}
 				/>
 			)}
 

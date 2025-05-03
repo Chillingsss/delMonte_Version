@@ -28,7 +28,7 @@ import {
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 
-const SecuritySettingsModal = ({ onClose }) => {
+const SecuritySettingsModal = ({ onClose, isDarkMode }) => {
 	const [settingEverylogs, setSettingEverylogs] = useState(false);
 	const [settingDays, setSettingDays] = useState(2);
 	const [loading, setLoading] = useState(true);
@@ -122,23 +122,37 @@ const SecuritySettingsModal = ({ onClose }) => {
 	return (
 		<Sheet open={true} onOpenChange={(open) => !open && onClose()}>
 			<SheetContent
-				className="w-[calc(100%-70px)] sm:w-[540px] max-w-2xl rounded-l-lg sm:rounded-none overflow-hidden"
+				className={`w-[calc(100%-70px)] sm:w-[540px] max-w-2xl rounded-l-lg sm:rounded-none overflow-hidden ${
+					isDarkMode ? "bg-[#1C1919] text-white" : "bg-white text-black"
+				}`}
 				side="right"
 			>
 				<div className="flex flex-col h-full">
 					<SheetHeader className="border-b pb-4">
 						<div className="flex items-center gap-2">
-							<SheetTitle className="text-2xl font-bold text-primary">
+							<SheetTitle
+								className={`text-2xl font-bold ${
+									isDarkMode ? "text-white" : "text-black"
+								}`}
+							>
 								Security Settings
 							</SheetTitle>
 							<Badge
 								variant="outline"
-								className="bg-primary/10 text-primary border-primary/20"
+								className={`bg-primary/10 text-primary border-primary/20 ${
+									isDarkMode
+										? "dark:bg-[#1C1919] dark:text-white"
+										: "bg-white text-black"
+								}`}
 							>
 								2FA
 							</Badge>
 						</div>
-						<SheetDescription className="text-muted-foreground">
+						<SheetDescription
+							className={`text-muted-foreground ${
+								isDarkMode ? "text-white" : "text-black"
+							}`}
+						>
 							Configure your two-factor authentication (2FA) settings to enhance
 							account security.
 						</SheetDescription>
@@ -149,16 +163,34 @@ const SecuritySettingsModal = ({ onClose }) => {
 							{loading ? (
 								<div className="flex flex-col items-center justify-center py-8 space-y-3">
 									<div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-									<p className="text-center text-muted-foreground">
+									<p
+										className={`text-center ${
+											isDarkMode ? "text-white" : "text-black"
+										}`}
+									>
 										Loading your security settings...
 									</p>
 								</div>
 							) : (
 								<>
-									<Alert className="bg-blue-500/10 dark:bg-blue-500/5 border-blue-500/20 dark:border-blue-500/10 transition-all duration-300">
+									<Alert
+										className={`bg-blue-500/10 dark:bg-blue-500/5 border-blue-500/20 dark:border-blue-500/10 transition-all duration-300 ${
+											isDarkMode
+												? "dark:bg-[#1C1919] dark:text-white"
+												: "bg-white text-black"
+										}`}
+									>
 										<div className="flex gap-2">
-											<InfoIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-											<AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+											<InfoIcon
+												className={`h-5 w-5 ${
+													isDarkMode ? "text-yellow-500/90" : "text-yellow-600"
+												} flex-shrink-0 mt-0.5`}
+											/>
+											<AlertDescription
+												className={`text-sm ${
+													isDarkMode ? "text-yellow-500/90" : "text-yellow-600"
+												}`}
+											>
 												Two-factor authentication adds an extra layer of
 												security to your account by requiring a verification
 												code in addition to your password.
@@ -167,9 +199,21 @@ const SecuritySettingsModal = ({ onClose }) => {
 									</Alert>
 
 									{/* Security Status Indicator */}
-									<div className="bg-secondary/50 dark:bg-secondary/30 rounded-lg p-4 border">
+									<div
+										className={`bg-secondary/50 dark:bg-secondary/30 rounded-lg p-4 border ${
+											isDarkMode
+												? "dark:bg-[#1C1919] dark:text-white"
+												: "bg-white text-black"
+										}`}
+									>
 										<div className="flex items-center justify-between">
-											<h3 className="font-medium">Current Security Status</h3>
+											<h3
+												className={`font-medium ${
+													isDarkMode ? "text-white" : "text-black"
+												}`}
+											>
+												Current Security Status
+											</h3>
 											<div
 												className={cn(
 													"flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium",
@@ -200,11 +244,21 @@ const SecuritySettingsModal = ({ onClose }) => {
 									<Separator className="my-6" />
 
 									{/* Switch for Every Login */}
-									<div className="space-y-3 transition-all duration-300 p-3 rounded-lg -mx-3">
+									<div
+										className={`space-y-3 transition-all duration-300 p-3 rounded-lg -mx-3 ${
+											isDarkMode
+												? "dark:bg-[#1C1919] dark:text-white"
+												: "bg-white text-black"
+										}`}
+									>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<ShieldCheck className="h-5 w-5 text-primary" />
-												<span className="text-lg font-medium">
+												<span
+													className={`text-lg font-medium ${
+														isDarkMode ? "text-white" : "text-black"
+													}`}
+												>
 													Enable 2FA for Every Login
 												</span>
 											</div>
@@ -216,13 +270,23 @@ const SecuritySettingsModal = ({ onClose }) => {
 												}}
 											/>
 										</div>
-										<p className="text-sm text-muted-foreground pl-7">
+										<p
+											className={`text-sm ${
+												isDarkMode ? "text-white" : "text-black"
+											} pl-7`}
+										>
 											When enabled, you&apos;ll be required to enter a
 											verification code every time you log in, providing maximum
 											security for your account.
 										</p>
 										{settingEverylogs && (
-											<div className="mt-2 bg-green-500/10 dark:bg-green-500/5 text-green-700 dark:text-green-400 text-sm p-2 rounded-md border border-green-500/20 dark:border-green-500/10 pl-7">
+											<div
+												className={`mt-2 bg-green-500/10 dark:bg-green-500/5 text-green-700 dark:text-green-400 text-sm p-2 rounded-md border border-green-500/20 dark:border-green-500/10 pl-7 ${
+													isDarkMode
+														? "dark:bg-[#1C1919] dark:text-white"
+														: "bg-white text-black"
+												}`}
+											>
 												<CheckCircle2 className="h-4 w-4 inline mr-1" />
 												Maximum security enabled. You&apos;ll verify your
 												identity on every login.
@@ -241,7 +305,11 @@ const SecuritySettingsModal = ({ onClose }) => {
 										<div className="flex items-center justify-between mb-2">
 											<div className="flex items-center gap-2">
 												<Clock className="h-5 w-5 text-primary" />
-												<h3 className="text-lg font-medium">
+												<h3
+													className={`text-lg font-medium ${
+														isDarkMode ? "text-white" : "text-black"
+													}`}
+												>
 													2FA Validity Duration
 												</h3>
 											</div>
@@ -250,12 +318,20 @@ const SecuritySettingsModal = ({ onClose }) => {
 												size="sm"
 												onClick={() => setSettingDays(null)}
 												disabled={settingEverylogs || !settingDays}
-												className="text-xs h-8"
+												className={`text-xs h-8 ${
+													isDarkMode
+														? "dark:bg-[#1C1919] dark:text-white"
+														: "bg-white text-black"
+												}`}
 											>
 												Clear Selection
 											</Button>
 										</div>
-										<p className="text-sm text-muted-foreground mb-3 pl-7">
+										<p
+											className={`text-sm ${
+												isDarkMode ? "text-white" : "text-black"
+											} mb-3 pl-7`}
+										>
 											Choose how long your 2FA verification remains valid before
 											requiring re-verification. A shorter duration provides
 											better security.
@@ -284,7 +360,9 @@ const SecuritySettingsModal = ({ onClose }) => {
 														/>
 														<label
 															htmlFor={`day-${day}`}
-															className="text-base cursor-pointer w-full"
+															className={`text-base cursor-pointer w-full ${
+																isDarkMode ? "text-white" : "text-black"
+															}`}
 														>
 															{day} {day === 1 ? "day" : "days"}
 														</label>
@@ -293,7 +371,11 @@ const SecuritySettingsModal = ({ onClose }) => {
 											</RadioGroup>
 										</div>
 										{!settingEverylogs && settingDays === null && (
-											<p className="text-sm text-muted-foreground mt-3 pl-7 flex items-start gap-1.5">
+											<p
+												className={`text-sm text-muted-foreground mt-3 pl-7 flex items-start gap-1.5 ${
+													isDarkMode ? "text-white" : "text-black"
+												}`}
+											>
 												<InfoIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
 												<span>
 													2FA is currently disabled. Select a validity duration
@@ -302,7 +384,13 @@ const SecuritySettingsModal = ({ onClose }) => {
 											</p>
 										)}
 										{!settingEverylogs && settingDays !== null && (
-											<p className="text-sm text-amber-600 dark:text-amber-400 mt-3 pl-7 flex items-start gap-1.5 bg-amber-500/10 dark:bg-amber-500/5 p-2 rounded-md border border-amber-500/20 dark:border-amber-500/10">
+											<p
+												className={`text-sm text-amber-600 dark:text-amber-400 mt-3 pl-7 flex items-start gap-1.5 bg-amber-500/10 dark:bg-amber-500/5 p-2 rounded-md border border-amber-500/20 dark:border-amber-500/10 ${
+													isDarkMode
+														? "dark:bg-[#1C1919] dark:text-white"
+														: "bg-white text-black"
+												}`}
+											>
 												<InfoIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
 												<span>
 													You won&apos;t need to verify again on this device for{" "}
@@ -314,11 +402,29 @@ const SecuritySettingsModal = ({ onClose }) => {
 
 									<Separator className="my-6" />
 
-									<Alert className="bg-green-500/10 dark:bg-green-500/10 border-green-500/20">
-										<AlertDescription className="text-sm flex gap-2">
+									<Alert
+										className={`bg-green-500/10 dark:bg-green-500/10 border-green-500/20 ${
+											isDarkMode
+												? "dark:bg-[#1C1919] dark:text-white"
+												: "bg-white text-black"
+										}`}
+									>
+										<AlertDescription
+											className={`text-sm flex gap-2 ${
+												isDarkMode ? "text-white" : "text-black"
+											}`}
+										>
 											<ShieldCheck className="h-5 w-5 text-green-700 dark:text-green-400 flex-shrink-0 mt-0.5" />
-											<div className="text-green-700 dark:text-green-400">
-												<strong className="text-green-700 dark:text-green-400">
+											<div
+												className={`text-green-700 dark:text-green-400 ${
+													isDarkMode ? "text-white" : "text-black"
+												}`}
+											>
+												<strong
+													className={`text-green-700 dark:text-green-400 ${
+														isDarkMode ? "text-white" : "text-black"
+													}`}
+												>
 													Security Tip:
 												</strong>{" "}
 												For the highest level of protection, we recommend
@@ -339,7 +445,7 @@ const SecuritySettingsModal = ({ onClose }) => {
 						<Button
 							className={`w-full h-11 ${
 								formValid
-									? "bg-blue-500 text-white hover:bg-blue-600"
+									? "bg-gray-300 text-black hover:bg-gray-200"
 									: "bg-gray-300 text-gray-500 cursor-not-allowed"
 							}`}
 							onClick={handleSave}
@@ -359,7 +465,11 @@ const SecuritySettingsModal = ({ onClose }) => {
 								"Save Changes"
 							)}
 						</Button>
-						<p className="text-xs text-center text-muted-foreground">
+						<p
+							className={`text-xs text-center ${
+								isDarkMode ? "text-white" : "text-black"
+							}`}
+						>
 							Changes will be applied immediately to your account security
 							settings.
 						</p>

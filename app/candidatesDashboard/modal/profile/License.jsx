@@ -6,6 +6,9 @@ import UpdateLicense from "../update/updateLicense";
 const License = ({
 	profile,
 	isDarkMode,
+	setProfile,
+	setLoading,
+	session,
 	fetchProfile,
 	showAddModal,
 	setShowAddModal,
@@ -58,7 +61,9 @@ const License = ({
 							selectedLicense={selectedLicense}
 							licenses={licenses}
 							licenseType={licenseType}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 							fetchLicense={fetchLicense}
 						/>
@@ -170,7 +175,9 @@ const License = ({
 											selectedLicense={selectedLicense}
 											licenses={licenses}
 											licenseType={licenseType}
-											fetchProfile={fetchProfile}
+											setProfile={setProfile}
+											setLoading={setLoading}
+											session={session}
 											fetchLicense={fetchLicense}
 										/>
 									</div>

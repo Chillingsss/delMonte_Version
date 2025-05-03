@@ -10,6 +10,7 @@ import {
 import Select from "react-select";
 import { Toaster, toast } from "react-hot-toast";
 import Tesseract from "tesseract.js";
+import { fetchProfiles } from "@/app/utils/apiFunctions";
 
 const performSemanticAnalysis = async (text1, text2, threshold) => {
 	try {
@@ -42,7 +43,8 @@ const UpdateTraining = ({
 	showModal,
 	setShowModal,
 	train,
-	fetchProfile,
+	setProfile,
+	setLoading,
 	trainings,
 	selectedTraining,
 	fetchTraining,
@@ -59,7 +61,7 @@ const UpdateTraining = ({
 	});
 
 	const [isNewTraining, setIsNewTraining] = useState(true); // Track if adding a new training
-	const [loading, setLoading] = useState(false);
+	const [loadings, setLoadings] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState("");
 	const [formValid, setFormValid] = useState(false);
@@ -109,9 +111,9 @@ const UpdateTraining = ({
 			data.perT_name?.trim() &&
 				(data.perT_id ? true : false) &&
 				data.image &&
-				!loading
+				!loadings
 		);
-	}, [data, loading]);
+	}, [data, loadings]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -175,7 +177,7 @@ const UpdateTraining = ({
 	};
 
 	const handleSave = async () => {
-		setLoading(true);
+		setLoadings(true);
 		setProgress(0);
 		try {
 			// Simulate progress for different stages
@@ -236,7 +238,7 @@ const UpdateTraining = ({
 				toast.error(
 					`The certificate image does not match the selected training (Similarity: ${imageVsNameAnalysis.score}%, Required: ${data.perT_percentage}%)`
 				);
-				setLoading(false);
+				setLoadings(false);
 				return;
 			}
 
@@ -281,8 +283,9 @@ const UpdateTraining = ({
 				setProgress(100);
 				console.log("Training updated successfully.");
 				toast.success("Training updated successfully.");
-				if (fetchProfile) {
-					fetchProfile();
+				fetchProfiles(session, setProfile, setLoading);
+				if (fetchTraining) {
+					fetchTraining();
 				}
 				if (fetchTraining) {
 					fetchTraining();
@@ -296,7 +299,7 @@ const UpdateTraining = ({
 			console.error("Error updating training:", error);
 			toast.error("An error occurred while updating the training.");
 		} finally {
-			setLoading(false);
+			setLoadings(false);
 			setProgress(0);
 		}
 	};
@@ -499,11 +502,11 @@ const UpdateTraining = ({
 								: ""
 						}
 					>
-						{loading ? "Saving..." : "Save"}
+						{loadings ? "Saving..." : "Save"}
 					</button>
 				</div>
 
-				{loading && (
+				{loadings && (
 					<div className="fixed inset-0 bg-black/50 backdrop-blur-[4px] flex items-center justify-center z-50">
 						<div
 							className={`p-6 rounded-2xl shadow-xl w-96 border ${

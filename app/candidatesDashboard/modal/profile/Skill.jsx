@@ -6,7 +6,9 @@ import UpdateSkill from "../update/updateSkill";
 const Skill = ({
 	profile,
 	isDarkMode,
-	fetchProfile,
+	setProfile,
+	setLoading,
+	session,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
@@ -52,7 +54,9 @@ const Skill = ({
 							skill={selectedSkill}
 							// setUpdateTrigger={setUpdateTrigger}
 							skills={skills}
-							fetchProfile={fetchProfile}
+							setProfile={setProfile}
+							setLoading={setLoading}
+							session={session}
 							profile={profile}
 							fetchSkills={fetchSkills}
 						/>

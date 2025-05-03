@@ -19,9 +19,10 @@ import { handleJobApplication } from "@/app/utils/jobApplicationUtils";
 const JobDetailsModal = ({
 	job,
 	onClosedd,
-	fetchJobs,
-	fetchAppliedJobs,
-	fetchNotification,
+	setJobs,
+	setAppliedJobs,
+	setNotification,
+	setUnreadNotificationCount,
 	appliedJobs,
 	profile,
 }) => {
@@ -39,7 +40,6 @@ const JobDetailsModal = ({
 	const [progress, setProgress] = useState(0);
 
 	const getJobQualifications = async () => {
-		setIsLoading(true);
 		try {
 			const url = process.env.NEXT_PUBLIC_API_URL + "admin.php";
 			const formData = new FormData();
@@ -129,14 +129,14 @@ const JobDetailsModal = ({
 			await handleJobApplication({
 				profile,
 				setIsLoading,
-				setError,
 				setSuccess,
 				setIsProfileModalOpen,
 				setIsRedirecting,
 				session,
-				fetchAppliedJobs,
-				fetchNotification,
-				fetchJobs,
+				setAppliedJobs,
+				setNotification,
+				setUnreadNotificationCount,
+				setJobs,
 				onClosedd,
 				resumeText,
 				jobQualifications,
