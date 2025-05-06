@@ -263,6 +263,59 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 			}
 		}
 
+		// Skill validation: checks if ang skill kay supported sa education, experience, or training
+		async function isSkillValidated(skill, candidateInfo, encoder) {
+			const skillText = String(skill).toLowerCase();
+
+			// Check education
+			for (const edu of candidateInfo.education) {
+				const fields = [
+					edu.degree,
+					edu.field,
+					...(edu.relevantCourses || []),
+				].filter(Boolean);
+				for (const field of fields) {
+					const sim = await calculateSemanticSimilarity(
+						skillText,
+						String(field)
+					);
+					if (sim > 0.6) return true;
+				}
+			}
+
+			// Check experience
+			for (const exp of candidateInfo.experience) {
+				const fields = [
+					exp.position,
+					...(exp.responsibilities || []),
+					...(exp.skills || []),
+				].filter(Boolean);
+				for (const field of fields) {
+					const sim = await calculateSemanticSimilarity(
+						skillText,
+						String(field)
+					);
+					if (sim > 0.6) return true;
+				}
+			}
+
+			// Check training
+			for (const train of candidateInfo.training) {
+				const fields = [train.name, ...(train.relevantSkills || [])].filter(
+					Boolean
+				);
+				for (const field of fields) {
+					const sim = await calculateSemanticSimilarity(
+						skillText,
+						String(field)
+					);
+					if (sim > 0.6) return true;
+				}
+			}
+
+			return false;
+		}
+
 		// Calculate individual scores for each qualification using semantic similarity
 		const educationScores = await Promise.all(
 			safeJobInfo.education.map(async (jobEdu) => {
@@ -346,18 +399,37 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 				const bestMatch = Math.max(...candidateMatches);
 				const bestIndex = candidateMatches.findIndex((m) => m === bestMatch);
 				const matchedCandidate = flattenedCandidateSkills[bestIndex] || "";
-				const partialScore = Math.round(jobSkill.points * bestMatch);
+
+				// Validate the skill
+				let validated = false;
+				if (bestMatch > 0.3 && matchedCandidate) {
+					validated = await isSkillValidated(
+						matchedCandidate,
+						safeCandidateInfo,
+						encoder
+					);
+				}
+
+				const partialScore =
+					bestMatch > 0.3 && validated
+						? Math.round(jobSkill.points * bestMatch)
+						: 0;
+
 				return {
 					id: jobSkill.id,
 					qualification: jobSkill.name,
 					candidate: matchedCandidate,
 					points: jobSkill.points,
 					score: partialScore,
-					matched: bestMatch > 0.3,
+					matched: bestMatch > 0.3 && validated,
 					similarity: bestMatch,
 					explanation:
 						bestMatch > 0.3
-							? `Matched with ${Math.round(bestMatch * 100)}% similarity`
+							? validated
+								? `Matched and validated with ${Math.round(
+										bestMatch * 100
+								  )}% similarity`
+								: "Skill matched but not validated by education, experience, or training"
 							: "No significant match found",
 				};
 			})
@@ -536,10 +608,6 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 					safeJobInfo.knowledge
 				),
 			},
-			recommendations: generateStructuredRecommendations(
-				safeCandidateInfo,
-				safeJobInfo
-			),
 		};
 
 		console.log("Final result:", JSON.stringify(result, null, 2));
@@ -561,9 +629,6 @@ async function calculateCosineSimilarity(candidateText, jobRequirements) {
 	}
 }
 
-/**
- * Calculate similarity between two values
- */
 function calculateStringSimilarity(value1, value2) {
 	if (!value1 || !value2) return 0;
 
@@ -595,109 +660,6 @@ function calculateStringSimilarity(value1, value2) {
 	return commonWords.length / totalWords;
 }
 
-/**
- * Calculate score based on structured data comparison
- */
-function calculateStructuredScore(candidateData, jobData, fields, pointsField) {
-	if (
-		!Array.isArray(candidateData) ||
-		!Array.isArray(jobData) ||
-		candidateData.length === 0 ||
-		jobData.length === 0
-	) {
-		return 0;
-	}
-
-	try {
-		let totalScore = 0;
-		let totalComparisons = 0;
-		let maxPossibleScore = jobData.reduce(
-			(sum, item) => sum + (item[pointsField] || 0),
-			0
-		);
-
-		// Special handling for skills comparison
-		if (fields[0] === "name" && pointsField === "points") {
-			// Flatten candidate skills into a single array
-			const flattenedCandidateSkills = candidateData.flatMap(
-				(skillCategory) => skillCategory.items || []
-			);
-
-			// Compare each job skill with flattened candidate skills
-			for (const jobSkill of jobData) {
-				const jobSkillName = jobSkill.name?.trim().toLowerCase();
-				if (!jobSkillName) continue;
-
-				const hasMatch = flattenedCandidateSkills.some((candidateSkill) => {
-					const candidateSkillName = String(candidateSkill)
-						.trim()
-						.toLowerCase();
-					return (
-						calculateStringSimilarity(candidateSkillName, jobSkillName) > 0.7
-					);
-				});
-
-				if (hasMatch) {
-					totalScore += jobSkill[pointsField] || 0;
-				}
-				totalComparisons++;
-			}
-		} else {
-			// Original comparison logic for other categories
-			for (const candidateItem of candidateData) {
-				for (const jobItem of jobData) {
-					let itemScore = 0;
-					let fieldCount = 0;
-
-					for (const field of fields) {
-						const candidateValue = candidateItem[field];
-						const jobValue = jobItem[field];
-
-						if (candidateValue && jobValue) {
-							if (Array.isArray(candidateValue) && Array.isArray(jobValue)) {
-								const matches = candidateValue.filter((value) =>
-									jobValue.some(
-										(jobValue) =>
-											calculateStringSimilarity(value, jobValue) > 0.7
-									)
-								);
-								itemScore +=
-									(matches.length /
-										Math.max(candidateValue.length, jobValue.length)) *
-									100;
-							} else {
-								itemScore +=
-									calculateStringSimilarity(candidateValue, jobValue) * 100;
-							}
-							fieldCount++;
-						}
-					}
-
-					if (fieldCount > 0) {
-						const weightedScore =
-							((itemScore / fieldCount) * (jobItem[pointsField] || 0)) / 100;
-						totalScore += weightedScore;
-						totalComparisons++;
-					}
-				}
-			}
-		}
-
-		// Normalize the score based on maximum possible points
-		const normalizedScore =
-			maxPossibleScore > 0
-				? Math.round((totalScore / maxPossibleScore) * 100)
-				: 0;
-		return normalizedScore;
-	} catch (error) {
-		console.error("Error in calculateStructuredScore:", error);
-		return 0;
-	}
-}
-
-/**
- * Find matching items between candidate and job data
- */
 function findMatches(candidateData, jobData) {
 	if (!Array.isArray(candidateData) || !Array.isArray(jobData)) {
 		return [];
@@ -707,27 +669,45 @@ function findMatches(candidateData, jobData) {
 
 	// Special handling for skills
 	if (jobData.length > 0 && jobData[0].name && jobData[0].points) {
-		// Flatten candidate skills
+		// Flatten candidate skills from all categories
 		const flattenedCandidateSkills = candidateData.flatMap(
 			(skillCategory) => skillCategory.items || []
 		);
 
+		// Test each job skill against all candidate skills
 		for (const jobSkill of jobData) {
 			const jobSkillName = jobSkill.name?.trim().toLowerCase();
 			if (!jobSkillName) continue;
 
+			// Find all matching skills from candidate's skills
 			const matchingSkills = flattenedCandidateSkills.filter(
 				(candidateSkill) => {
 					const candidateSkillName = String(candidateSkill)
 						.trim()
 						.toLowerCase();
-					return (
-						calculateStringSimilarity(candidateSkillName, jobSkillName) > 0.7
+					const similarity = calculateStringSimilarity(
+						candidateSkillName,
+						jobSkillName
 					);
+					return similarity > 0.7;
 				}
 			);
 
-			matches.push(...matchingSkills);
+			// Add all matching skills to the results
+			if (matchingSkills.length > 0) {
+				matches.push({
+					jobSkill: jobSkillName,
+					matchingSkills: matchingSkills,
+					similarity: Math.max(
+						...matchingSkills.map((skill) =>
+							calculateStringSimilarity(
+								String(skill).trim().toLowerCase(),
+								jobSkillName
+							)
+						)
+					),
+				});
+			}
 		}
 	} else {
 		// Original matching logic for other categories
@@ -750,98 +730,6 @@ function findMatches(candidateData, jobData) {
 	}
 
 	return matches;
-}
-
-/**
- * Generate recommendations based on structured data comparison
- */
-function generateStructuredRecommendations(candidateInfo, jobInfo) {
-	const recommendations = [];
-
-	// Education recommendations
-	if (Array.isArray(jobInfo.education) && jobInfo.education.length > 0) {
-		const missingEducation = jobInfo.education.filter(
-			(jobEdu) =>
-				!candidateInfo.education.some(
-					(candidateEdu) =>
-						calculateStringSimilarity(
-							JSON.stringify(candidateEdu),
-							JSON.stringify(jobEdu)
-						) > 0.7
-				)
-		);
-		if (missingEducation.length > 0) {
-			recommendations.push(
-				`Consider pursuing: ${missingEducation
-					.map((edu) => edu.degree)
-					.join(", ")}`
-			);
-		}
-	}
-
-	// Skills recommendations
-	if (Array.isArray(jobInfo.skills) && jobInfo.skills.length > 0) {
-		const missingSkills = jobInfo.skills.flatMap(
-			(jobSkill) =>
-				jobSkill.items?.filter(
-					(skill) =>
-						!candidateInfo.skills.some((candidateSkill) =>
-							candidateSkill.items?.some(
-								(item) => calculateStringSimilarity(item, skill) > 0.7
-							)
-						)
-				) || []
-		);
-		if (missingSkills.length > 0) {
-			recommendations.push(
-				`Consider developing skills in: ${missingSkills.slice(0, 3).join(", ")}`
-			);
-		}
-	}
-
-	// Training recommendations
-	if (Array.isArray(jobInfo.training) && jobInfo.training.length > 0) {
-		const missingTraining = jobInfo.training.filter(
-			(jobTrain) =>
-				!candidateInfo.training.some(
-					(candidateTrain) =>
-						calculateStringSimilarity(
-							JSON.stringify(candidateTrain),
-							JSON.stringify(jobTrain)
-						) > 0.7
-				)
-		);
-		if (missingTraining.length > 0) {
-			recommendations.push(
-				`Consider obtaining training in: ${missingTraining
-					.map((train) => train.name)
-					.join(", ")}`
-			);
-		}
-	}
-
-	// Knowledge recommendations
-	if (Array.isArray(jobInfo.knowledge) && jobInfo.knowledge.length > 0) {
-		const missingKnowledge = jobInfo.knowledge.filter(
-			(jobKnow) =>
-				!candidateInfo.knowledge.some(
-					(candidateKnow) =>
-						calculateStringSimilarity(
-							JSON.stringify(candidateKnow),
-							JSON.stringify(jobKnow)
-						) > 0.7
-				)
-		);
-		if (missingKnowledge.length > 0) {
-			recommendations.push(
-				`Consider gaining knowledge in: ${missingKnowledge
-					.map((know) => know.name)
-					.join(", ")}`
-			);
-		}
-	}
-
-	return recommendations;
 }
 
 /**

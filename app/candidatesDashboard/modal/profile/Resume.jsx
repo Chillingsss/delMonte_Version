@@ -29,6 +29,7 @@ const Resume = ({
 	setIsResumeImageModalOpen,
 	showResumeModal,
 	setShowResumeModal,
+	currentDeleteName,
 }) => {
 	console.log("Profile:", profile);
 
@@ -338,7 +339,9 @@ const Resume = ({
 								</button>
 
 								<button
-									onClick={() => handleDeleteClick(res.canres_id)}
+									onClick={() =>
+										handleDeleteClick(res.canres_id, res.canres_file)
+									}
 									className={`p-2 rounded-full ${
 										isDarkMode
 											? "bg-gray-700 text-white hover:bg-gray-800"
@@ -353,7 +356,15 @@ const Resume = ({
 									isOpen={isModalOpen}
 									onRequestClose={() => setIsModalOpen(false)}
 									onConfirm={handleConfirmResumeDelete}
-									message="Are you sure you want to delete this Resume record?"
+									message={
+										<>
+											Are you sure you want to delete this Resume record{" "}
+											<span className="font-bold text-red-500">
+												{currentDeleteName}
+											</span>{" "}
+										</>
+									}
+									isDarkMode={isDarkMode}
 								/>
 							</div>
 

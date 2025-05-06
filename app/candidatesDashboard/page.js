@@ -69,6 +69,7 @@ import {
 	fetchReappliedJobs,
 	fetchExamResult,
 	fetchJobOffer,
+	markNotificationsAsRead,
 } from "../utils/apiFunctions";
 import JobList from "./components/JobList";
 import NotificationDropdown from "./components/NotificationDropdown";
@@ -259,33 +260,6 @@ export default function DashboardCandidates() {
 		setIsAppliedJobsModalOpen(false);
 	};
 
-	const markNotificationsAsRead = async () => {
-		try {
-			const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
-			const getUserIdFromCookie = () => {
-				if (typeof window !== "undefined") {
-					const tokenData = getDataFromCookie("auth_token");
-					if (tokenData && tokenData.userId) {
-						return tokenData.userId;
-					}
-				}
-				return null; // Return null if userId is not found or tokenData is invalid
-			};
-			const userId = session?.user?.id || getUserIdFromCookie();
-			console.log("User ID:", userId);
-
-			const formData = new FormData();
-			formData.append("operation", "markNotificationsAsRead");
-			formData.append("json", JSON.stringify({ cand_id: userId }));
-			await axios.post(url, formData);
-
-			// Reset the count to zero on the frontend
-			setUnreadNotificationCount(0);
-		} catch (error) {
-			console.error("Error marking notifications as read:", error);
-		}
-	};
-
 	const getInitialTheme = () => {
 		if (typeof window !== "undefined") {
 			// Check if running in the browser
@@ -439,7 +413,7 @@ export default function DashboardCandidates() {
 		setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
 		setIsUserDropdownOpen(false);
 		if (!isNotificationDropdownOpen) {
-			markNotificationsAsRead();
+			markNotificationsAsRead(session, setUnreadNotificationCount);
 		}
 	};
 
@@ -447,7 +421,7 @@ export default function DashboardCandidates() {
 		setIsNotificationDropdownOpenMobile(!isNotificationDropdownOpenMobile);
 		setIsUserDropdownOpenMobile(false);
 		if (!isNotificationDropdownOpenMobile) {
-			markNotificationsAsRead();
+			markNotificationsAsRead(session, setUnreadNotificationCount);
 		}
 	};
 
@@ -528,16 +502,6 @@ export default function DashboardCandidates() {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, [isMenuOpen]);
-
-	// console.log("name", userName);
-
-	// Setup inactivity monitoring
-	// useEffect(() => {
-	//   const cleanup = setupInactivityMonitoring();
-	//   return () => {
-	//     if (cleanup) cleanup();
-	//   };
-	// }, []);
 
 	const refreshTransactions = async () => {
 		setIsLoading(true);
@@ -1005,6 +969,7 @@ export default function DashboardCandidates() {
 					setProfile={setProfile}
 					loading={loading}
 					setLoading={setLoading}
+					isDarkMode={isDarkMode}
 				/>
 			)}
 

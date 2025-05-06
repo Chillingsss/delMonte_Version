@@ -22,6 +22,7 @@ const EmploymentHistory = ({
 	handleSaveEmploymentInfo,
 	handleEditEmploymentClick,
 	handleConfirmEmployementHistoryDelete,
+	currentDeleteName,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -115,7 +116,12 @@ const EmploymentHistory = ({
 										</button>
 
 										<button
-											onClick={() => handleDeleteClick(employment.empH_id)}
+											onClick={() =>
+												handleDeleteClick(
+													employment.empH_id,
+													employment.empH_positionName
+												)
+											}
 											className={`p-2 rounded-full ${
 												isDarkMode
 													? "bg-gray-700 text-white"
@@ -127,10 +133,19 @@ const EmploymentHistory = ({
 										</button>
 
 										<ConfirmationModal
+											isDarkMode={isDarkMode}
 											isOpen={isModalOpen}
 											onRequestClose={() => setIsModalOpen(false)}
 											onConfirm={handleConfirmEmployementHistoryDelete}
-											message="Are you sure you want to delete this employment record?"
+											message={
+												<>
+													Are you sure you want to delete this employment record{" "}
+													<span className="font-bold text-red-500">
+														{currentDeleteName}
+													</span>{" "}
+													?
+												</>
+											}
 										/>
 									</>
 								)}

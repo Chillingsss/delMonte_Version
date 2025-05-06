@@ -9,10 +9,10 @@ const License = ({
 	setProfile,
 	setLoading,
 	session,
-	fetchProfile,
 	showAddModal,
 	setShowAddModal,
 	handleDeleteClick,
+	currentDeleteName,
 	isModalOpen,
 	setIsModalOpen,
 	showLicenseModal,
@@ -24,7 +24,7 @@ const License = ({
 	fetchLicense,
 	handleConfirmLicenseDelete,
 	handleEditLicenseClick,
-  licenseType
+	licenseType,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -92,7 +92,9 @@ const License = ({
 								</button>
 
 								<button
-									onClick={() => handleDeleteClick(lic.license_id)}
+									onClick={() =>
+										handleDeleteClick(lic.license_id, lic.license_master_name)
+									}
 									className={`p-2 rounded-full ${
 										isDarkMode
 											? "bg-gray-700 text-white hover:bg-gray-800"
@@ -104,10 +106,18 @@ const License = ({
 								</button>
 
 								<ConfirmationModal
+									isDarkMode={isDarkMode}
 									isOpen={isModalOpen}
 									onRequestClose={() => setIsModalOpen(false)}
 									onConfirm={handleConfirmLicenseDelete}
-									message="Are you sure you want to delete this License record?"
+									message={
+										<>
+											Are you sure you want to delete this License record{" "}
+											<span className="font-bold text-red-500">
+												{currentDeleteName}
+											</span>{" "}
+										</>
+									}
 								/>
 							</div>
 

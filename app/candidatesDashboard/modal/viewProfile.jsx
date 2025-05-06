@@ -29,66 +29,10 @@ const ViewProfile = ({
 	setProfile,
 	loading,
 	setLoading,
+	isDarkMode,
 }) => {
 	console.log("viewProfile", profile);
 	const { data: session } = useSession();
-	// const [profile, setProfile] = useState({
-	// 	candidateInformation: {},
-	// 	educationalBackground: [],
-	// 	employmentHistory: {},
-	// 	skills: [],
-	// 	training: [],
-	// 	license: [],
-	// 	resume: [],
-	// });
-
-	const [isDarkMode, setIsDarkMode] = useState(() => {
-		const savedTheme = localStorage.getItem("appearance");
-		if (savedTheme === "dark") return true;
-		if (savedTheme === "light") return false;
-		return window.matchMedia("(prefers-color-scheme: dark)").matches;
-	});
-
-	useEffect(() => {
-		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-		const updateTheme = () => {
-			const savedTheme = localStorage.getItem("appearance");
-			if (savedTheme === "dark") {
-				setIsDarkMode(true);
-			} else if (savedTheme === "light") {
-				setIsDarkMode(false);
-			} else {
-				setIsDarkMode(mediaQuery.matches);
-			}
-		};
-
-		// Set initial theme
-		updateTheme();
-
-		// Listen for changes in localStorage
-		const handleStorageChange = (e) => {
-			if (e.key === "appearance") {
-				updateTheme();
-			}
-		};
-		window.addEventListener("storage", handleStorageChange);
-
-		// Listen for changes in system preference
-		const handleMediaQueryChange = (e) => {
-			const savedTheme = localStorage.getItem("appearance");
-			if (savedTheme === "system") {
-				setIsDarkMode(e.matches);
-			}
-		};
-		mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-		// Cleanup
-		return () => {
-			window.removeEventListener("storage", handleStorageChange);
-			mediaQuery.removeEventListener("change", handleMediaQueryChange);
-		};
-	}, []);
 	const [showResumeModal, setShowResumeModal] = useState(false);
 	const [selectedResume, setSelectedResume] = useState(null);
 	// const [loading, setLoading] = useState(true);
@@ -220,14 +164,14 @@ const ViewProfile = ({
 	}, []);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	// const [isModalConfirmOpen, setIsModalConfirmOpen] = useState(false);
 
 	const [currentDeleteId, setCurrentDeleteId] = useState(null);
+	const [currentDeleteName, setCurrentDeleteName] = useState(null);
 
-	const handleDeleteClick = (id) => {
+	const handleDeleteClick = (id, name) => {
 		setCurrentDeleteId(id);
+		setCurrentDeleteName(name);
 		setIsModalOpen(true);
-		// setIsModalConfirmOpen(true);
 	};
 
 	const fetchCourses = async () => {
@@ -981,7 +925,6 @@ const ViewProfile = ({
 						setLoading={setLoading}
 						session={session}
 						isDarkMode={isDarkMode}
-						setIsDarkMode={setIsDarkMode}
 						handleEditPasswordClick={handleEditPasswordClick}
 						handleEditEmailClick={handleEditEmailClick}
 						setIsSettingsOpen={setIsSettingsOpen}
@@ -1011,7 +954,6 @@ const ViewProfile = ({
 						setProfile={setProfile}
 						setLoading={setLoading}
 						isDarkMode={isDarkMode}
-						setIsDarkMode={setIsDarkMode}
 						session={session}
 						handleAddEducation={handleAddEducation}
 						showAddModal={showAddModal}
@@ -1027,6 +969,7 @@ const ViewProfile = ({
 						fetchCourseCategorys={fetchCourseCategorys}
 						handleEditClick={handleEditClick}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						handleEducationDeleteClick={handleEducationDeleteClick}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
@@ -1049,6 +992,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						isEditingEmploymentInfo={isEditingEmploymentInfo}
@@ -1074,6 +1018,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						setSelectedSkill={setSelectedSkill}
@@ -1100,6 +1045,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						setSelectedTraining={setSelectedTraining}
@@ -1111,6 +1057,8 @@ const ViewProfile = ({
 						setSelectedTrainingImage={setSelectedTrainingImage}
 						setIsTrainingImageModalOpen={setIsTrainingImageModalOpen}
 						handleConfirmTrainingDelete={handleConfirmTrainingDelete}
+						showTrainingModal={showTrainingModal}
+						setShowTrainingModal={setShowTrainingModal}
 					/>
 				);
 
@@ -1125,6 +1073,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						showKnowledgeModal={showKnowledgeModal}
@@ -1150,6 +1099,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						showLicenseModal={showLicenseModal}
@@ -1176,6 +1126,7 @@ const ViewProfile = ({
 						showAddModal={showAddModal}
 						setShowAddModal={setShowAddModal}
 						handleDeleteClick={handleDeleteClick}
+						currentDeleteName={currentDeleteName}
 						isModalOpen={isModalOpen}
 						setIsModalOpen={setIsModalOpen}
 						setSelectedResume={setSelectedResume}

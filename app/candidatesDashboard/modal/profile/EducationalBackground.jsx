@@ -31,6 +31,7 @@ const EducationalBackground = ({
 	setShowModalUpdateEduc,
 	setSelectedDiplomaImage,
 	setIsDiplomaImageModalOpen,
+	currentDeleteName,
 }) => {
 	// console.log("Profile:", profile);
 	return (
@@ -98,7 +99,12 @@ const EducationalBackground = ({
 								</button>
 
 								<button
-									onClick={() => handleDeleteClick(education.educ_back_id)}
+									onClick={() =>
+										handleDeleteClick(
+											education.educ_back_id,
+											education.courses_name
+										)
+									}
 									className={`p-2 rounded-full ${
 										isDarkMode
 											? "bg-gray-700 text-white"
@@ -110,10 +116,20 @@ const EducationalBackground = ({
 								</button>
 
 								<ConfirmationModal
+									isDarkMode={isDarkMode}
 									isOpen={isModalOpen}
 									onRequestClose={() => setIsModalOpen(false)}
 									onConfirm={handleEducationDeleteClick}
-									message="Are you sure you want to delete this educational background?"
+									message={
+										<>
+											Are you sure you want to delete this educational
+											background{" "}
+											<span className="font-bold text-red-500">
+												{currentDeleteName}
+											</span>{" "}
+											?
+										</>
+									}
 								/>
 							</div>
 
@@ -215,7 +231,6 @@ const EducationalBackground = ({
 											courseTypes={courseTypes}
 											courseCategory={courseCategory}
 											institutions={institutions}
-											fetchProfile={fetchProfile}
 											fetchCourses={fetchCourses}
 											fetchInstitutions={fetchInstitutions}
 											fetchCourseTypes={fetchCourseTypes}

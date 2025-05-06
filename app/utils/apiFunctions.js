@@ -211,7 +211,12 @@ export const fetchExamResult = async (session, setExamResults) => {
 	}
 };
 
-export const fetchJobOffer = async (session, jobMId, setJobOfferDetails, setIsJobOfferModalOpen) => {
+export const fetchJobOffer = async (
+	session,
+	jobMId,
+	setJobOfferDetails,
+	setIsJobOfferModalOpen
+) => {
 	try {
 		const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
 		const getUserIdFromCookie = () => {
@@ -251,5 +256,35 @@ export const fetchJobOffer = async (session, jobMId, setJobOfferDetails, setIsJo
 		}
 	} catch (error) {
 		console.error("Error fetching job offer:", error);
+	}
+};
+
+export const markNotificationsAsRead = async (
+	session,
+	setUnreadNotificationCount
+) => {
+	try {
+		const url = process.env.NEXT_PUBLIC_API_URL + "users.php";
+		const getUserIdFromCookie = () => {
+			if (typeof window !== "undefined") {
+				const tokenData = getDataFromCookie("auth_token");
+				if (tokenData && tokenData.userId) {
+					return tokenData.userId;
+				}
+			}
+			return null; // Return null if userId is not found or tokenData is invalid
+		};
+		const userId = session?.user?.id || getUserIdFromCookie();
+		console.log("User ID:", userId);
+
+		const formData = new FormData();
+		formData.append("operation", "markNotificationsAsRead");
+		formData.append("json", JSON.stringify({ cand_id: userId }));
+		await axios.post(url, formData);
+
+		// Reset the count to zero on the frontend
+		setUnreadNotificationCount(0);
+	} catch (error) {
+		console.error("Error marking notifications as read:", error);
 	}
 };

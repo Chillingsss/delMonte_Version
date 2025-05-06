@@ -1,4 +1,13 @@
-import { Edit, Lock, Settings, X } from "lucide-react";
+import {
+	ChevronRight,
+	Edit,
+	KeyRound,
+	Lock,
+	Mail,
+	Settings,
+	User,
+	X,
+} from "lucide-react";
 import React from "react";
 import UpdateEmail from "../update/updateEmail";
 import UpdatePassword from "../update/updatePassword";
@@ -60,47 +69,91 @@ const PersonalInformation = ({
 
 				{isSettingsOpen && (
 					<div
-						className={`absolute right-0 top-full mt-2 w-60 ${
-							isDarkMode ? "bg-gray-800 text-white" : "bg-white"
-						} rounded-md shadow-2xl z-10 p-3`}
+						className={`absolute right-0 top-full mt-2 w-80 rounded-xl ${
+							isDarkMode ? "bg-gray-800" : "bg-white"
+						} shadow-lg z-10 overflow-hidden border ${
+							isDarkMode ? "border-gray-700" : "border-gray-100"
+						} transition-all duration-200 ease-in-out`}
 					>
-						<div className="py-1">
+						{/* Header */}
+						<div className="px-5 py-4 border-b border-gray-100">
+							<div className="flex items-center gap-2">
+								<Edit className="w-5 h-5 text-blue-600" strokeWidth={2} />
+								<h3 className="font-semibold text-gray-900">
+									Account Settings
+								</h3>
+							</div>
+							<p className="text-sm text-gray-500 mt-1">
+								Update your personal information and security
+							</p>
+						</div>
+
+						{/* Menu Items */}
+						<div className="p-3 space-y-2">
+							{/* Personal Information */}
 							<button
 								onClick={() => {
 									handleEditPersonalClick();
 									setIsSettingsOpen(false);
 								}}
-								className={`flex items-center px-4 py-2 text-sm ${
-									isDarkMode ? "text-white" : "text-gray-700"
-								} hover:bg-gray-400 hover:text-white w-full text-left`}
+								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
 							>
-								<Edit className="w-4 h-4 mr-2" />
-								Personal Information
+								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 mr-3 flex-shrink-0">
+									<User className="w-5 h-5 text-blue-600" />
+								</div>
+								<div className="flex-1 text-left">
+									<span className="font-medium text-gray-900">
+										Personal Information
+									</span>
+									<p className="text-xs text-gray-500 mt-0.5">
+										Update your profile details
+									</p>
+								</div>
+								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
 							</button>
+
+							{/* Change Password */}
 							<button
 								onClick={() => {
 									handleEditPasswordClick();
 									setIsSettingsOpen(false);
 								}}
-								className={`flex items-center px-4 py-2 text-sm ${
-									isDarkMode ? "text-white" : "text-gray-700"
-								} hover:bg-gray-400 hover:text-white w-full text-left`}
+								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
 							>
-								<Lock className="w-4 h-4 mr-2" />
-								Change Password
+								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-50 mr-3 flex-shrink-0">
+									<KeyRound className="w-5 h-5 text-green-600" />
+								</div>
+								<div className="flex-1 text-left">
+									<span className="font-medium text-gray-900">
+										Change Password
+									</span>
+									<p className="text-xs text-gray-500 mt-0.5">
+										Update your security credentials
+									</p>
+								</div>
+								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-green-500 transition-colors" />
 							</button>
 
+							{/* Change Email */}
 							<button
 								onClick={() => {
 									handleEditEmailClick();
 									setIsSettingsOpen(false);
 								}}
-								className={`flex items-center px-4 py-2 text-sm ${
-									isDarkMode ? "text-white" : "text-gray-700"
-								} hover:bg-gray-400 hover:text-white w-full text-left`}
+								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
 							>
-								<Lock className="w-4 h-4 mr-2" />
-								Change Email
+								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-50 mr-3 flex-shrink-0">
+									<Mail className="w-5 h-5 text-purple-600" />
+								</div>
+								<div className="flex-1 text-left">
+									<span className="font-medium text-gray-900">
+										Change Email
+									</span>
+									<p className="text-xs text-gray-500 mt-0.5">
+										Update your contact address
+									</p>
+								</div>
+								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition-colors" />
 							</button>
 						</div>
 					</div>

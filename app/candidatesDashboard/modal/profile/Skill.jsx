@@ -14,16 +14,17 @@ const Skill = ({
 	handleDeleteClick,
 	isModalOpen,
 	setIsModalOpen,
-  setSelectedSkill,
+	setSelectedSkill,
 	selectedSkill,
 	skills,
 	fetchSkills,
-  handleEditSkillClick,
+	handleEditSkillClick,
 	handleConfirmSkillDelete,
 	showSkillModal,
 	setShowSkillModal,
-  setUpdateTrigger,
-  selectedIndex,
+	setUpdateTrigger,
+	selectedIndex,
+	currentDeleteName,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -84,7 +85,9 @@ const Skill = ({
 							</button>
 
 							<button
-								onClick={() => handleDeleteClick(skill.skills_id)}
+								onClick={() =>
+									handleDeleteClick(skill.skills_id, skill.perS_name)
+								}
 								className={`p-2 rounded-full ${
 									isDarkMode
 										? "bg-gray-700 text-white hover:bg-gray-800"
@@ -99,7 +102,15 @@ const Skill = ({
 								isOpen={isModalOpen}
 								onRequestClose={() => setIsModalOpen(false)}
 								onConfirm={handleConfirmSkillDelete}
-								message="Are you sure you want to delete this skill record?"
+								message={
+									<>
+										Are you sure you want to delete this skill record{" "}
+										<span className="font-bold text-red-500">
+											{currentDeleteName}
+										</span>{" "}
+									</>
+								}
+								isDarkMode={isDarkMode}
 							/>
 						</div>
 
@@ -134,7 +145,6 @@ const Skill = ({
 										selectedSkill={selectedSkill}
 										setUpdateTrigger={setUpdateTrigger}
 										skills={skills}
-										fetchProfile={fetchProfile}
 										profile={profile}
 										fetchSkills={fetchSkills}
 									/>

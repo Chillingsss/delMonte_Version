@@ -177,8 +177,8 @@ const JobList = ({
 									onClick={() => handleDetailsClick(job)}
 									className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-300 shadow-md ${
 										isDarkMode
-											? "bg-transparent hover:bg-[#004F39] text-gray-300 hover:text-gray-300 border-b-gray-300 border-b-2"
-											: "bg-transparent hover:bg-[#004F39] text-gray-700 hover:text-gray-100 border-b-gray-300 border-b-2"
+											? "bg-transparent hover:bg-green-500/10 text-gray-300 hover:text-green-400 border-b-green-500/10 border-b-2"
+											: "bg-transparent hover:bg-green-100 text-gray-700 hover:text-green-600 border-b-green-100 border-b-2"
 									}`}
 								>
 									View Details

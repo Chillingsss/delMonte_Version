@@ -22,7 +22,10 @@ const Training = ({
 	selectedIndex,
 	setSelectedTrainingImage,
 	setIsTrainingImageModalOpen,
-  handleConfirmTrainingDelete,
+	handleConfirmTrainingDelete,
+	currentDeleteName,
+	showTrainingModal,
+	setShowTrainingModal,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -91,7 +94,9 @@ const Training = ({
 								</button>
 
 								<button
-									onClick={() => handleDeleteClick(train.training_id)}
+									onClick={() =>
+										handleDeleteClick(train.training_id, train.perT_name)
+									}
 									className={`p-2 rounded-full ${
 										isDarkMode
 											? "bg-gray-700 text-white hover:bg-gray-800"
@@ -106,7 +111,15 @@ const Training = ({
 									isOpen={isModalOpen}
 									onRequestClose={() => setIsModalOpen(false)}
 									onConfirm={handleConfirmTrainingDelete}
-									message="Are you sure you want to delete this Training record?"
+									message={
+										<>
+											Are you sure you want to delete this Training record{" "}
+											<span className="font-bold text-red-500">
+												{currentDeleteName}
+											</span>{" "}
+										</>
+									}
+									isDarkMode={isDarkMode}
 								/>
 							</div>
 

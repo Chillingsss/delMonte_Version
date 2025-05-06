@@ -23,6 +23,7 @@ const Knowledge = ({
 	handleConfirmKnowledgeDelete,
 	handleEditKnowledgeClick,
 	selectedIndex,
+	currentDeleteName,
 }) => {
 	console.log("Profile:", profile);
 	return (
@@ -93,7 +94,9 @@ const Knowledge = ({
 								</button>
 
 								<button
-									onClick={() => handleDeleteClick(know.canknow_id)}
+									onClick={() =>
+										handleDeleteClick(know.canknow_id, know.knowledge_name)
+									}
 									className={`p-2 rounded-full ${
 										isDarkMode
 											? "bg-gray-700 text-white hover:bg-gray-800"
@@ -108,7 +111,16 @@ const Knowledge = ({
 									isOpen={isModalOpen}
 									onRequestClose={() => setIsModalOpen(false)}
 									onConfirm={handleConfirmKnowledgeDelete}
-									message="Are you sure you want to delete this Knowledge record?"
+									message={
+										<>
+											Are you sure you want to delete this Knowledge record{" "}
+											<span className="font-bold text-red-500">
+												{currentDeleteName}
+											</span>{" "}
+											?
+										</>
+									}
+									isDarkMode={isDarkMode}
 								/>
 							</div>
 
