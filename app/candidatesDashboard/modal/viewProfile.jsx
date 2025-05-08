@@ -927,6 +927,7 @@ const ViewProfile = ({
 						isDarkMode={isDarkMode}
 						handleEditPasswordClick={handleEditPasswordClick}
 						handleEditEmailClick={handleEditEmailClick}
+						settingsRef={settingsRef}
 						setIsSettingsOpen={setIsSettingsOpen}
 						isSettingsOpen={isSettingsOpen}
 						setShowPasswordModal={setShowPasswordModal}
@@ -1590,7 +1591,7 @@ const ViewProfile = ({
 				</div>
 			)}
 
-			{showResumeModal && selectedResume && (
+			{/* {showResumeModal && selectedResume && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="bg-white dark:bg-gray-800 rounded-lg w-3/4 h-3/4 p-6 relative">
 						<button
@@ -1623,7 +1624,7 @@ const ViewProfile = ({
 						</div>
 					</div>
 				</div>
-			)}
+			)} */}
 		</div>
 	);
 };

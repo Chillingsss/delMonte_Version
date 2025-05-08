@@ -40,124 +40,141 @@ const PersonalInformation = ({
 	setEditData,
 	handleChangeNotArray,
 }) => {
-	console.log("Profile:", profile);
 	return (
 		<div
 			className={`p-6 space-y-6 ${
 				isDarkMode ? "bg-[#1A202C] text-white" : "bg-[#F4F7FC]"
 			}`}
 		>
-			<h3
-				className={`text-2xl font-bold ${
-					isDarkMode ? "text-white" : "text-gray-800"
-				} mb-6`}
-			>
-				Personal Information
-			</h3>
-
-			<div className="relative flex items-end justify-end" ref={settingsRef}>
-				<button
-					onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-					className={`p-2 rounded-full ${
-						isDarkMode
-							? "bg-gray-700 text-white hover:bg-gray-500"
-							: "bg-gray-200 text-gray-600"
-					} hover:bg-gray-300 transition-colors duration-200 flex items-center justify-end`}
+			<div className="flex justify-between items-center mb-6">
+				<h3
+					className={`text-2xl font-semibold ${
+						isDarkMode ? "text-white" : "text-gray-800"
+					}`}
 				>
-					<Settings className="w-6 h-6" />
-				</button>
+					Personal Information
+				</h3>
 
-				{isSettingsOpen && (
-					<div
-						className={`absolute right-0 top-full mt-2 w-80 rounded-xl ${
-							isDarkMode ? "bg-gray-800" : "bg-white"
-						} shadow-lg z-10 overflow-hidden border ${
-							isDarkMode ? "border-gray-700" : "border-gray-100"
-						} transition-all duration-200 ease-in-out`}
+				<div className="relative" ref={settingsRef}>
+					<button
+						onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+						className={`p-2.5 rounded-full transition-all duration-200 ${
+							isDarkMode
+								? "bg-gray-700 text-white hover:bg-gray-600"
+								: "bg-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm"
+						}`}
 					>
-						{/* Header */}
-						<div className="px-5 py-4 border-b border-gray-100">
-							<div className="flex items-center gap-2">
-								<Edit className="w-5 h-5 text-blue-600" strokeWidth={2} />
-								<h3 className="font-semibold text-gray-900">
-									Account Settings
-								</h3>
+						<Settings className="w-6 h-6" />
+					</button>
+
+					{isSettingsOpen && (
+						<div
+							className={`absolute right-0 top-full mt-2 w-80 rounded-xl ${
+								isDarkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-100"
+							} shadow-xl z-10 overflow-hidden border ${
+								isDarkMode ? "border-gray-700" : "border-gray-100"
+							} transition-all duration-200 ease-in-out`}
+						>
+							{/* Header */}
+							<div className="px-6 py-4 border-b border-gray-100">
+								<div className="flex items-center gap-3">
+									<Edit className="w-5 h-5 text-blue-500" strokeWidth={2} />
+									<h3 className={`font-semibold ${
+										isDarkMode ? "text-white" : "text-gray-900"
+									}`}>
+										Account Settings
+									</h3>
+								</div>
+								<p className={`text-sm ${
+										isDarkMode ? "text-gray-400" : "text-gray-500"
+									} mt-1.5`}>
+									Update your personal information and security
+								</p>
 							</div>
-							<p className="text-sm text-gray-500 mt-1">
-								Update your personal information and security
-							</p>
+
+							{/* Menu Items */}
+							<div className="p-4 space-y-3">
+								{/* Personal Information */}
+								<button
+									onClick={() => {
+										handleEditPersonalClick();
+										setIsSettingsOpen(false);
+									}}
+									className={`flex items-center w-full p-3.5 rounded-xl ${isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"} transition-colors group`}
+								>
+									<div className="flex items-center justify-center w-11 h-11 rounded-full bg-blue-50 mr-4 flex-shrink-0">
+										<User className="w-5 h-5 text-blue-500" />
+									</div>
+									<div className="flex-1 text-left">
+										<span className={`font-medium ${
+											isDarkMode ? "text-white" : "text-gray-900"
+										}`}>
+											Personal Information
+										</span>
+										<p className={`text-sm ${
+											isDarkMode ? "text-gray-400" : "text-gray-500"
+										} mt-0.5`}>
+											Update your profile details
+										</p>
+									</div>
+									<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+								</button>
+
+								{/* Change Password */}
+								<button
+									onClick={() => {
+										handleEditPasswordClick();
+										setIsSettingsOpen(false);
+									}}
+									className={`flex items-center w-full p-3.5 rounded-xl ${isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"} transition-colors group`}
+								>
+									<div className="flex items-center justify-center w-11 h-11 rounded-full bg-green-50 mr-4 flex-shrink-0">
+										<KeyRound className="w-5 h-5 text-green-500" />
+									</div>
+									<div className="flex-1 text-left">
+										<span className={`font-medium ${
+											isDarkMode ? "text-white" : "text-gray-900"
+										}`}>
+											Change Password
+										</span>
+										<p className={`text-sm ${
+											isDarkMode ? "text-gray-400" : "text-gray-500"
+										} mt-0.5`}>
+											Update your security credentials
+										</p>
+									</div>
+									<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-green-500 transition-colors" />
+								</button>
+
+								{/* Change Email */}
+								<button
+									onClick={() => {
+										handleEditEmailClick();
+										setIsSettingsOpen(false);
+									}}
+									className={`flex items-center w-full p-3.5 rounded-xl ${isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"} transition-colors group`}
+								>
+									<div className="flex items-center justify-center w-11 h-11 rounded-full bg-purple-50 mr-4 flex-shrink-0">
+										<Mail className="w-5 h-5 text-purple-500" />
+									</div>
+									<div className="flex-1 text-left">
+										<span className={`font-medium ${
+											isDarkMode ? "text-white" : "text-gray-900"
+										}`}>
+											Change Email
+										</span>
+										<p className={`text-sm ${
+											isDarkMode ? "text-gray-400" : "text-gray-500"
+										} mt-0.5`}>
+											Update your contact address
+										</p>
+									</div>
+									<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition-colors" />
+								</button>
+							</div>
 						</div>
-
-						{/* Menu Items */}
-						<div className="p-3 space-y-2">
-							{/* Personal Information */}
-							<button
-								onClick={() => {
-									handleEditPersonalClick();
-									setIsSettingsOpen(false);
-								}}
-								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-							>
-								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 mr-3 flex-shrink-0">
-									<User className="w-5 h-5 text-blue-600" />
-								</div>
-								<div className="flex-1 text-left">
-									<span className="font-medium text-gray-900">
-										Personal Information
-									</span>
-									<p className="text-xs text-gray-500 mt-0.5">
-										Update your profile details
-									</p>
-								</div>
-								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
-							</button>
-
-							{/* Change Password */}
-							<button
-								onClick={() => {
-									handleEditPasswordClick();
-									setIsSettingsOpen(false);
-								}}
-								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-							>
-								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-50 mr-3 flex-shrink-0">
-									<KeyRound className="w-5 h-5 text-green-600" />
-								</div>
-								<div className="flex-1 text-left">
-									<span className="font-medium text-gray-900">
-										Change Password
-									</span>
-									<p className="text-xs text-gray-500 mt-0.5">
-										Update your security credentials
-									</p>
-								</div>
-								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-green-500 transition-colors" />
-							</button>
-
-							{/* Change Email */}
-							<button
-								onClick={() => {
-									handleEditEmailClick();
-									setIsSettingsOpen(false);
-								}}
-								className="flex items-center w-full p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-							>
-								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-50 mr-3 flex-shrink-0">
-									<Mail className="w-5 h-5 text-purple-600" />
-								</div>
-								<div className="flex-1 text-left">
-									<span className="font-medium text-gray-900">
-										Change Email
-									</span>
-									<p className="text-xs text-gray-500 mt-0.5">
-										Update your contact address
-									</p>
-								</div>
-								<ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-purple-500 transition-colors" />
-							</button>
-						</div>
-					</div>
-				)}
+					)}
+				</div>
 			</div>
 
 			{showPasswordModal && (
@@ -190,33 +207,12 @@ const PersonalInformation = ({
 				/>
 			)}
 
-			{isEditingPersonalInfo && (
-				<div className="flex space-x-2 mb-4">
-					<button
-						onClick={handleSavePersonalInfo}
-						className={`px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 ${
-							isDarkMode ? "bg-gray-700" : ""
-						}`}
-					>
-						Save Changes
-					</button>
-					<button
-						onClick={() => setIsEditingPersonalInfo(false)}
-						className={`px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 ${
-							isDarkMode ? "bg-gray-800" : ""
-						}`}
-					>
-						Cancel
-					</button>
-				</div>
-			)}
-
 			<div className="flex flex-col items-center mb-8">
 				<div className="relative mb-3">
 					<div
 						className={`w-32 h-32 rounded-full overflow-hidden border-4 ${
 							isDarkMode ? "border-gray-600" : "border-green-500"
-						} cursor-pointer hover:opacity-90 transition-opacity`}
+						} cursor-pointer hover:opacity-90 transition-all duration-200 shadow-md`}
 						onClick={() =>
 							profile.candidateInformation?.cand_profPic &&
 							setIsImageModalOpen(true)
@@ -231,7 +227,7 @@ const PersonalInformation = ({
 						) : (
 							<div
 								className={`w-full h-full flex items-center justify-center ${
-									isDarkMode ? "bg-gray-700" : "bg-gray-200"
+									isDarkMode ? "bg-gray-700" : "bg-gray-100"
 								}`}
 							>
 								<span
@@ -599,10 +595,6 @@ const PersonalInformation = ({
 													cameraContainer.remove();
 												}
 											};
-
-											// Start camera with proper video element attributes
-											// Make sure your HTML video element includes these attributes:
-											// <video autoplay playsinline></video>
 											startCamera();
 										}}
 										className={`w-full text-left px-4 py-2 text-sm cursor-pointer ${
@@ -747,53 +739,64 @@ const PersonalInformation = ({
 				)}
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+			{/* Information Grid */}
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{/* Name Section */}
 				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
 				>
 					<label
-						className={`text-gray-600 block text-sm font-normal ${
-							isDarkMode ? "text-white " : ""
-						}`}
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
 					>
-						Name:
+						Name
 					</label>
 					{isEditingPersonalInfo ? (
-						<>
+						<div className="space-y-3">
 							<input
 								type="text"
 								name="candidateInformation.cand_lastname"
 								value={editData.candidateInformation?.cand_lastname || ""}
 								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
+								placeholder="Last Name"
+								className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+									isDarkMode
+										? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+										: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+								} focus:outline-none focus:border-green-500 transition-colors`}
 							/>
 							<input
 								type="text"
 								name="candidateInformation.cand_firstname"
 								value={editData.candidateInformation?.cand_firstname || ""}
 								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
+								placeholder="First Name"
+								className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+									isDarkMode
+										? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+										: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+								} focus:outline-none focus:border-green-500 transition-colors`}
 							/>
 							<input
 								type="text"
 								name="candidateInformation.cand_middlename"
 								value={editData.candidateInformation?.cand_middlename || ""}
 								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
+								placeholder="Middle Name"
+								className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+									isDarkMode
+										? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+										: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+								} focus:outline-none focus:border-green-500 transition-colors`}
 							/>
-						</>
+						</div>
 					) : (
 						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
+							className={`text-base font-medium ${
+								isDarkMode ? "text-white" : "text-gray-800"
 							}`}
 						>
 							{profile.candidateInformation?.cand_lastname || "N/A"},{" "}
@@ -802,394 +805,420 @@ const PersonalInformation = ({
 						</p>
 					)}
 				</div>
-			</div>
 
-			{/* contact no */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{/* Contact Numbers Section */}
 				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
 				>
 					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
 					>
-						Contact No:
+						Contact Numbers
 					</label>
-					{isEditingPersonalInfo ? (
-						<>
-							<input
-								type="number"
-								name="candidateInformation.cand_contactNo"
-								value={editData.candidateInformation?.cand_contactNo || ""}
-								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
-							/>
-						</>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_contactNo || "N/A"}
-						</p>
-					)}
-				</div>
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Alternate Contact No:
-					</label>
-					{isEditingPersonalInfo ? (
-						<input
-							type="number"
-							name="candidateInformation.cand_alternatecontactNo"
-							value={
-								editData.candidateInformation?.cand_alternatecontactNo || ""
-							}
-							onChange={handleChangeNotArray}
-							className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-								isDarkMode ? "bg-gray-700 text-white" : ""
-							}`}
-						/>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_alternatecontactNo || "N/A"}
-						</p>
-					)}
-				</div>
-			</div>
-
-			{/* email address */}
-
-			{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"></div> */}
-
-			{/* Address */}
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Present Address:
-					</label>
-					{isEditingPersonalInfo ? (
-						<>
-							<input
-								type="text"
-								name="candidateInformation.cand_presentAddress"
-								value={editData.candidateInformation?.cand_presentAddress || ""}
-								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
-							/>
-						</>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_presentAddress || "N/A"}
-						</p>
-					)}
-				</div>
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Permanent Address:
-					</label>
-					{isEditingPersonalInfo ? (
-						<input
-							type="text"
-							name="candidateInformation.cand_permanentAddress"
-							value={editData.candidateInformation?.cand_permanentAddress || ""}
-							onChange={handleChangeNotArray}
-							className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-								isDarkMode ? "bg-gray-700 text-white" : ""
-							}`}
-						/>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_permanentAddress || "N/A"}
-						</p>
-					)}
-				</div>
-			</div>
-
-			{/* date of birth */}
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Date of Birth:
-					</label>
-					{isEditingPersonalInfo ? (
-						<>
-							<input
-								type="date"
-								name="candidateInformation.cand_dateofBirth"
-								value={editData.candidateInformation?.cand_dateofBirth || ""}
-								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
-							/>
-						</>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_dateofBirth || "N/A"}
-						</p>
-					)}
-				</div>
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal mb-2 ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Gender:
-					</label>
-					{isEditingPersonalInfo ? (
-						<div className="flex space-x-4">
-							<label className="inline-flex items-center">
+					<div className="space-y-3">
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Primary
+							</label>
+							{isEditingPersonalInfo ? (
 								<input
-									type="radio"
-									name="candidateInformation.cand_sex"
-									value="Male"
-									checked={editData.candidateInformation?.cand_sex === "Male"}
+									type="number"
+									name="candidateInformation.cand_contactNo"
+									value={editData.candidateInformation?.cand_contactNo || ""}
 									onChange={handleChangeNotArray}
-									className="form-radio h-5 w-5 text-green-600"
+									placeholder="Enter primary contact number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
 								/>
-								<span
-									className={`ml-2 text-gray-700 ${
-										isDarkMode ? "text-white" : ""
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
 									}`}
 								>
-									Male
-								</span>
-							</label>
-							<label className="inline-flex items-center">
-								<input
-									type="radio"
-									name="candidateInformation.cand_sex"
-									value="Female"
-									checked={editData.candidateInformation?.cand_sex === "Female"}
-									onChange={handleChangeNotArray}
-									className="form-radio h-5 w-5 text-green-600"
-								/>
-								<span
-									className={`ml-2 text-gray-700 ${
-										isDarkMode ? "text-white" : ""
-									}`}
-								>
-									Female
-								</span>
-							</label>
+									{profile.candidateInformation?.cand_contactNo || "N/A"}
+								</p>
+							)}
 						</div>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_sex || "N/A"}
-						</p>
-					)}
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Alternate
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="number"
+									name="candidateInformation.cand_alternatecontactNo"
+									value={
+										editData.candidateInformation?.cand_alternatecontactNo || ""
+									}
+									onChange={handleChangeNotArray}
+									placeholder="Enter alternate contact number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_alternatecontactNo ||
+										"N/A"}
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Address Section */}
+				<div
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
+				>
+					<label
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
+					>
+						Addresses
+					</label>
+					<div className="space-y-3">
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Present
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="text"
+									name="candidateInformation.cand_presentAddress"
+									value={
+										editData.candidateInformation?.cand_presentAddress || ""
+									}
+									onChange={handleChangeNotArray}
+									placeholder="Enter present address"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_presentAddress || "N/A"}
+								</p>
+							)}
+						</div>
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Permanent
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="text"
+									name="candidateInformation.cand_permanentAddress"
+									value={
+										editData.candidateInformation?.cand_permanentAddress || ""
+									}
+									onChange={handleChangeNotArray}
+									placeholder="Enter permanent address"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_permanentAddress || "N/A"}
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Personal Details Section */}
+				<div
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
+				>
+					<label
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
+					>
+						Personal Details
+					</label>
+					<div className="space-y-3">
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Date of Birth
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="date"
+									name="candidateInformation.cand_dateofBirth"
+									value={editData.candidateInformation?.cand_dateofBirth || ""}
+									onChange={handleChangeNotArray}
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_dateofBirth || "N/A"}
+								</p>
+							)}
+						</div>
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">Gender</label>
+							{isEditingPersonalInfo ? (
+								<div className="flex space-x-6">
+									<label className="inline-flex items-center">
+										<input
+											type="radio"
+											name="candidateInformation.cand_sex"
+											value="Male"
+											checked={
+												editData.candidateInformation?.cand_sex === "Male"
+											}
+											onChange={handleChangeNotArray}
+											className="form-radio h-4 w-4 text-green-500"
+										/>
+										<span
+											className={`ml-2 text-sm text-gray-700 ${
+												isDarkMode ? "text-white" : ""
+											}`}
+										>
+											Male
+										</span>
+									</label>
+									<label className="inline-flex items-center">
+										<input
+											type="radio"
+											name="candidateInformation.cand_sex"
+											value="Female"
+											checked={
+												editData.candidateInformation?.cand_sex === "Female"
+											}
+											onChange={handleChangeNotArray}
+											className="form-radio h-4 w-4 text-green-500"
+										/>
+										<span
+											className={`ml-2 text-sm text-gray-700 ${
+												isDarkMode ? "text-white" : ""
+											}`}
+										>
+											Female
+										</span>
+									</label>
+								</div>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_sex || "N/A"}
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Government IDs Section */}
+				<div
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
+				>
+					<label
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
+					>
+						Government IDs
+					</label>
+					<div className="space-y-3">
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								SSS Number
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="number"
+									name="candidateInformation.cand_sssNo"
+									value={editData.candidateInformation?.cand_sssNo || ""}
+									onChange={handleChangeNotArray}
+									placeholder="Enter SSS number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_sssNo || "N/A"}
+								</p>
+							)}
+						</div>
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								TIN Number
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="text"
+									name="candidateInformation.cand_tinNo"
+									value={editData.candidateInformation?.cand_tinNo || ""}
+									onChange={handleChangeNotArray}
+									placeholder="Enter TIN number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_tinNo || "N/A"}
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Health Insurance Section */}
+				<div
+					className={`p-5 rounded-lg shadow-md ${
+						isDarkMode ? "bg-gray-700" : "bg-gray-200"
+					} transition-all duration-200 hover:shadow-lg`}
+				>
+					<label
+						className={`text-sm font-medium ${
+							isDarkMode ? "text-gray-300" : "text-gray-600"
+						} block mb-2`}
+					>
+						Health Insurance
+					</label>
+					<div className="space-y-3">
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Philhealth Number
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="number"
+									name="candidateInformation.cand_philhealthNo"
+									value={editData.candidateInformation?.cand_philhealthNo || ""}
+									onChange={handleChangeNotArray}
+									placeholder="Enter Philhealth number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_philhealthNo || "N/A"}
+								</p>
+							)}
+						</div>
+						<div>
+							<label className="text-xs text-gray-500 block mb-1">
+								Pag-IBIG Number
+							</label>
+							{isEditingPersonalInfo ? (
+								<input
+									type="text"
+									name="candidateInformation.cand_pagibigNo"
+									value={editData.candidateInformation?.cand_pagibigNo || ""}
+									onChange={handleChangeNotArray}
+									placeholder="Enter Pag-IBIG number"
+									className={`w-full px-3 py-2 rounded-md border-2 text-sm ${
+										isDarkMode
+											? "bg-gray-600 border-gray-500 text-white placeholder-gray-400"
+											: "bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400"
+									} focus:outline-none focus:border-green-500 transition-colors`}
+								/>
+							) : (
+								<p
+									className={`text-base font-medium ${
+										isDarkMode ? "text-white" : "text-gray-800"
+									}`}
+								>
+									{profile.candidateInformation?.cand_pagibigNo || "N/A"}
+								</p>
+							)}
+						</div>
+					</div>
 				</div>
 			</div>
 
-			{/* sss no and tin no */}
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
+			{/* Action Buttons */}
+			{isEditingPersonalInfo && (
+				<div className="flex justify-end space-x-3 mt-6">
+					<button
+						onClick={() => setIsEditingPersonalInfo(false)}
+						className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+							isDarkMode
+								? "bg-gray-600 text-white hover:bg-gray-500"
+								: "bg-gray-100 text-gray-700 hover:bg-gray-200"
 						}`}
 					>
-						SSS NO:
-					</label>
-					{isEditingPersonalInfo ? (
-						<>
-							<input
-								type="number"
-								name="candidateInformation.cand_sssNo"
-								value={editData.candidateInformation?.cand_sssNo || ""}
-								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
-							/>
-						</>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_sssNo || "N/A"}
-						</p>
-					)}
-				</div>
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
+						Cancel
+					</button>
+					<button
+						onClick={handleSavePersonalInfo}
+						className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+							isDarkMode
+								? "bg-green-500 text-white hover:bg-green-600"
+								: "bg-green-500 text-white hover:bg-green-600"
 						}`}
 					>
-						TIN NO:
-					</label>
-					{isEditingPersonalInfo ? (
-						<input
-							type="gender"
-							name="candidateInformation.cand_tinNo"
-							value={editData.candidateInformation?.cand_tinNo || ""}
-							onChange={handleChangeNotArray}
-							className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-								isDarkMode ? "bg-gray-700 text-white" : ""
-							}`}
-						/>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_tinNo || "N/A"}
-						</p>
-					)}
+						Save Changes
+					</button>
 				</div>
-			</div>
-
-			{/* philhealt ug pagibig no */}
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Philhealth NO:
-					</label>
-					{isEditingPersonalInfo ? (
-						<>
-							<input
-								type="number"
-								name="candidateInformation.cand_philhealthNo"
-								value={editData.candidateInformation?.cand_philhealthNo || ""}
-								onChange={handleChangeNotArray}
-								className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-									isDarkMode ? "bg-gray-700 text-white" : ""
-								}`}
-							/>
-						</>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_philhealthNo || "N/A"}
-						</p>
-					)}
-				</div>
-				<div
-					className={`bg-gray-200 p-4 rounded-lg shadow-lg ${
-						isDarkMode ? "bg-gray-700 text-white" : ""
-					}`}
-				>
-					<label
-						className={`block text-gray-600 text-sm font-normal ${
-							isDarkMode ? "text-white" : ""
-						}`}
-					>
-						Pagibig NO:
-					</label>
-					{isEditingPersonalInfo ? (
-						<input
-							type="gender"
-							name="candidateInformation.cand_pagibigNo"
-							value={editData.candidateInformation?.cand_pagibigNo || ""}
-							onChange={handleChangeNotArray}
-							className={`text-gray-800 font-semibold mt-1 w-full -b-2 pb-2 bg-transparent ${
-								isDarkMode ? "bg-gray-700 text-white" : ""
-							}`}
-						/>
-					) : (
-						<p
-							className={`text-gray-800 font-semibold mt-1 ${
-								isDarkMode ? "text-white" : ""
-							}`}
-						>
-							{profile.candidateInformation?.cand_pagibigNo || "N/A"}
-						</p>
-					)}
-				</div>
-			</div>
+			)}
 		</div>
 	);
 };

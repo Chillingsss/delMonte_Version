@@ -134,7 +134,11 @@ const UserDropdown = ({
 						Security Settings
 					</button>
 
-					<div className="px-2 my-2 border-t border-gray-200 dark:border-gray-700" />
+					<div
+						className={`px-2 my-2 border-t ${
+							isDarkMode ? "border-gray-700" : "border-gray-200"
+						}`}
+					/>
 
 					<button
 						onClick={handleLogout}

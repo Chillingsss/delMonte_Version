@@ -25,6 +25,7 @@ const JobDetailsModal = ({
 	setUnreadNotificationCount,
 	appliedJobs,
 	profile,
+	isDarkMode,
 }) => {
 	const { data: session } = useSession();
 	const modalRef = useRef(null);
@@ -150,46 +151,6 @@ const JobDetailsModal = ({
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const getInitialTheme = () => {
-		const savedTheme = localStorage.getItem("appearance");
-		if (savedTheme && savedTheme !== "system") {
-			return savedTheme === "dark";
-		}
-
-		const prefersDark = window.matchMedia(
-			"(prefers-color-scheme: dark)"
-		).matches;
-		return prefersDark;
-	};
-
-	const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
-
-	// useEffect(() => {
-	//   const theme = isDarkMode ? "dark" : "light";
-	//   localStorage.setItem("theme", theme);
-	//   document.body.className = theme;
-	//   console.log("Setting theme:", theme);
-	// }, [isDarkMode]);
-
-	useEffect(() => {
-		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-		const handleSystemThemeChange = (e) => {
-			setIsDarkMode(e.matches);
-		};
-
-		mediaQuery.addEventListener("change", handleSystemThemeChange);
-
-		return () => {
-			mediaQuery.removeEventListener("change", handleSystemThemeChange);
-		};
-	}, []);
-
-	// Toggle function to switch themes manually
-	const toggleTheme = () => {
-		setIsDarkMode((prevMode) => !prevMode);
 	};
 
 	if (!job) return null;

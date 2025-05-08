@@ -929,7 +929,7 @@ export default function DashboardCandidates() {
 							size="40"
 							stroke="3"
 							speed="1"
-							color={isDarkMode ? "#188C54" : "#ffffff"}
+							color={isDarkMode ? "#ffffff" : "#ffffff"}
 						></l-line-spinner>
 					</div>
 				)}
@@ -946,8 +946,6 @@ export default function DashboardCandidates() {
 			{isModalOpen && (
 				<JobDetailsModal
 					job={selectedJob}
-					fetchJobs={fetchJobs}
-					fetchAppliedJobs={fetchAppliedJobs}
 					setNotification={setNotification}
 					setUnreadNotificationCount={setUnreadNotificationCount}
 					setAppliedJobs={setAppliedJobs}
@@ -958,6 +956,7 @@ export default function DashboardCandidates() {
 						getDataFromSession("jobId");
 					}}
 					profile={profile}
+					isDarkMode={isDarkMode}
 				/>
 			)}
 			{isProfileModalOpen && (
